@@ -47,6 +47,12 @@ import "agent-trace/styles.css";
 
 `events` is an array, an async iterator, or skip it and pass `eventsUrl="/sse"`.
 
+Until this is on the npm registry, install from GitHub:
+
+```bash
+npm i github:nimrodfisher/agent-trace
+```
+
 ---
 
 ## What your agent must emit
