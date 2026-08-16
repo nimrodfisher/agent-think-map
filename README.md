@@ -178,7 +178,7 @@ Maps thinking, `Skill`, `mcp__server__tool`, builtins, and subagents. Any other 
 | Teaching or demoing agents | A canvas that builds in real time. Replay from a fixture. No keys. |
 | Building on MCP / skills | First-class nodes, not another generic “function call” chip |
 
-Not a hosted LangSmith. Not a Sim-style workflow builder. **Embeddable visual traces** for the agent you already run.
+**Embeddable visual traces** for the agent you already run. Not a hosted dashboard you have to switch to.
 
 ---
 
@@ -189,7 +189,7 @@ npm test
 npm run dev
 ```
 
-MIT. Not affiliated with Sim.
+MIT.
 
 New architecture? Add an adapter that emits this protocol. PRs welcome.
 
