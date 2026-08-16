@@ -1,0 +1,20 @@
+{
+  "name": "@agent-trace/web-component",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agent-trace/react": "*",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7"
+  }
+}

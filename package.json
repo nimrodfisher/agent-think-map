@@ -1,0 +1,89 @@
+{
+  "name": "agent-trace",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Watch any AI agent think — skills, tools, and MCP, live in any chat UI.",
+  "keywords": [
+    "ai",
+    "agent",
+    "trace",
+    "mcp",
+    "claude",
+    "observability",
+    "nanoclaw"
+  ],
+  "homepage": "https://github.com/nimrodfisher/agent-trace",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nimrodfisher/agent-trace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nimrodfisher/agent-trace/issues"
+  },
+  "author": "Nimrod Fisher",
+  "type": "module",
+  "bin": {
+    "agent-trace": "./bin/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts",
+    "./element": "./src/element.ts",
+    "./claude": "./src/claude.ts",
+    "./styles.css": "./packages/react/src/styles.css"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "fixtures",
+    "packages",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "jsdelivr": "dist/element.cdn.js",
+  "unpkg": "dist/element.cdn.js",
+  "workspaces": [
+    "packages/*",
+    "packages/adapters/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "npm run dev -w @agent-trace/demo",
+    "build": "npm run build:cdn",
+    "build:cdn": "vite build --config vite.cdn.ts",
+    "prepublishOnly": "npm test && npm run build:cdn"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.8.4",
+    "elkjs": "^0.10.0",
+    "motion": "^12.23.12",
+    "zod": "^4.0.17",
+    "zustand": "^5.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

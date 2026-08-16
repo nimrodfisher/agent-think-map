@@ -1,0 +1,114 @@
+[
+  {
+    "type": "run.started",
+    "runId": "run-login-overflow",
+    "prompt": "File a GitHub issue for the login form overflowing on 320px screens.",
+    "ts": 0
+  },
+  {
+    "type": "node.started",
+    "id": "think-1",
+    "kind": "thinking",
+    "title": "Thinking",
+    "parentId": "user-run-login-overflow",
+    "ts": 120
+  },
+  {
+    "type": "node.delta",
+    "id": "think-1",
+    "text": "This is a layout bug on a frontend surface. I should load the frontend-engineer skill, read Login.tsx, then open an issue.",
+    "ts": 280
+  },
+  {
+    "type": "node.completed",
+    "id": "think-1",
+    "durationMs": 200,
+    "ts": 320
+  },
+  {
+    "type": "node.started",
+    "id": "skill-1",
+    "kind": "skill",
+    "title": "frontend-engineer",
+    "parentId": "think-1",
+    "reason": "Loaded frontend-engineer because the task matched that skill",
+    "ts": 340
+  },
+  {
+    "type": "node.completed",
+    "id": "skill-1",
+    "outputPreview": "Use a distinctive layout, check overflow, never ship a horizontal scroll on 320px.",
+    "durationMs": 18,
+    "ts": 358
+  },
+  {
+    "type": "node.started",
+    "id": "tool-read",
+    "kind": "tool",
+    "title": "Read",
+    "parentId": "skill-1",
+    "reason": "Used Read on src/Login.tsx",
+    "ts": 400
+  },
+  {
+    "type": "tool.input",
+    "id": "tool-read",
+    "partial": "{\"path\":\"src/Login.tsx\"}",
+    "ts": 420
+  },
+  {
+    "type": "node.completed",
+    "id": "tool-read",
+    "outputPreview": "export function Login() {\n  return <form className=\"flex w-[480px]\">...",
+    "durationMs": 24,
+    "ts": 444
+  },
+  {
+    "type": "node.started",
+    "id": "mcp-issue",
+    "kind": "mcp",
+    "title": "github / create_issue",
+    "parentId": "tool-read",
+    "reason": "Called create_issue on server github",
+    "ts": 500
+  },
+  {
+    "type": "tool.input",
+    "id": "mcp-issue",
+    "partial": "{\"title\":\"Login form overflows at 320px\",\"body\":\"The login form uses a fixed 480px width.\"}",
+    "ts": 540
+  },
+  {
+    "type": "node.completed",
+    "id": "mcp-issue",
+    "outputPreview": "Created issue #41 in acme/web",
+    "durationMs": 310,
+    "ts": 850
+  },
+  {
+    "type": "node.started",
+    "id": "answer-1",
+    "kind": "answer",
+    "title": "Answer",
+    "parentId": "mcp-issue",
+    "ts": 880
+  },
+  {
+    "type": "node.delta",
+    "id": "answer-1",
+    "text": "Opened GitHub issue #41. The login form is a fixed 480px flex row, so it overflows on 320px screens.",
+    "ts": 940
+  },
+  {
+    "type": "node.completed",
+    "id": "answer-1",
+    "outputPreview": "Opened GitHub issue #41. The login form is a fixed 480px flex row, so it overflows on 320px screens.",
+    "durationMs": 80,
+    "ts": 980
+  },
+  {
+    "type": "run.completed",
+    "runId": "run-login-overflow",
+    "ts": 1000
+  }
+]

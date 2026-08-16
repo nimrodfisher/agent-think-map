@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>agent-trace drop-in</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-trace@main/dist/styles.css"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      agent-simulator {
+        display: block;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Point events-url at your agent's SSE. npx agent-trace uses /sse. -->
+    <agent-simulator events-url="/sse" layout="overlay"></agent-simulator>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-trace@main/dist/element.cdn.js"
+    ></script>
+  </body>
+</html>

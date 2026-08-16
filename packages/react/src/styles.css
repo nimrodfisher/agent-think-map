@@ -1,0 +1,350 @@
+/* Agent Trace Canvas — drafting-table flight recorder
+   Palette is vellum + copper wire + lab phosphor, not cream/serif/terracotta
+   and not black/acid-green. Signature: the drawing phosphor beam. */
+
+.atc-root {
+  --atc-ink: #1c1915;
+  --atc-vellum: #e4d9c5;
+  --atc-card: #f6f0e4;
+  --atc-graphite: #5c564c;
+  --atc-phosphor: #1f6f5b;
+  --atc-phosphor-glow: rgba(31, 111, 91, 0.35);
+  --atc-copper: #b85a2a;
+  --atc-tape: #c4b49a;
+  --atc-rule: #c9bba3;
+  --atc-fail: #8c2f1b;
+  --atc-ok: #1f6f5b;
+  --atc-font-display: "Syne", "Avenir Next", sans-serif;
+  --atc-font-body: "Figtree", "Segoe UI", sans-serif;
+  --atc-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  color: var(--atc-ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(184, 90, 42, 0.08), transparent 55%),
+    var(--atc-vellum);
+  font-family: var(--atc-font-body);
+  letter-spacing: 0.01em;
+}
+
+.atc-root *,
+.atc-root *::before,
+.atc-root *::after {
+  box-sizing: inherit;
+}
+
+.atc-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.atc-root[data-layout="split"] .atc-stage {
+  grid-template-columns: minmax(16rem, 22%) minmax(0, 1fr) minmax(16rem, 24%);
+}
+
+.atc-root[data-layout="overlay"] .atc-stage {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.atc-chat {
+  min-width: 0;
+  border-right: 1px solid var(--atc-rule);
+  background: color-mix(in srgb, var(--atc-card) 80%, transparent);
+  overflow: auto;
+}
+
+.atc-canvas {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.atc-root[data-layout="overlay"] .atc-inspector {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 18rem;
+  max-height: calc(100% - 2rem);
+  z-index: 4;
+  box-shadow: 0 18px 40px rgba(28, 25, 21, 0.12);
+}
+
+.atc-inspector {
+  min-width: 0;
+  border-left: 1px solid var(--atc-rule);
+  background: var(--atc-card);
+  padding: 1.1rem 1.15rem 1.25rem;
+  overflow: auto;
+}
+
+.atc-kicker {
+  display: block;
+  font-family: var(--atc-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--atc-graphite);
+  margin-bottom: 0.35rem;
+}
+
+.atc-inspector h2 {
+  font-family: var(--atc-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.atc-spec {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.atc-spec dt {
+  font-family: var(--atc-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--atc-graphite);
+  margin-bottom: 0.2rem;
+}
+
+.atc-spec dd {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.atc-spec pre {
+  margin: 0;
+  font-family: var(--atc-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: color-mix(in srgb, var(--atc-ink) 6%, var(--atc-card));
+  padding: 0.55rem 0.6rem;
+  border-radius: 2px;
+  overflow: auto;
+}
+
+.atc-empty {
+  color: var(--atc-graphite);
+  font-size: 0.92rem;
+}
+
+.atc-timeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  padding: 0.65rem 0.85rem 0.8rem;
+  border-top: 1px solid var(--atc-rule);
+  background: color-mix(in srgb, var(--atc-tape) 55%, var(--atc-card));
+  overflow-x: auto;
+}
+
+.atc-span {
+  appearance: none;
+  border: 0;
+  background: var(--atc-card);
+  color: var(--atc-ink);
+  min-width: 5.5rem;
+  padding: 0.4rem 0.55rem 0.45rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: inset 0 -2px 0 var(--atc-rule);
+  font: inherit;
+}
+
+.atc-span:hover,
+.atc-span:focus-visible {
+  outline: 2px solid var(--atc-copper);
+  outline-offset: 1px;
+}
+
+.atc-span.is-active {
+  box-shadow: inset 0 -2px 0 var(--atc-copper);
+}
+
+.atc-span.is-failed {
+  box-shadow: inset 0 -2px 0 var(--atc-fail);
+}
+
+.atc-span .atc-kicker {
+  margin-bottom: 0.15rem;
+}
+
+.atc-span b {
+  display: block;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atc-node {
+  width: 240px;
+  background: var(--atc-card);
+  border: 1px solid var(--atc-rule);
+  border-radius: 3px;
+  padding: 0.7rem 0.8rem 0.75rem;
+  box-shadow: 0 1px 0 rgba(28, 25, 21, 0.04);
+}
+
+.atc-node header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atc-node h3 {
+  font-family: var(--atc-font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin: 0.15rem 0 0.35rem;
+  line-height: 1.2;
+}
+
+.atc-node p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--atc-graphite);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.atc-pulse {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--atc-rule);
+  flex-shrink: 0;
+}
+
+.atc-node.is-running .atc-pulse {
+  background: var(--atc-copper);
+  box-shadow: 0 0 0 0 var(--atc-copper);
+  animation: atc-pulse 1.2s ease-out infinite;
+}
+
+.atc-node.is-completed .atc-pulse {
+  background: var(--atc-phosphor);
+}
+
+.atc-node.is-failed .atc-pulse {
+  background: var(--atc-fail);
+}
+
+.atc-node.is-selected {
+  border-color: var(--atc-copper);
+  box-shadow: 0 0 0 1px var(--atc-copper);
+}
+
+.atc-node--thinking {
+  background: color-mix(in srgb, var(--atc-phosphor) 8%, var(--atc-card));
+}
+
+.atc-node--skill {
+  border-left: 3px solid var(--atc-ink);
+}
+
+.atc-node--mcp {
+  border-left: 3px solid var(--atc-phosphor);
+}
+
+.atc-node--tool {
+  border-left: 3px solid var(--atc-copper);
+}
+
+.atc-node--answer,
+.atc-node--result {
+  background: var(--atc-ink);
+  color: var(--atc-vellum);
+  border-color: var(--atc-ink);
+}
+
+.atc-node--answer p,
+.atc-node--result p,
+.atc-node--user .atc-kicker {
+  color: inherit;
+}
+
+.atc-node--answer p,
+.atc-node--result p {
+  opacity: 0.82;
+}
+
+.atc-node--user {
+  background: transparent;
+  border-style: dashed;
+}
+
+.react-flow__edge-path.atc-edge {
+  stroke: var(--atc-rule);
+  stroke-width: 1.6;
+}
+
+.react-flow__edge-path.atc-edge-beam {
+  stroke: var(--atc-phosphor);
+  stroke-width: 2.2;
+  fill: none;
+  stroke-dasharray: 64 280;
+  animation: atc-beam 1.6s linear infinite;
+  filter: drop-shadow(0 0 4px var(--atc-phosphor-glow));
+}
+
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-node-border-radius: 3px;
+  background: transparent !important;
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+@keyframes atc-beam {
+  to {
+    stroke-dashoffset: -344;
+  }
+}
+
+@keyframes atc-pulse {
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-node.is-running .atc-pulse,
+  .react-flow__edge-path.atc-edge-beam {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .atc-root[data-layout="split"] .atc-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(16rem, 1fr) auto;
+  }
+
+  .atc-chat,
+  .atc-inspector {
+    border: 0;
+    border-bottom: 1px solid var(--atc-rule);
+    max-height: 12rem;
+  }
+}

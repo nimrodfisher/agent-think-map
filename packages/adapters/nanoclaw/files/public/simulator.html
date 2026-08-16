@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent Trace Canvas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=IBM+Plex+Mono:wght@400&family=Syne:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #e4d9c5;
+        color: #1c1915;
+        font-family: Figtree, sans-serif;
+      }
+      agent-simulator {
+        display: block;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <agent-simulator events-url="/webhook/simulator" layout="overlay"></agent-simulator>
+    <script type="module">
+      // Point this at the built web component, or the demo app, once the package is linked.
+      import { defineAgentSimulator } from "/node_modules/@agent-trace/web-component/src/index.ts";
+      defineAgentSimulator();
+    </script>
+  </body>
+</html>

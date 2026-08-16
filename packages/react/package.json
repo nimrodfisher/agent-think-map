@@ -1,0 +1,31 @@
+{
+  "name": "@agent-trace/react",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agent-trace/core": "*",
+    "@agent-trace/protocol": "*",
+    "@xyflow/react": "^12.8.4",
+    "elkjs": "^0.10.0",
+    "motion": "^12.23.12",
+    "zustand": "^5.0.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
