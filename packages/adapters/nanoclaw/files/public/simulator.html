@@ -19,6 +19,7 @@
         color: #1c1915;
         font-family: Figtree, sans-serif;
       }
+      agent-think-map,
       agent-simulator {
         display: block;
         height: 100%;
@@ -26,7 +27,7 @@
     </style>
   </head>
   <body>
-    <agent-simulator events-url="/webhook/simulator" layout="overlay"></agent-simulator>
+    <agent-think-map events-url="/webhook/simulator" layout="overlay"></agent-think-map>
     <script type="module">
       // Point this at the built web component, or the demo app, once the package is linked.
       import { defineAgentSimulator } from "/node_modules/@agent-think-map/web-component/src/index.ts";

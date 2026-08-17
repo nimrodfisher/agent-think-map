@@ -68,11 +68,11 @@ if (!existsSync(cdnJs)) {
   <link rel="stylesheet" href="/styles.css" />
   <style>
     html, body { margin: 0; height: 100%; background: #e4d9c5; }
-    agent-simulator { display: block; height: 100%; }
+    agent-think-map { display: block; height: 100%; }
   </style>
 </head>
 <body>
-  <agent-simulator events-url="/sse" layout="overlay"></agent-simulator>
+  <agent-think-map events-url="/sse" layout="overlay"></agent-think-map>
   <script type="module" src="/element.js"></script>
 </body>
 </html>`;

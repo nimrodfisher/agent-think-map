@@ -2,7 +2,7 @@
   "name": "agent-think-map",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Watch any AI agent think — skills, tools, and MCP, live in any chat UI.",
+  "description": "Embeddable canvas that shows an agent's chain-of-thought, skills, tools, and MCP inside the chat UI you already ship.",
   "keywords": [
     "ai",
     "agent",

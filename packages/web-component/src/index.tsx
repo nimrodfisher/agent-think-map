@@ -48,10 +48,18 @@ export class AgentSimulatorElement extends HTMLElement {
   }
 }
 
-export function defineAgentSimulator(tag = "agent-simulator"): void {
+export function defineAgentSimulator(tag = "agent-think-map"): void {
   if (!customElements.get(tag)) {
     customElements.define(tag, AgentSimulatorElement);
   }
+  registerAlias("agent-think-map", tag);
+  registerAlias("agent-simulator", tag);
+}
+
+function registerAlias(name: string, primary: string): void {
+  if (name === primary || customElements.get(name)) return;
+  class AgentThinkMapAlias extends AgentSimulatorElement {}
+  customElements.define(name, AgentThinkMapAlias);
 }
 
 defineAgentSimulator();

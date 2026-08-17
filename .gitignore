@@ -15,3 +15,4 @@ coverage
 apps/demo/dist
 packages/*/dist
 packages/adapters/*/dist
+docs/demo-frames

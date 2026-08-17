@@ -68,7 +68,7 @@ Restart the host so the webhook handler registers:
 ncl groups restart --id <group-id>
 ```
 
-Open `http://127.0.0.1:$WEBHOOK_PORT/webhook/simulator` for SSE, and `public/simulator.html` (or serve it) to mount `<agent-simulator events-url="/webhook/simulator">`.
+Open `http://127.0.0.1:$WEBHOOK_PORT/webhook/simulator` for SSE, and `public/simulator.html` (or serve it) to mount `<agent-think-map events-url="/webhook/simulator">`.
 
 ## Verify
 

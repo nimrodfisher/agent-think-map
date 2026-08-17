@@ -10,11 +10,11 @@ export default function App() {
     <div className="demo-shell">
       <header className="demo-mast">
         <div>
-          <span className="atc-kicker">Flight recorder</span>
-          <h1>Watch the agent think</h1>
+          <span className="atc-kicker">In-product canvas</span>
+          <h1>See the agent think</h1>
           <p>
-            A live graph of this turn: which skill loaded, which tool ran, which MCP
-            server was called, and why.
+            Embeddable tracing for chain-of-thought, skills, tools, and MCP inside
+            the chat UI you already ship — not a hosted dashboard. No API key.
           </p>
         </div>
         <button type="button" className="demo-replay" onClick={() => setEpoch((n) => n + 1)}>
