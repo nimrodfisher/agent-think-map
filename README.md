@@ -147,21 +147,40 @@ data: {"type":"node.started",...}
 
 ```
 
-### Claude Agent SDK
+### Any agent (Claude, Codex, OpenAI)
+
+One ingest. The adapter sniffs the live stream and locks onto Claude Agent SDK, OpenAI Agents SDK, or Codex app-server JSON-RPC. It does not care which model is running.
 
 ```ts
-import { ClaudeTraceAdapter } from "agent-think-map/claude";
+import { TraceAdapter } from "agent-think-map";
 
-const adapter = new ClaudeTraceAdapter({ runId, prompt });
-for await (const message of query({
-  prompt,
-  options: { includePartialMessages: true },
-})) {
+const adapter = new TraceAdapter({ runId, prompt });
+for (const event of adapter.ingest(native)) push(event);
+```
+
+Codex app-server:
+
+```ts
+notification → adapter.ingest({ method, params })
+```
+
+OpenAI Agents SDK:
+
+```ts
+for await (const event of result.stream_events()) {
+  for (const frame of adapter.ingest(event)) push(frame);
+}
+```
+
+Claude Agent SDK:
+
+```ts
+for await (const message of query({ prompt, options: { includePartialMessages: true } })) {
   for (const event of adapter.ingest(message)) push(event);
 }
 ```
 
-Maps thinking, `Skill`, `mcp__server__tool`, builtins, and subagents. Any other runtime: emit the JSON yourself. Do not fork the UI.
+Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `agent-think-map/codex`. Any other runtime: emit the JSON yourself. Do not fork the UI.
 
 ### NanoClaw
 

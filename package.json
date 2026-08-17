@@ -10,6 +10,8 @@
     "think-map",
     "mcp",
     "claude",
+    "openai",
+    "codex",
     "observability",
     "nanoclaw"
   ],
@@ -31,6 +33,8 @@
     "./react": "./src/react.ts",
     "./element": "./src/element.ts",
     "./claude": "./src/claude.ts",
+    "./openai": "./src/openai.ts",
+    "./codex": "./src/openai.ts",
     "./styles.css": "./packages/react/src/styles.css"
   },
   "files": [

@@ -26,3 +26,5 @@ export type {
   TraceNode,
   TraceState,
 } from "../packages/core/src/index.js";
+export { TraceAdapter, detectTraceSource } from "../packages/adapters/auto/src/index.js";
+export type { TraceAdapterOptions, TraceSource } from "../packages/adapters/auto/src/index.js";
