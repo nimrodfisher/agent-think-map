@@ -14,7 +14,7 @@
         margin: 0;
         height: 100%;
       }
-      agent-simulator {
+      agent-think-map {
         display: block;
         height: 100%;
       }
@@ -22,7 +22,7 @@
   </head>
   <body>
     <!-- Point events-url at your agent's SSE. npx agent-think-map uses /sse. -->
-    <agent-simulator events-url="/sse" layout="overlay"></agent-simulator>
+    <agent-think-map events-url="/sse" layout="overlay"></agent-think-map>
     <script
       type="module"
       src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-trace@main/dist/element.cdn.js"
