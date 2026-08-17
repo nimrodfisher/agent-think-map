@@ -1,17 +1,7 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { motion } from "motion/react";
 import type { TraceNode } from "../../core/src/index.js";
-
-const KIND_LABEL: Record<string, string> = {
-  user: "Prompt",
-  thinking: "Thinking",
-  skill: "Skill",
-  mcp: "MCP",
-  tool: "Tool",
-  subagent: "Subagent",
-  result: "Result",
-  answer: "Answer",
-};
+import { KindKicker } from "./KindKicker.js";
 
 export function TraceNodeView({ data, selected }: NodeProps) {
   const node = data.node as TraceNode;
@@ -26,7 +16,7 @@ export function TraceNodeView({ data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Left} />
       <header>
-        <span className="atc-kicker">{KIND_LABEL[node.kind] ?? node.kind}</span>
+        <KindKicker kind={node.kind} />
         <span className="atc-pulse" aria-hidden="true" />
       </header>
       <h3>{node.title}</h3>

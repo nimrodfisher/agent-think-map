@@ -92,6 +92,12 @@
   margin-bottom: 0.35rem;
 }
 
+.atc-kind-emoji {
+  letter-spacing: 0;
+  text-transform: none;
+  margin-right: 0.35em;
+}
+
 .atc-inspector h2 {
   font-family: var(--atc-font-display);
   font-size: 1.15rem;
@@ -186,6 +192,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.atc-span-time {
+  display: block;
+  margin-top: 0.18rem;
+  font-family: var(--atc-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--atc-graphite);
+}
+
+.atc-gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  padding: 0 0.15rem;
+  font-family: var(--atc-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--atc-graphite);
 }
 
 .atc-node {

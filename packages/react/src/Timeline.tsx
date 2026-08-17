@@ -1,15 +1,6 @@
+import { KindKicker } from "./KindKicker.js";
+import { timelineMarks } from "./timelineMarks.js";
 import { useTraceStore } from "./store.js";
-
-const KIND_LABEL: Record<string, string> = {
-  user: "Prompt",
-  thinking: "Think",
-  skill: "Skill",
-  mcp: "MCP",
-  tool: "Tool",
-  subagent: "Sub",
-  result: "Out",
-  answer: "Answer",
-};
 
 export function Timeline() {
   const nodes = useTraceStore((state) => state.nodes);
@@ -18,17 +9,24 @@ export function Timeline() {
 
   return (
     <div className="atc-timeline" role="list">
-      {nodes.map((node) => (
-        <button
-          key={node.id}
-          type="button"
-          className={`atc-span is-${node.status}${selectedNodeId === node.id ? " is-active" : ""}`}
-          onClick={() => select(node.id)}
-        >
-          <span className="atc-kicker">{KIND_LABEL[node.kind] ?? node.kind}</span>
-          <b>{node.title}</b>
-        </button>
-      ))}
+      {timelineMarks(nodes).map((mark, index) =>
+        mark.type === "gap" ? (
+          <span key={`gap-${index}`} className="atc-gap" aria-hidden="true">
+            {mark.label}
+          </span>
+        ) : (
+          <button
+            key={mark.node.id}
+            type="button"
+            className={`atc-span is-${mark.node.status}${selectedNodeId === mark.node.id ? " is-active" : ""}`}
+            onClick={() => select(mark.node.id)}
+          >
+            <KindKicker kind={mark.node.kind} short />
+            <b>{mark.node.title}</b>
+            <span className="atc-span-time">{mark.durationLabel}</span>
+          </button>
+        ),
+      )}
     </div>
   );
 }

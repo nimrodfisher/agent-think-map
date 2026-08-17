@@ -1,15 +1,5 @@
+import { KindKicker } from "./KindKicker.js";
 import { useSelectedNode } from "./store.js";
-
-const KIND_LABEL: Record<string, string> = {
-  user: "Prompt",
-  thinking: "Thinking",
-  skill: "Skill",
-  mcp: "MCP",
-  tool: "Tool",
-  subagent: "Subagent",
-  result: "Result",
-  answer: "Answer",
-};
 
 export function Inspector() {
   const node = useSelectedNode();
@@ -25,7 +15,7 @@ export function Inspector() {
 
   return (
     <aside className="atc-inspector">
-      <span className="atc-kicker">{KIND_LABEL[node.kind] ?? node.kind}</span>
+      <KindKicker kind={node.kind} />
       <h2>{node.title}</h2>
       <dl className="atc-spec">
         <div>
