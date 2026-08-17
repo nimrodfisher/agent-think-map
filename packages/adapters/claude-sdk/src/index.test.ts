@@ -178,6 +178,39 @@ describe("ClaudeTraceAdapter", () => {
     expect(state.status).toBe("completed");
   });
 
+  it("maps result usage onto the run and the answer node", () => {
+    const adapter = new ClaudeTraceAdapter({
+      runId: "r1",
+      prompt: "x",
+      now: () => 40,
+    });
+    const events = eventsOf(adapter, [
+      {
+        type: "assistant",
+        message: { content: [{ type: "text", text: "Opened issue #41" }] },
+      },
+      {
+        type: "result",
+        result: "Opened issue #41",
+        usage: {
+          input_tokens: 1840,
+          output_tokens: 318,
+          cache_read_input_tokens: 400,
+        },
+        total_cost_usd: 0.041,
+      },
+    ]);
+
+    const state = reduceTraceAll(events);
+    expect(state.usage).toEqual({
+      inputTokens: 1840,
+      outputTokens: 318,
+      cacheReadTokens: 400,
+      costUsd: 0.041,
+    });
+    expect(state.nodes.find((n) => n.kind === "answer")?.usage).toEqual(state.usage);
+  });
+
   it("nests a Task subagent under its parent tool id", () => {
     const adapter = new ClaudeTraceAdapter({
       runId: "r1",

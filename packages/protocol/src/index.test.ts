@@ -36,6 +36,30 @@ describe("agentTraceEventSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts optional usage on node.completed and run.completed", () => {
+    const completed = {
+      type: "node.completed" as const,
+      id: "answer-1",
+      outputPreview: "Opened issue #41",
+      usage: {
+        inputTokens: 1204,
+        outputTokens: 318,
+        cacheReadTokens: 400,
+        costUsd: 0.041,
+      },
+      ts: 4,
+    };
+    const runDone = {
+      type: "run.completed" as const,
+      runId: "run-1",
+      usage: { inputTokens: 1204, outputTokens: 318, costUsd: 0.041 },
+      ts: 5,
+    };
+
+    expect(agentTraceEventSchema.parse(completed)).toEqual(completed);
+    expect(agentTraceEventSchema.parse(runDone)).toEqual(runDone);
+  });
+
   it("rejects a node.started event with an invalid kind", () => {
     const result = agentTraceEventSchema.safeParse({
       type: "node.started",

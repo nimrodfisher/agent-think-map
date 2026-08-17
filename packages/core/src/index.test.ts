@@ -127,6 +127,70 @@ describe("reduceTrace", () => {
     expect(state.status).toBe("failed");
   });
 
+  it("records usage on a completed node and on the run", () => {
+    const state = reduceTraceAll([
+      run,
+      {
+        type: "node.started",
+        id: "answer-1",
+        kind: "answer",
+        title: "Answer",
+        parentId: "user-run-1",
+        ts: 1300,
+      },
+      {
+        type: "node.completed",
+        id: "answer-1",
+        outputPreview: "Opened issue #41",
+        usage: { outputTokens: 52, costUsd: 0.0012 },
+        ts: 1301,
+      },
+      {
+        type: "run.completed",
+        runId: "run-1",
+        usage: { inputTokens: 1204, outputTokens: 318, costUsd: 0.041 },
+        ts: 1302,
+      },
+    ]);
+
+    expect(state.nodes.find((n) => n.id === "answer-1")?.usage).toEqual({
+      outputTokens: 52,
+      costUsd: 0.0012,
+    });
+    expect(state.usage).toEqual({
+      inputTokens: 1204,
+      outputTokens: 318,
+      costUsd: 0.041,
+    });
+  });
+
+  it("attaches run usage to an answer node that has none", () => {
+    const state = reduceTraceAll([
+      run,
+      {
+        type: "node.started",
+        id: "answer-1",
+        kind: "answer",
+        title: "Answer",
+        parentId: "user-run-1",
+        ts: 1300,
+      },
+      { type: "node.completed", id: "answer-1", outputPreview: "Opened issue #41", ts: 1301 },
+      {
+        type: "run.completed",
+        runId: "run-1",
+        usage: { inputTokens: 1840, outputTokens: 318, costUsd: 0.041 },
+        ts: 1302,
+      },
+    ]);
+
+    expect(state.nodes.find((n) => n.id === "answer-1")?.usage).toEqual({
+      inputTokens: 1840,
+      outputTokens: 318,
+      costUsd: 0.041,
+    });
+  });
+
   it("completes the run without dropping earlier nodes", () => {
     const state = reduceTraceAll([
       run,

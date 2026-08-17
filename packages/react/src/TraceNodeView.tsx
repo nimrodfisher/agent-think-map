@@ -2,10 +2,12 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { motion } from "motion/react";
 import type { TraceNode } from "../../core/src/index.js";
 import { KindKicker } from "./KindKicker.js";
+import { formatUsageCompact } from "./usage.js";
 
 export function TraceNodeView({ data, selected }: NodeProps) {
   const node = data.node as TraceNode;
   const preview = node.reason || node.text || node.outputPreview || node.error || "";
+  const compact = formatUsageCompact(node.usage ?? {});
 
   return (
     <motion.article
@@ -21,6 +23,7 @@ export function TraceNodeView({ data, selected }: NodeProps) {
       </header>
       <h3>{node.title}</h3>
       {preview ? <p>{preview}</p> : null}
+      {compact ? <p className="atc-node-usage">{compact}</p> : null}
       <Handle type="source" position={Position.Right} />
     </motion.article>
   );

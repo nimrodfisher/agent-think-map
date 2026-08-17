@@ -203,6 +203,17 @@
   color: var(--atc-graphite);
 }
 
+.atc-span-usage,
+.atc-node .atc-node-usage {
+  display: block;
+  margin-top: 0.12rem;
+  font-family: var(--atc-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--atc-phosphor);
+  -webkit-line-clamp: 1;
+}
+
 .atc-gap {
   display: flex;
   align-items: center;

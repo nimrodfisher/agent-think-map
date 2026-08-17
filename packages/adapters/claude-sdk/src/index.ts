@@ -1,4 +1,4 @@
-import type { AgentTraceEvent, NodeKind } from "../../../protocol/src/index.js";
+import type { AgentTraceEvent, NodeKind, TraceUsage } from "../../../protocol/src/index.js";
 import {
   classifyToolName,
   reasonFor,
@@ -24,6 +24,26 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === "object"
     ? (value as Record<string, unknown>)
     : undefined;
+}
+
+function numberField(
+  record: Record<string, unknown> | undefined,
+  key: string,
+): number | undefined {
+  const value = record?.[key];
+  return typeof value === "number" ? value : undefined;
+}
+
+function usageFromClaude(message: Record<string, unknown>): TraceUsage | undefined {
+  const raw = asRecord(message.usage);
+  const usage: TraceUsage = {
+    inputTokens: numberField(raw, "input_tokens"),
+    outputTokens: numberField(raw, "output_tokens"),
+    cacheReadTokens: numberField(raw, "cache_read_input_tokens"),
+    cacheCreationTokens: numberField(raw, "cache_creation_input_tokens"),
+    costUsd: numberField(message, "total_cost_usd"),
+  };
+  return Object.values(usage).some((value) => value !== undefined) ? usage : undefined;
 }
 
 function preview(value: unknown): string {
@@ -286,12 +306,17 @@ export class ClaudeTraceAdapter {
 
   private onResult(message: Record<string, unknown>): AgentTraceEvent[] {
     const events: AgentTraceEvent[] = [];
+    const usage = usageFromClaude(message);
     if (!this.answerId && typeof message.result === "string" && message.result.trim()) {
       events.push(...this.emitAnswer(message.result));
+    }
+    if (usage && this.answerId) {
+      events.push({ type: "node.completed", id: this.answerId, usage, ts: this.ts() });
     }
     events.push({
       type: "run.completed",
       runId: this.options.runId,
+      usage,
       ts: this.ts(),
     });
     return events;

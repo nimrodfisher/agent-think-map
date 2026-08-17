@@ -31,6 +31,22 @@ function redact(text: string): string {
     .replace(/\bBearer\s+\S+/gi, "[redacted]");
 }
 
+function usageFromResult(message: Record<string, unknown>): Record<string, number> | undefined {
+  const raw = message.usage;
+  const bag = raw !== null && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const usage: Record<string, number> = {};
+  if (typeof bag.input_tokens === "number") usage.inputTokens = bag.input_tokens;
+  if (typeof bag.output_tokens === "number") usage.outputTokens = bag.output_tokens;
+  if (typeof bag.cache_read_input_tokens === "number") {
+    usage.cacheReadTokens = bag.cache_read_input_tokens;
+  }
+  if (typeof bag.cache_creation_input_tokens === "number") {
+    usage.cacheCreationTokens = bag.cache_creation_input_tokens;
+  }
+  if (typeof message.total_cost_usd === "number") usage.costUsd = message.total_cost_usd;
+  return Object.keys(usage).length ? usage : undefined;
+}
+
 class MiniAdapter {
   opened = false;
   lastId: string;
@@ -66,7 +82,10 @@ class MiniAdapter {
         }
       }
     }
-    if (msg.type === "result") events.push({ type: "run.completed", runId: this.runId, ts });
+    if (msg.type === "result") {
+      const usage = usageFromResult(message as Record<string, unknown>);
+      events.push({ type: "run.completed", runId: this.runId, ts, ...(usage ? { usage } : {}) });
+    }
     return events;
   }
   private stream(event: Record<string, unknown>, ts: number): TraceEvent[] {

@@ -2,10 +2,12 @@ export {
   agentTraceEventSchema,
   parseAgentTraceEvent,
   nodeKindSchema,
+  usageSchema,
 } from "../packages/protocol/src/index.js";
 export type {
   AgentTraceEvent,
   NodeKind,
+  TraceUsage,
 } from "../packages/protocol/src/index.js";
 export {
   classifyToolName,

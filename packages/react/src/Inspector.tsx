@@ -1,14 +1,51 @@
+import type { TraceUsage } from "../../protocol/src/index.js";
 import { KindKicker } from "./KindKicker.js";
-import { useSelectedNode } from "./store.js";
+import { useSelectedNode, useTraceStore } from "./store.js";
+import { formatUsageDetail } from "./usage.js";
+
+function UsageFields({ usage }: { usage?: TraceUsage }) {
+  if (!usage) return null;
+  const detail = formatUsageDetail(usage);
+  return (
+    <>
+      {detail.tokens ? (
+        <div>
+          <dt>Tokens</dt>
+          <dd>{detail.tokens}</dd>
+        </div>
+      ) : null}
+      {detail.cache ? (
+        <div>
+          <dt>Cache</dt>
+          <dd>{detail.cache}</dd>
+        </div>
+      ) : null}
+      {detail.cost ? (
+        <div>
+          <dt>Cost</dt>
+          <dd>{detail.cost}</dd>
+        </div>
+      ) : null}
+    </>
+  );
+}
 
 export function Inspector() {
   const node = useSelectedNode();
+  const runUsage = useTraceStore((state) => state.usage);
 
   if (!node) {
+    const detail = runUsage ? formatUsageDetail(runUsage) : {};
+    const hasUsage = Boolean(detail.tokens || detail.cache || detail.cost);
     return (
       <aside className="atc-inspector">
         <span className="atc-kicker">Inspector</span>
         <p className="atc-empty">Select a step on the canvas or the tape to see why it ran.</p>
+        {hasUsage ? (
+          <dl className="atc-spec">
+            <UsageFields usage={runUsage} />
+          </dl>
+        ) : null}
       </aside>
     );
   }
@@ -50,6 +87,7 @@ export function Inspector() {
             <dd>{node.durationMs} ms</dd>
           </div>
         ) : null}
+        <UsageFields usage={node.usage} />
       </dl>
     </aside>
   );

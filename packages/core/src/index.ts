@@ -1,4 +1,4 @@
-import type { AgentTraceEvent, NodeKind } from "../../protocol/src/index.js";
+import type { AgentTraceEvent, NodeKind, TraceUsage } from "../../protocol/src/index.js";
 
 export type NodeStatus = "running" | "completed" | "failed";
 export type RunStatus = "idle" | "running" | "completed" | "failed";
@@ -17,6 +17,7 @@ export interface TraceNode {
   startedAt: number;
   completedAt?: number;
   durationMs?: number;
+  usage?: TraceUsage;
 }
 
 export interface TraceEdge {
@@ -35,6 +36,7 @@ export interface TraceState {
   edges: TraceEdge[];
   selectedNodeId?: string;
   activeNodeId?: string;
+  usage?: TraceUsage;
 }
 
 export const initialTraceState: TraceState = {
@@ -133,23 +135,27 @@ export function reduceTrace(
       });
     }
     case "node.completed": {
+      const existing = state.nodes.find((node) => node.id === event.id);
       return {
         ...updateNode(state, event.id, {
           status: "completed",
-          outputPreview: event.outputPreview,
-          durationMs: event.durationMs,
+          outputPreview: event.outputPreview ?? existing?.outputPreview,
+          durationMs: event.durationMs ?? existing?.durationMs,
           completedAt: event.ts,
+          usage: event.usage ?? existing?.usage,
         }),
         activeNodeId:
           state.activeNodeId === event.id ? undefined : state.activeNodeId,
       };
     }
     case "node.failed": {
+      const existing = state.nodes.find((node) => node.id === event.id);
       return {
         ...updateNode(state, event.id, {
           status: "failed",
           error: event.error,
           completedAt: event.ts,
+          usage: event.usage ?? existing?.usage,
         }),
         status: "failed",
         activeNodeId:
@@ -157,11 +163,22 @@ export function reduceTrace(
       };
     }
     case "run.completed": {
+      let nodes = state.nodes;
+      if (event.usage) {
+        const answer = [...nodes].reverse().find((node) => node.kind === "answer");
+        if (answer && !answer.usage) {
+          nodes = nodes.map((node) =>
+            node.id === answer.id ? { ...node, usage: event.usage } : node,
+          );
+        }
+      }
       return {
         ...state,
+        nodes,
         status: state.status === "failed" ? "failed" : "completed",
         completedAt: event.ts,
         activeNodeId: undefined,
+        usage: event.usage ?? state.usage,
       };
     }
     default: {

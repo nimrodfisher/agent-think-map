@@ -137,8 +137,8 @@ One JSON object per step. That is the integration. This is what makes it an **op
 | `node.started` | A step begins (`kind`: `thinking` `skill` `mcp` `tool` `subagent` `answer`) |
 | `node.delta` | Streaming text |
 | `tool.input` | Tool args |
-| `node.completed` / `node.failed` | Step ends |
-| `run.completed` | Turn over |
+| `node.completed` / `node.failed` | Step ends. Optional `usage` (tokens / `costUsd`) when the runtime reports it |
+| `run.completed` | Turn over. Optional `usage`: `{ inputTokens, outputTokens, costUsd }` |
 
 Send as SSE:
 

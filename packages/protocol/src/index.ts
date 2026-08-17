@@ -13,6 +13,16 @@ export const nodeKindSchema = z.enum([
 
 export type NodeKind = z.infer<typeof nodeKindSchema>;
 
+export const usageSchema = z.object({
+  inputTokens: z.number().optional(),
+  outputTokens: z.number().optional(),
+  cacheReadTokens: z.number().optional(),
+  cacheCreationTokens: z.number().optional(),
+  costUsd: z.number().optional(),
+});
+
+export type TraceUsage = z.infer<typeof usageSchema>;
+
 export const runStartedSchema = z.object({
   type: z.literal("run.started"),
   runId: z.string(),
@@ -49,6 +59,7 @@ export const nodeCompletedSchema = z.object({
   id: z.string(),
   outputPreview: z.string().optional(),
   durationMs: z.number().optional(),
+  usage: usageSchema.optional(),
   ts: z.number(),
 });
 
@@ -56,12 +67,14 @@ export const nodeFailedSchema = z.object({
   type: z.literal("node.failed"),
   id: z.string(),
   error: z.string(),
+  usage: usageSchema.optional(),
   ts: z.number(),
 });
 
 export const runCompletedSchema = z.object({
   type: z.literal("run.completed"),
   runId: z.string(),
+  usage: usageSchema.optional(),
   ts: z.number(),
 });
 

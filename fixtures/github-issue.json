@@ -23,6 +23,7 @@
     "type": "node.completed",
     "id": "think-1",
     "durationMs": 200,
+    "usage": { "outputTokens": 86, "costUsd": 0.0012 },
     "ts": 320
   },
   {
@@ -104,11 +105,18 @@
     "id": "answer-1",
     "outputPreview": "Opened GitHub issue #41. The login form is a fixed 480px flex row, so it overflows on 320px screens.",
     "durationMs": 80,
+    "usage": { "inputTokens": 1204, "outputTokens": 80, "costUsd": 0.008 },
     "ts": 980
   },
   {
     "type": "run.completed",
     "runId": "run-login-overflow",
+    "usage": {
+      "inputTokens": 1840,
+      "outputTokens": 318,
+      "cacheReadTokens": 400,
+      "costUsd": 0.041
+    },
     "ts": 1000
   }
 ]
