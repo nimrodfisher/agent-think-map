@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { githubIssueFixture, reduceTraceAll } from "@agent-trace/core";
+import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
 import { formatDuration, timelineMarks } from "./timelineMarks.js";
 
 describe("formatDuration", () => {

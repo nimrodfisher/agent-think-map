@@ -1,4 +1,4 @@
-# Remove Agent Trace Canvas
+# Remove Agent Think Map
 
 Reverse `/add-simulator`. Do not `git revert` a merge — this skill never merged.
 

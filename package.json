@@ -1,5 +1,5 @@
 {
-  "name": "agent-trace",
+  "name": "agent-think-map",
   "version": "0.1.0",
   "license": "MIT",
   "description": "Watch any AI agent think — skills, tools, and MCP, live in any chat UI.",
@@ -7,6 +7,7 @@
     "ai",
     "agent",
     "trace",
+    "think-map",
     "mcp",
     "claude",
     "observability",
@@ -23,7 +24,7 @@
   "author": "Nimrod Fisher",
   "type": "module",
   "bin": {
-    "agent-trace": "./bin/cli.mjs"
+    "agent-think-map": "./bin/cli.mjs"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -51,7 +52,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "npm run dev -w @agent-trace/demo",
+    "dev": "npm run dev -w @agent-think-map/demo",
     "build": "npm run build:cdn",
     "build:cdn": "vite build --config vite.cdn.ts",
     "prepublishOnly": "npm test && npm run build:cdn"

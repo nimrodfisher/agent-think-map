@@ -1,5 +1,5 @@
 {
-  "name": "@agent-trace/core",
+  "name": "@agent-think-map/core",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -9,6 +9,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agent-trace/protocol": "*"
+    "@agent-think-map/protocol": "*"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@agent-trace/react",
+  "name": "@agent-think-map/react",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -10,8 +10,8 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agent-trace/core": "*",
-    "@agent-trace/protocol": "*",
+    "@agent-think-map/core": "*",
+    "@agent-think-map/protocol": "*",
     "@xyflow/react": "^12.8.4",
     "elkjs": "^0.10.0",
     "motion": "^12.23.12",

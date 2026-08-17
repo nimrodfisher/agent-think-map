@@ -14,10 +14,10 @@ const css = existsSync(join(root, "dist", "styles.css"))
 const fixturePath = join(root, "fixtures", "github-issue.json");
 
 const HELP = `
-agent-trace — watch any AI agent think
+agent-think-map — watch any AI agent think
 
-  npx agent-trace              open the live demo
-  npm i agent-trace            React / Node
+  npx agent-think-map          open the live demo
+  npm i agent-think-map        React / Node
   CDN (any chat UI)            one script tag, see README
 
   Your agent only emits JSON. The canvas is just a viewer.
@@ -62,7 +62,7 @@ if (!existsSync(cdnJs)) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>agent-trace</title>
+  <title>agent-think-map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=IBM+Plex+Mono:wght@400&family=Syne:wght@700&display=swap" />
   <link rel="stylesheet" href="/styles.css" />

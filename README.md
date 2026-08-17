@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/hero.png" alt="agent-trace visual agent tracing canvas: live chain-of-thought, skill cards, tool-call timeline, and MCP inspector" width="100%" />
+  <img src="docs/hero.png" alt="agent-think-map visual agent tracing canvas: live chain-of-thought, skill cards, tool-call timeline, and MCP inspector" width="100%" />
 </p>
 
-<h1 align="center">agent-trace</h1>
+<h1 align="center">agent-think-map</h1>
 
 <p align="center">
   <strong>Visual agent tracing</strong> — live chain-of-thought, tool-call timeline, MCP inspector, and skill replay.<br/>
@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <code>npx agent-trace</code>
+  <code>npx agent-think-map</code>
   &nbsp;·&nbsp;
   no API key · no account · replay in the browser
 </p>
@@ -39,7 +39,7 @@ You are left asking:
 
 That is the observability gap. Logs are a transcript. You need a **visual agent trace**.
 
-## What agent-trace is
+## What agent-think-map is
 
 An embeddable **agent observability canvas**. While the run happens, the graph grows:
 
@@ -95,8 +95,8 @@ npm i github:nimrodfisher/agent-trace
 ```
 
 ```tsx
-import { AgentSimulator } from "agent-trace/react";
-import "agent-trace/styles.css";
+import { AgentSimulator } from "agent-think-map/react";
+import "agent-think-map/styles.css";
 
 <AgentSimulator events={events} layout="split">
   <YourChat />
@@ -111,7 +111,7 @@ import "agent-trace/styles.css";
 git clone https://github.com/nimrodfisher/agent-trace
 cd agent-trace
 npm install
-npx agent-trace
+npx agent-think-map
 ```
 
 ---
@@ -150,7 +150,7 @@ data: {"type":"node.started",...}
 ### Claude Agent SDK
 
 ```ts
-import { ClaudeTraceAdapter } from "agent-trace/claude";
+import { ClaudeTraceAdapter } from "agent-think-map/claude";
 
 const adapter = new ClaudeTraceAdapter({ runId, prompt });
 for await (const message of query({

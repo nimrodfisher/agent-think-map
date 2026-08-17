@@ -1,9 +1,9 @@
 ---
 name: add-simulator
-description: Install Agent Trace Canvas into this NanoClaw checkout — live skill/tool/MCP visualization over SSE. Additive copies only; never merge channels or providers.
+description: Install Agent Think Map into this NanoClaw checkout — live skill/tool/MCP visualization over SSE. Additive copies only; never merge channels or providers.
 ---
 
-# Add Agent Trace Canvas
+# Add Agent Think Map
 
 Install a live thinking canvas into this NanoClaw checkout. NanoClaw has no HTTP API; traces travel as `kind: "trace"` rows in `outbound.db`, and the host exposes them as SSE at `/webhook/simulator`.
 
@@ -11,7 +11,7 @@ Do **not** merge the `channels` or `providers` branches. Copy the files below, a
 
 ## Files to copy
 
-Copy from the Agent Trace Canvas repo (this skill's `files/` directory) into the NanoClaw checkout:
+Copy from the Agent Think Map repo (this skill's `files/` directory) into the NanoClaw checkout:
 
 | Source | Destination |
 | --- | --- |

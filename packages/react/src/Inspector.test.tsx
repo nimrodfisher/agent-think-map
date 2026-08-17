@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { githubIssueFixture, reduceTraceAll } from "@agent-trace/core";
+import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
 import { render, screen } from "@testing-library/react";
 import { Inspector } from "./Inspector.js";
 import { createTraceStore, TraceStoreProvider } from "./store.js";

@@ -1,5 +1,5 @@
 {
-  "name": "@agent-trace/adapter-nanoclaw",
+  "name": "@agent-think-map/adapter-nanoclaw",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agent-trace/adapter-claude": "*",
-    "@agent-trace/protocol": "*"
+    "@agent-think-map/adapter-claude": "*",
+    "@agent-think-map/protocol": "*"
   }
 }

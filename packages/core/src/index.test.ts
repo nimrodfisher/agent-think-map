@@ -8,7 +8,7 @@ import {
   reduceTrace,
   reduceTraceAll,
 } from "./index.js";
-import type { AgentTraceEvent } from "@agent-trace/protocol";
+import type { AgentTraceEvent } from "@agent-think-map/protocol";
 
 const run: AgentTraceEvent = {
   type: "run.started",

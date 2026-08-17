@@ -12,9 +12,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@agent-trace/react": resolve(root, "packages/react/src/index.ts"),
-      "@agent-trace/core": resolve(root, "packages/core/src/index.ts"),
-      "@agent-trace/protocol": resolve(root, "packages/protocol/src/index.ts"),
+      "@agent-think-map/react": resolve(root, "packages/react/src/index.ts"),
+      "@agent-think-map/core": resolve(root, "packages/core/src/index.ts"),
+      "@agent-think-map/protocol": resolve(root, "packages/protocol/src/index.ts"),
     },
   },
   build: {

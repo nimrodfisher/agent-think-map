@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reduceTraceAll } from "@agent-trace/core";
+import { reduceTraceAll } from "@agent-think-map/core";
 import { ClaudeTraceAdapter } from "./index.js";
 
 function eventsOf(adapter: ClaudeTraceAdapter, messages: unknown[]) {

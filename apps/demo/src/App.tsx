@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { githubIssueFixture } from "@agent-trace/core";
-import { AgentSimulator } from "@agent-trace/react";
+import { githubIssueFixture } from "@agent-think-map/core";
+import { AgentSimulator } from "@agent-think-map/react";
 
 export default function App() {
   const [epoch, setEpoch] = useState(0);

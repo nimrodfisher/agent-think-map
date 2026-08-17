@@ -1,5 +1,5 @@
 {
-  "name": "@agent-trace/adapter-claude",
+  "name": "@agent-think-map/adapter-claude",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agent-trace/core": "*",
-    "@agent-trace/protocol": "*"
+    "@agent-think-map/core": "*",
+    "@agent-think-map/protocol": "*"
   }
 }

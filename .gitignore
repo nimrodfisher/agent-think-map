@@ -2,7 +2,6 @@ node_modules
 dist/*
 !dist/element.cdn.js
 !dist/styles.css
-!dist/agent-trace.css
 .turbo
 .vite
 coverage

@@ -1,5 +1,5 @@
 {
-  "name": "@agent-trace/web-component",
+  "name": "@agent-think-map/web-component",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agent-trace/react": "*",
+    "@agent-think-map/react": "*",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
