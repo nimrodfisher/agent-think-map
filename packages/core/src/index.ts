@@ -1,5 +1,9 @@
 import type { AgentTraceEvent, NodeKind, TraceUsage } from "../../protocol/src/index.js";
 
+// Re-exported so sibling packages (react/clockAxis.ts) can name the kind of a
+// node without reaching past core into protocol.
+export type { NodeKind } from "../../protocol/src/index.js";
+
 export type NodeStatus = "running" | "completed" | "failed";
 export type RunStatus = "idle" | "running" | "completed" | "failed";
 
