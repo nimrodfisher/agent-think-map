@@ -3,11 +3,13 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
+  Panel,
   useReactFlow,
   type NodeTypes,
   type EdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { CanvasZoomControls } from "./CanvasZoomControls.js";
 import { layoutTraceGraph } from "./layout.js";
 import { PhosphorEdge } from "./PhosphorEdge.js";
 import { TraceNodeView } from "./TraceNodeView.js";
@@ -21,7 +23,7 @@ function CanvasInner() {
   const edges = useTraceStore((state) => state.edges);
   const selectedNodeId = useTraceStore((state) => state.selectedNodeId);
   const select = useTraceStore((state) => state.select);
-  const { fitView } = useReactFlow();
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
   const [graph, setGraph] = useState({ nodes: [], edges: [] } as Awaited<
     ReturnType<typeof layoutTraceGraph>
   >);
@@ -33,10 +35,7 @@ function CanvasInner() {
     void layoutTraceGraph(nodes, edges).then((next) => {
       if (cancelled) return;
       setGraph({
-        nodes: next.nodes.map((node) => ({
-          ...node,
-          selected: node.id === selectedNodeId,
-        })),
+        nodes: next.nodes,
         edges: next.edges,
       });
       requestAnimationFrame(() => {
@@ -46,7 +45,7 @@ function CanvasInner() {
     return () => {
       cancelled = true;
     };
-  }, [topologyKey, nodes, edges, selectedNodeId, fitView]);
+  }, [topologyKey, nodes, edges, fitView]);
 
   const flowNodes = useMemo(
     () =>
@@ -69,12 +68,24 @@ function CanvasInner() {
       onNodeClick={(_, node) => select(node.id)}
       onPaneClick={() => select(undefined)}
       fitView
+      minZoom={0.25}
+      maxZoom={2.5}
       nodesDraggable={false}
       nodesConnectable={false}
       panOnScroll
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={22} size={1} color="rgba(92, 86, 76, 0.28)" />
+      <Panel position="bottom-left" className="atc-zoom-panel">
+        <CanvasZoomControls
+          onZoomIn={() => {
+            void zoomIn();
+          }}
+          onZoomOut={() => {
+            void zoomOut();
+          }}
+        />
+      </Panel>
     </ReactFlow>
   );
 }

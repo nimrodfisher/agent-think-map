@@ -15,13 +15,13 @@
     "observability",
     "nanoclaw"
   ],
-  "homepage": "https://github.com/nimrodfisher/agent-trace",
+  "homepage": "https://nimrodfisher.github.io/agent-think-map/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nimrodfisher/agent-trace.git"
+    "url": "git+https://github.com/nimrodfisher/agent-think-map.git"
   },
   "bugs": {
-    "url": "https://github.com/nimrodfisher/agent-trace/issues"
+    "url": "https://github.com/nimrodfisher/agent-think-map/issues"
   },
   "author": "Nimrod Fisher",
   "type": "module",

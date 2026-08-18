@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://nimrodfisher.github.io/agent-trace/">Live demo</a>
+  <a href="https://nimrodfisher.github.io/agent-think-map/">Live demo</a>
   &nbsp;·&nbsp;
   <code>npx agent-think-map</code>
   &nbsp;·&nbsp;
@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/nimrodfisher/agent-trace/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6f5b?style=flat-square" alt="MIT license" /></a>
+  <a href="https://github.com/nimrodfisher/agent-think-map/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6f5b?style=flat-square" alt="MIT license" /></a>
   <a href="#install"><img src="https://img.shields.io/badge/embed-chat_UI-b85a2a?style=flat-square" alt="Embed in a chat UI" /></a>
   <a href="#what-you-see"><img src="https://img.shields.io/badge/nodes-skills_·_tools_·_MCP-1c1915?style=flat-square" alt="Skills tools MCP" /></a>
 </p>
@@ -30,8 +30,8 @@
 Four lines. Point `events-url` at your agent's SSE.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-trace@main/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-trace@main/dist/element.cdn.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/element.cdn.js"></script>
 <agent-think-map events-url="/sse" layout="split"></agent-think-map>
 ```
 
@@ -43,7 +43,7 @@ Four lines. Point `events-url` at your agent's SSE.
 npm i agent-think-map
 ```
 
-Until the npm release is live: `npm i github:nimrodfisher/agent-trace`
+Until the npm release is live: `npm i github:nimrodfisher/agent-think-map`
 
 ```tsx
 import { AgentSimulator } from "agent-think-map/react";

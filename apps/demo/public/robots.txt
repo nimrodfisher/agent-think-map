@@ -10,4 +10,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://nimrodfisher.github.io/agent-trace/sitemap.xml
+Sitemap: https://nimrodfisher.github.io/agent-think-map/sitemap.xml

@@ -19,7 +19,7 @@
   --atc-font-mono: "IBM Plex Mono", ui-monospace, monospace;
   box-sizing: border-box;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   width: 100%;
   height: 100%;
   min-height: 28rem;
@@ -43,25 +43,137 @@
   min-height: 0;
 }
 
-.atc-root[data-layout="split"] .atc-stage {
-  grid-template-columns: minmax(16rem, 22%) minmax(0, 1fr) minmax(16rem, 24%);
+.atc-root[data-layout="split"] .atc-stage[data-chat][data-inspector] {
+  grid-template-columns: var(--atc-chat-width, 280px) 6px minmax(0, 1fr) 6px var(--atc-inspector-width, 300px);
+}
+
+.atc-root[data-layout="split"] .atc-stage[data-chat]:not([data-inspector]) {
+  grid-template-columns: var(--atc-chat-width, 280px) 6px minmax(0, 1fr);
+}
+
+.atc-root[data-layout="split"] .atc-stage[data-inspector]:not([data-chat]) {
+  grid-template-columns: minmax(0, 1fr) 6px var(--atc-inspector-width, 300px);
 }
 
 .atc-root[data-layout="overlay"] .atc-stage {
+  position: relative;
   grid-template-columns: minmax(0, 1fr);
 }
 
 .atc-chat {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  border-right: 1px solid var(--atc-rule);
+  min-height: 0;
+  overflow: hidden;
   background: color-mix(in srgb, var(--atc-card) 80%, transparent);
+}
+
+.atc-chat > :not(.atc-latest) {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
+}
+
+.atc-split-handle {
+  position: relative;
+  z-index: 6;
+  width: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--atc-rule);
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.atc-split-handle::after {
+  content: "";
+  position: absolute;
+  inset: 0 -5px;
+  cursor: col-resize;
+}
+
+.atc-split-handle:hover,
+.atc-split-handle:focus-visible {
+  background: var(--atc-copper);
+  outline: none;
+}
+
+.atc-latest {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5rem;
+  z-index: 8;
+  transform: translateX(-50%);
+  appearance: none;
+  pointer-events: auto;
+  border: 1px solid color-mix(in srgb, var(--atc-vellum) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--atc-ink) 88%, transparent);
+  color: var(--atc-vellum);
+  font-family: var(--atc-font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  padding: 0.28rem 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(28, 25, 21, 0.18);
+}
+
+.atc-latest:hover,
+.atc-latest:focus-visible {
+  background: var(--atc-ink);
+  outline: 2px solid var(--atc-copper);
+  outline-offset: 2px;
 }
 
 .atc-canvas {
   position: relative;
+  z-index: 1;
   min-width: 0;
   min-height: 0;
+}
+
+.atc-zoom-panel {
+  margin: 0 0 0.7rem 0.7rem !important;
+}
+
+.atc-zoom {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--atc-ink);
+  background: var(--atc-card);
+  box-shadow: 0 10px 22px rgba(28, 25, 21, 0.1);
+}
+
+.atc-zoom button {
+  appearance: none;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--atc-rule);
+  background: transparent;
+  color: var(--atc-ink);
+  font-family: var(--atc-font-mono);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.atc-zoom button:last-child {
+  border-bottom: 0;
+}
+
+.atc-zoom button:hover,
+.atc-zoom button:focus-visible {
+  background: color-mix(in srgb, var(--atc-copper) 16%, var(--atc-card));
+  outline: none;
 }
 
 .atc-root[data-layout="overlay"] .atc-inspector {
@@ -71,12 +183,15 @@
   width: 18rem;
   max-height: calc(100% - 2rem);
   z-index: 4;
+  border: 1px solid var(--atc-rule);
   box-shadow: 0 18px 40px rgba(28, 25, 21, 0.12);
 }
 
 .atc-inspector {
+  position: relative;
+  z-index: 2;
   min-width: 0;
-  border-left: 1px solid var(--atc-rule);
+  min-height: 0;
   background: var(--atc-card);
   padding: 1.1rem 1.15rem 1.25rem;
   overflow: auto;
@@ -141,6 +256,101 @@
 .atc-empty {
   color: var(--atc-graphite);
   font-size: 0.92rem;
+}
+
+.atc-clock {
+  border-bottom: 1px solid var(--atc-rule);
+  background: color-mix(in srgb, var(--atc-tape) 38%, var(--atc-card));
+  padding: 0.4rem 0.9rem 0.5rem;
+}
+
+.atc-clock-track {
+  position: relative;
+  height: 3.55rem;
+  margin-right: 5.2rem;
+  border-bottom: 1px solid var(--atc-ink);
+}
+
+.atc-clock-tick {
+  appearance: none;
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 6.4rem;
+  margin: 0;
+  padding: 0 0.2rem 0.15rem;
+  border: 0;
+  background: transparent;
+  color: var(--atc-ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+.atc-clock-tick:first-of-type {
+  transform: none;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.atc-clock-tick:hover,
+.atc-clock-tick:focus-visible {
+  z-index: 2;
+  outline: none;
+}
+
+.atc-clock-tick:hover b,
+.atc-clock-tick:focus-visible b {
+  color: var(--atc-copper);
+}
+
+.atc-clock-tick.is-active .atc-clock-mark {
+  background: var(--atc-copper);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--atc-copper) 35%, transparent);
+}
+
+.atc-clock-mark {
+  width: 1px;
+  height: 0.5rem;
+  margin-bottom: 0.18rem;
+  background: var(--atc-ink);
+}
+
+.atc-clock-tick .atc-kicker {
+  margin: 0;
+  font-size: 0.58rem;
+}
+
+.atc-clock-tick b {
+  display: block;
+  max-width: 100%;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atc-clock-offset {
+  font-family: var(--atc-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  color: var(--atc-graphite);
+}
+
+.atc-clock-total {
+  position: absolute;
+  right: -5.1rem;
+  bottom: -0.05rem;
+  font-family: var(--atc-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--atc-phosphor);
+  white-space: nowrap;
 }
 
 .atc-timeline {
@@ -375,9 +585,16 @@
 }
 
 @media (max-width: 860px) {
-  .atc-root[data-layout="split"] .atc-stage {
-    grid-template-columns: 1fr;
+  .atc-root[data-layout="split"] .atc-stage,
+  .atc-root[data-layout="split"] .atc-stage[data-chat][data-inspector],
+  .atc-root[data-layout="split"] .atc-stage[data-chat]:not([data-inspector]),
+  .atc-root[data-layout="split"] .atc-stage[data-inspector]:not([data-chat]) {
+    grid-template-columns: 1fr !important;
     grid-template-rows: auto minmax(16rem, 1fr) auto;
+  }
+
+  .atc-split-handle {
+    display: none;
   }
 
   .atc-chat,
@@ -385,5 +602,9 @@
     border: 0;
     border-bottom: 1px solid var(--atc-rule);
     max-height: 12rem;
+  }
+
+  .atc-latest {
+    bottom: 0.7rem;
   }
 }

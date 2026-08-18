@@ -2,7 +2,10 @@ import { useEffect, useRef, type ReactNode } from "react";
 import type { AgentTraceEvent } from "../../protocol/src/index.js";
 import { parseAgentTraceEvent } from "../../protocol/src/index.js";
 import type { TraceNode } from "../../core/src/index.js";
+import { ChatPane } from "./ChatPane.js";
 import { Inspector } from "./Inspector.js";
+import { RunClock } from "./RunClock.js";
+import { SplitStage } from "./SplitStage.js";
 import { Timeline } from "./Timeline.js";
 import { TraceCanvas } from "./TraceCanvas.js";
 import { createTraceStore, TraceStoreProvider, useTraceStore, type TraceStore } from "./store.js";
@@ -127,11 +130,19 @@ export function AgentSimulator({
           intervalMs={intervalMs}
         />
         <SelectionBridge onNodeSelect={onNodeSelect} />
-        <div className="atc-stage">
-          {showChat ? <div className="atc-chat">{children}</div> : null}
-          <TraceCanvas />
-          {showInspector ? <Inspector /> : null}
-        </div>
+        <RunClock />
+        {layout === "split" ? (
+          <SplitStage
+            chat={showChat ? <ChatPane>{children}</ChatPane> : undefined}
+            canvas={<TraceCanvas />}
+            inspector={showInspector ? <Inspector /> : undefined}
+          />
+        ) : (
+          <div className="atc-stage">
+            <TraceCanvas />
+            {showInspector ? <Inspector /> : null}
+          </div>
+        )}
         <Timeline />
       </div>
     </TraceStoreProvider>
