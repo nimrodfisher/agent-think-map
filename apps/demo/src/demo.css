@@ -29,20 +29,33 @@ body {
   justify-content: space-between;
   align-items: flex-end;
   gap: 1rem;
-  padding: 1.1rem 1.4rem 0.9rem;
+  padding: 1.1rem 1.4rem 1.15rem;
+  overflow: visible;
+}
+
+.demo-mast > div {
+  overflow: visible;
+  min-width: 0;
 }
 
 .demo-mast p {
-  margin: 0.2rem 0 0;
+  margin: 0.32rem 0 0;
   color: #5c564c;
   max-width: 36rem;
+  line-height: 1.55;
+  overflow: visible;
 }
 
 .demo-mast h1 {
-  font-family: Syne, sans-serif;
+  /* Syne's g/p descenders are drawn with a flat cut; Figtree keeps the wordmark intact. */
+  font-family: Figtree, "Segoe UI", sans-serif;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
   margin: 0;
   letter-spacing: -0.03em;
+  line-height: 1.35;
+  padding: 0.08em 0 0.28em;
+  overflow: visible;
 }
 
 .demo-replay {
@@ -68,9 +81,9 @@ body {
 .demo-chat .bubble {
   background: #f6f0e4;
   border: 1px dashed #c9bba3;
-  padding: 0.85rem 0.9rem;
+  padding: 0.9rem 0.95rem 1.05rem;
   font-size: 0.92rem;
-  line-height: 1.45;
+  line-height: 1.55;
 }
 
 .demo-stage {

@@ -119,7 +119,8 @@
   font-family: var(--atc-font-body);
   font-size: 0.78rem;
   letter-spacing: 0.02em;
-  padding: 0.28rem 0.7rem;
+  line-height: 1.35;
+  padding: 0.32rem 0.7rem 0.38rem;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(28, 25, 21, 0.18);
 }
@@ -202,9 +203,12 @@
   font-family: var(--atc-font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.16em;
+  line-height: 1.45;
+  padding-bottom: 0.12em;
   text-transform: uppercase;
   color: var(--atc-graphite);
   margin-bottom: 0.35rem;
+  overflow: visible;
 }
 
 .atc-kind-emoji {
@@ -218,6 +222,9 @@
   font-size: 1.15rem;
   font-weight: 700;
   margin: 0 0 0.75rem;
+  line-height: 1.4;
+  padding: 0.06em 0 0.28em;
+  overflow: visible;
 }
 
 .atc-spec {
@@ -229,6 +236,7 @@
   font-family: var(--atc-font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.12em;
+  line-height: 1.4;
   text-transform: uppercase;
   color: var(--atc-graphite);
   margin-bottom: 0.2rem;
@@ -261,12 +269,12 @@
 .atc-clock {
   border-bottom: 1px solid var(--atc-rule);
   background: color-mix(in srgb, var(--atc-tape) 38%, var(--atc-card));
-  padding: 0.4rem 0.9rem 0.5rem;
+  padding: 0.45rem 0.9rem 0.55rem;
 }
 
 .atc-clock-track {
   position: relative;
-  height: 3.55rem;
+  height: 4.05rem;
   margin-right: 5.2rem;
   border-bottom: 1px solid var(--atc-ink);
 }
@@ -330,6 +338,8 @@
   max-width: 100%;
   font-size: 0.68rem;
   font-weight: 600;
+  line-height: 1.45;
+  padding-bottom: 0.18em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -339,6 +349,7 @@
   font-family: var(--atc-font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.03em;
+  line-height: 1.35;
   color: var(--atc-graphite);
 }
 
@@ -369,7 +380,7 @@
   background: var(--atc-card);
   color: var(--atc-ink);
   min-width: 5.5rem;
-  padding: 0.4rem 0.55rem 0.45rem;
+  padding: 0.42rem 0.55rem 0.52rem;
   text-align: left;
   cursor: pointer;
   border-radius: 2px;
@@ -399,6 +410,8 @@
   display: block;
   font-weight: 600;
   font-size: 0.78rem;
+  line-height: 1.45;
+  padding-bottom: 0.18em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -410,6 +423,7 @@
   font-family: var(--atc-font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.04em;
+  line-height: 1.35;
   color: var(--atc-graphite);
 }
 
@@ -420,6 +434,7 @@
   font-family: var(--atc-font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.02em;
+  line-height: 1.35;
   color: var(--atc-phosphor);
   -webkit-line-clamp: 1;
 }
@@ -442,7 +457,7 @@
   background: var(--atc-card);
   border: 1px solid var(--atc-rule);
   border-radius: 3px;
-  padding: 0.7rem 0.8rem 0.75rem;
+  padding: 0.7rem 0.8rem 0.85rem;
   box-shadow: 0 1px 0 rgba(28, 25, 21, 0.04);
 }
 
@@ -457,14 +472,17 @@
   font-family: var(--atc-font-display);
   font-size: 0.98rem;
   font-weight: 700;
-  margin: 0.15rem 0 0.35rem;
-  line-height: 1.2;
+  margin: 0.15rem 0 0.4rem;
+  line-height: 1.4;
+  padding-bottom: 0.22em;
+  overflow: visible;
 }
 
 .atc-node p {
   margin: 0;
   font-size: 0.78rem;
-  line-height: 1.35;
+  line-height: 1.5;
+  padding-bottom: 0.08em;
   color: var(--atc-graphite);
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -556,6 +574,10 @@
   --xy-background-color: transparent;
   --xy-node-border-radius: 3px;
   background: transparent !important;
+}
+
+.react-flow__node {
+  overflow: visible;
 }
 
 .react-flow__attribution {
