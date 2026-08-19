@@ -6,20 +6,20 @@ Executable playbook to make the repo discoverable, convert visitors into stars, 
 
 ---
 
-## Snapshot (17 Aug 2026)
+## Snapshot (19 Aug 2026)
 
-The product already solves a real pain: agents fail in the **path**, and chat logs show the ending. The README’s problem statement is strong. Distribution is not.
+The product already solves a real pain: agents fail in the **path**, and chat logs show the ending. The README’s problem statement is strong. Distribution is not. Public name is **agent-think-map** everywhere — repo, package, demo, web component. Do not say agent-trace in new copy.
 
 | Fact | Status |
 | --- | --- |
-| GitHub | [nimrodfisher/agent-trace](https://github.com/nimrodfisher/agent-trace) — 0 stars, 0 forks, 0 topics, created 16 Aug 2026 |
-| About line | `Real time CoT Tracing` — this is the Google snippet |
-| Package name | `agent-think-map` — **free on npm** |
+| GitHub | [nimrodfisher/agent-think-map](https://github.com/nimrodfisher/agent-think-map) — renamed; old `agent-trace` URL 301s |
+| About line | Still the default GitHub blurb — paste the one-sentence pitch (below) |
+| Package name | `agent-think-map` — **free on npm**, not yet published |
 | `agent-trace` on npm | **Taken** by someone else: “Self-hosted observability for AI coding agents” |
-| Live demo | None. GitHub Pages is off |
-| Motion | Static `docs/hero.png` at **2.2 MB**. No GIF |
-| Install | `npm i github:nimrodfisher/agent-trace` — reads unfinished |
-| Web component | `<agent-simulator>` — third name |
+| Live demo | [GitHub Pages](https://nimrodfisher.github.io/agent-think-map/) |
+| Motion | `docs/demo.gif` + `docs/hero.png` of the live canvas |
+| Install | `npm i github:nimrodfisher/agent-think-map` until npm publish |
+| Web component | `<agent-think-map>` (`<agent-simulator>` is a deprecated alias) |
 | Your reach | 74 GitHub followers, [ai-analytics-hub.com](https://ai-analytics-hub.com) |
 
 Closest comps: [agent-prism](https://github.com/evilmartians/agent-prism) (381 stars, live demo, brand) vs [agentThinkingUI](https://github.com/footprintjs/agentThinkingUI) (same “watch any agent think” pitch, 2 stars). The pitch without packaging and a launch week does not travel.
@@ -60,11 +60,11 @@ If any of those three fail, they bounce. Stars are a weak signal. The conversion
 
 Public name is **agent-think-map**. Everywhere.
 
-| Surface | Today | Change to |
+| Surface | Was | Now |
 | --- | --- | --- |
-| GitHub repo | `agent-trace` | Rename to `agent-think-map` (GitHub 301s the old URL) |
-| GitHub About | Real time CoT Tracing | The one-sentence pitch |
-| npm | unpublished | `agent-think-map` (free) |
+| GitHub repo | `agent-trace` | `agent-think-map` (old URL 301s) |
+| GitHub About | Real time CoT Tracing | Still needs the one-sentence pitch pasted |
+| npm | unpublished | `agent-think-map` (free; still unpublished) |
 | README H1 | agent-think-map | keep |
 | Web component | `<agent-simulator>` | `<agent-think-map>` plus a deprecated alias |
 | Local folder | `ai-simulator` | ignore; not public |
@@ -402,7 +402,7 @@ There is no sustained viral coefficient >1. What you are designing is word of mo
 
 ## Execution checklist
 
-- [ ] Rename GitHub repo to `agent-think-map` (after this branch is on GitHub; `gh` is not on PATH locally)
+- [x] Rename GitHub repo to `agent-think-map` (old `agent-trace` URL 301s)
 - [ ] Set About, topics, social preview (`docs/og.png` is the 1280×640 card)
 - [x] Record `docs/demo.gif` (fixture loop, 1.44 MB, watermarked)
 - [x] Replace `docs/hero.png` with the GIF (hero dropped from README)

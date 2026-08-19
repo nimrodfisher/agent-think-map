@@ -10,11 +10,12 @@ export default function App() {
     <div className="demo-shell">
       <header className="demo-mast">
         <div>
-          <span className="atc-kicker">In-product canvas</span>
-          <h1>See the agent think</h1>
+          <span className="atc-kicker">Live demo</span>
+          <h1>agent-think-map</h1>
           <p>
-            Embeddable tracing for chain-of-thought, skills, tools, and MCP inside
-            the chat UI you already ship — not a hosted dashboard. No API key.
+            See the agent think — embeddable tracing for chain-of-thought, skills,
+            tools, and MCP inside the chat UI you already ship. Not a hosted
+            dashboard. No API key.
           </p>
         </div>
         <button type="button" className="demo-replay" onClick={() => setEpoch((n) => n + 1)}>

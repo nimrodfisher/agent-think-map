@@ -23,7 +23,7 @@ Canonical article body: `docs/seed-post.md`.
 
 Homepage category **Open Source / OSS**. Same Problem / Solution shape as the other Nimrod Fisher cards. Tools: Cursor, Claude, MCP, GitHub.
 
-**Title:** See the agent think inside the chat UI you already ship
+**Title:** agent-think-map — see the agent think inside the chat UI you already ship
 
 **Author:** Nimrod Fisher
 

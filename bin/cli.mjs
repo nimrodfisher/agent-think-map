@@ -14,7 +14,7 @@ const css = existsSync(join(root, "dist", "styles.css"))
 const fixturePath = join(root, "fixtures", "github-issue.json");
 
 const HELP = `
-agent-think-map — watch any AI agent think
+agent-think-map — see the agent think
 
   npx agent-think-map          open the live demo
   npm i agent-think-map        React / Node
