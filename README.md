@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/demo.gif" alt="Live think-map: prompt, chain-of-thought, skill, tool call, MCP inspector" width="100%" />
+  <img src="docs/hero.png?v=2" alt="Live think-map: prompt, chain-of-thought, skill, tool call, MCP inspector" width="100%" />
 </p>
 
 <h1 align="center">agent-think-map</h1>
