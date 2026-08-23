@@ -60,6 +60,18 @@ describe("agentTraceEventSchema", () => {
     expect(agentTraceEventSchema.parse(runDone)).toEqual(runDone);
   });
 
+  it("accepts run.meta with model, effort, and usage", () => {
+    const event = {
+      type: "run.meta" as const,
+      runId: "run-1",
+      model: "claude-sonnet-5",
+      effort: "high",
+      usage: { inputTokens: 1840, outputTokens: 318 },
+      ts: 6,
+    };
+    expect(agentTraceEventSchema.parse(event)).toEqual(event);
+  });
+
   it("rejects a node.started event with an invalid kind", () => {
     const result = agentTraceEventSchema.safeParse({
       type: "node.started",

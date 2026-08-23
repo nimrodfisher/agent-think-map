@@ -29,13 +29,17 @@ function formatCostUsd(value: number, compact: boolean): string {
 }
 
 export function formatUsageDetail(usage: TraceUsage): UsageDetail {
-  const tokenParts: string[] = [];
+  const ioParts: string[] = [];
   if (typeof usage.inputTokens === "number") {
-    tokenParts.push(`${formatCount(usage.inputTokens)} in`);
+    ioParts.push(`${formatCount(usage.inputTokens)} in`);
   }
   if (typeof usage.outputTokens === "number") {
-    tokenParts.push(`${formatCount(usage.outputTokens)} out`);
+    ioParts.push(`${formatCount(usage.outputTokens)} out`);
   }
+  const total = definedSum(usage.inputTokens, usage.outputTokens);
+  const tokenParts: string[] = [];
+  if (total > 0) tokenParts.push(`${formatCount(total)} total`);
+  if (ioParts.length) tokenParts.push(ioParts.join(" / "));
   const cacheParts: string[] = [];
   if (typeof usage.cacheReadTokens === "number") {
     cacheParts.push(`${formatCount(usage.cacheReadTokens)} read`);
@@ -44,7 +48,7 @@ export function formatUsageDetail(usage: TraceUsage): UsageDetail {
     cacheParts.push(`${formatCount(usage.cacheCreationTokens)} write`);
   }
   const detail: UsageDetail = {};
-  if (tokenParts.length) detail.tokens = tokenParts.join(" / ");
+  if (tokenParts.length) detail.tokens = tokenParts.join(" · ");
   if (cacheParts.length) detail.cache = cacheParts.join(" / ");
   if (typeof usage.costUsd === "number") detail.cost = formatCostUsd(usage.costUsd, false);
   return detail;

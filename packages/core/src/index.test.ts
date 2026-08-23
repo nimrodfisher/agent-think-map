@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyToolName,
+  chronologicalNumbers,
   githubIssueFixture,
   initialTraceState,
   reasonFor,
@@ -53,7 +54,34 @@ describe("reduceTrace", () => {
       { id: "user-run-1->think-1", source: "user-run-1", target: "think-1" },
     ]);
     expect(state.activeNodeId).toBe("think-1");
-    expect(state.selectedNodeId).toBe("think-1");
+    expect(state.selectedNodeId).toBe("user-run-1");
+  });
+
+  it("keeps inspector selection on the clicked node when later nodes start", () => {
+    const selected = {
+      ...reduceTraceAll([
+        run,
+        {
+          type: "node.started" as const,
+          id: "think-1",
+          kind: "thinking" as const,
+          title: "Thinking",
+          parentId: "user-run-1",
+          ts: 1001,
+        },
+      ]),
+      selectedNodeId: "think-1",
+    };
+    const next = reduceTrace(selected, {
+      type: "node.started",
+      id: "tool-1",
+      kind: "tool",
+      title: "Read",
+      parentId: "think-1",
+      ts: 1002,
+    });
+    expect(next.selectedNodeId).toBe("think-1");
+    expect(next.activeNodeId).toBe("tool-1");
   });
 
   it("appends streaming text onto an existing node", () => {
@@ -162,6 +190,25 @@ describe("reduceTrace", () => {
       outputTokens: 318,
       costUsd: 0.041,
     });
+  });
+
+  it("records model, effort, and running usage from run.meta", () => {
+    const state = reduceTraceAll([
+      run,
+      {
+        type: "run.meta",
+        runId: "run-1",
+        model: "claude-sonnet-5",
+        effort: "high",
+        usage: { inputTokens: 900, outputTokens: 40 },
+        ts: 1100,
+      },
+    ]);
+
+    expect(state.model).toBe("claude-sonnet-5");
+    expect(state.effort).toBe("high");
+    expect(state.usage).toEqual({ inputTokens: 900, outputTokens: 40 });
+    expect(state.status).toBe("running");
   });
 
   it("attaches run usage to an answer node that has none", () => {
@@ -302,5 +349,45 @@ describe("githubIssueFixture", () => {
     expect(state.nodes.find((n) => n.kind === "mcp")?.title).toBe(
       "github / create_issue",
     );
+  });
+});
+
+describe("chronologicalNumbers", () => {
+  it("numbers nodes in order and restarts after each user prompt", () => {
+    const numbers = chronologicalNumbers([
+      {
+        id: "u1",
+        kind: "user",
+        title: "User",
+        text: "one",
+        status: "completed",
+        startedAt: 1,
+      },
+      {
+        id: "t1",
+        kind: "tool",
+        title: "Read",
+        text: "",
+        status: "completed",
+        startedAt: 2,
+      },
+      {
+        id: "u2",
+        kind: "user",
+        title: "User",
+        text: "two",
+        status: "completed",
+        startedAt: 3,
+      },
+      {
+        id: "t2",
+        kind: "mcp",
+        title: "query",
+        text: "",
+        status: "completed",
+        startedAt: 4,
+      },
+    ]);
+    expect([...numbers.values()]).toEqual([1, 2, 1, 2]);
   });
 });

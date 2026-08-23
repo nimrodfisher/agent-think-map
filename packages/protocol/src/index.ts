@@ -78,6 +78,15 @@ export const runCompletedSchema = z.object({
   ts: z.number(),
 });
 
+export const runMetaSchema = z.object({
+  type: z.literal("run.meta"),
+  runId: z.string(),
+  model: z.string().optional(),
+  effort: z.string().optional(),
+  usage: usageSchema.optional(),
+  ts: z.number(),
+});
+
 export const agentTraceEventSchema = z.discriminatedUnion("type", [
   runStartedSchema,
   nodeStartedSchema,
@@ -86,6 +95,7 @@ export const agentTraceEventSchema = z.discriminatedUnion("type", [
   nodeCompletedSchema,
   nodeFailedSchema,
   runCompletedSchema,
+  runMetaSchema,
 ]);
 
 export type AgentTraceEvent = z.infer<typeof agentTraceEventSchema>;
@@ -96,6 +106,7 @@ export type ToolInputEvent = z.infer<typeof toolInputSchema>;
 export type NodeCompletedEvent = z.infer<typeof nodeCompletedSchema>;
 export type NodeFailedEvent = z.infer<typeof nodeFailedSchema>;
 export type RunCompletedEvent = z.infer<typeof runCompletedSchema>;
+export type RunMetaEvent = z.infer<typeof runMetaSchema>;
 
 export function parseAgentTraceEvent(input: unknown): AgentTraceEvent {
   const result = agentTraceEventSchema.safeParse(input);

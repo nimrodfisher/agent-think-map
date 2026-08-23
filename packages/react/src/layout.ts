@@ -6,12 +6,47 @@ const elk = new ELK();
 
 const WIDTH = 240;
 const HEIGHT: Record<string, number> = {
-  thinking: 128,
-  skill: 112,
-  answer: 120,
-  result: 120,
-  user: 96,
+  thinking: 140,
+  skill: 124,
+  answer: 132,
+  result: 132,
+  user: 108,
 };
+
+export type KindFilter = {
+  tool: boolean;
+  skill: boolean;
+  mcp: boolean;
+  subagent: boolean;
+};
+
+export const ALL_KIND_FILTER: KindFilter = {
+  tool: true,
+  skill: true,
+  mcp: true,
+  subagent: true,
+};
+
+export function filterTraceGraph(
+  nodes: TraceNode[],
+  edges: TraceEdge[],
+  filter: KindFilter,
+): { nodes: TraceNode[]; edges: TraceEdge[] } {
+  const visible = new Set(
+    nodes
+      .filter((node) => {
+        if (node.kind === "tool" || node.kind === "skill" || node.kind === "mcp" || node.kind === "subagent") {
+          return filter[node.kind];
+        }
+        return true;
+      })
+      .map((node) => node.id),
+  );
+  return {
+    nodes: nodes.filter((node) => visible.has(node.id)),
+    edges: edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target)),
+  };
+}
 
 export async function layoutTraceGraph(
   nodes: TraceNode[],
@@ -26,8 +61,8 @@ export async function layoutTraceGraph(
     layoutOptions: {
       "elk.algorithm": "layered",
       "elk.direction": "RIGHT",
-      "elk.spacing.nodeNode": "42",
-      "elk.layered.spacing.nodeNodeBetweenLayers": "72",
+      "elk.spacing.nodeNode": "56",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "96",
       "elk.edgeRouting": "SPLINES",
     },
     children: nodes.map((node) => ({

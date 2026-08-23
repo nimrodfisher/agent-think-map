@@ -9,8 +9,14 @@ import {
   type EdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { chronologicalNumbers } from "../../core/src/index.js";
 import { CanvasZoomControls } from "./CanvasZoomControls.js";
-import { layoutTraceGraph } from "./layout.js";
+import {
+  ALL_KIND_FILTER,
+  filterTraceGraph,
+  layoutTraceGraph,
+  type KindFilter,
+} from "./layout.js";
 import { PhosphorEdge } from "./PhosphorEdge.js";
 import { TraceNodeView } from "./TraceNodeView.js";
 import { useTraceStore } from "./store.js";
@@ -18,21 +24,31 @@ import { useTraceStore } from "./store.js";
 const nodeTypes: NodeTypes = { trace: TraceNodeView };
 const edgeTypes: EdgeTypes = { phosphor: PhosphorEdge };
 
+const FILTERS: Array<{ key: keyof KindFilter; label: string }> = [
+  { key: "subagent", label: "Agents" },
+  { key: "tool", label: "Tools" },
+  { key: "skill", label: "Skills" },
+  { key: "mcp", label: "MCPs" },
+];
+
 function CanvasInner() {
   const nodes = useTraceStore((state) => state.nodes);
   const edges = useTraceStore((state) => state.edges);
   const selectedNodeId = useTraceStore((state) => state.selectedNodeId);
   const select = useTraceStore((state) => state.select);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
+  const [filter, setFilter] = useState<KindFilter>(ALL_KIND_FILTER);
   const [graph, setGraph] = useState({ nodes: [], edges: [] } as Awaited<
     ReturnType<typeof layoutTraceGraph>
   >);
+  const visible = useMemo(() => filterTraceGraph(nodes, edges, filter), [nodes, edges, filter]);
+  const numbers = useMemo(() => chronologicalNumbers(nodes), [nodes]);
 
-  const topologyKey = `${nodes.length}:${edges.length}`;
+  const topologyKey = `${visible.nodes.length}:${visible.edges.length}:${FILTERS.map((item) => filter[item.key]).join("")}`;
 
   useEffect(() => {
     let cancelled = false;
-    void layoutTraceGraph(nodes, edges).then((next) => {
+    void layoutTraceGraph(visible.nodes, visible.edges).then((next) => {
       if (cancelled) return;
       setGraph({
         nodes: next.nodes,
@@ -45,7 +61,7 @@ function CanvasInner() {
     return () => {
       cancelled = true;
     };
-  }, [topologyKey, nodes, edges, fitView]);
+  }, [topologyKey, visible.nodes, visible.edges, fitView]);
 
   const flowNodes = useMemo(
     () =>
@@ -54,9 +70,10 @@ function CanvasInner() {
         selected: node.id === selectedNodeId,
         data: {
           node: nodes.find((item) => item.id === node.id) ?? node.data.node,
+          order: numbers.get(node.id),
         },
       })),
-    [graph.nodes, nodes, selectedNodeId],
+    [graph.nodes, nodes, numbers, selectedNodeId],
   );
 
   return (
@@ -76,6 +93,19 @@ function CanvasInner() {
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={22} size={1} color="rgba(92, 86, 76, 0.28)" />
+      <Panel position="top-left" className="atc-kind-filter">
+        {FILTERS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`atc-kind-chip atc-kind-chip--${item.key}`}
+            aria-pressed={filter[item.key]}
+            onClick={() => setFilter((current) => ({ ...current, [item.key]: !current[item.key] }))}
+          >
+            {item.label}
+          </button>
+        ))}
+      </Panel>
       <Panel position="bottom-left" className="atc-zoom-panel">
         <CanvasZoomControls
           onZoomIn={() => {

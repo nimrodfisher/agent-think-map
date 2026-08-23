@@ -41,6 +41,8 @@ export interface TraceState {
   selectedNodeId?: string;
   activeNodeId?: string;
   usage?: TraceUsage;
+  model?: string;
+  effort?: string;
 }
 
 export const initialTraceState: TraceState = {
@@ -122,7 +124,6 @@ export function reduceTrace(
         ...state,
         nodes: [...state.nodes, node],
         edges,
-        selectedNodeId: event.id,
         activeNodeId: event.id,
       };
     }
@@ -182,6 +183,14 @@ export function reduceTrace(
         status: state.status === "failed" ? "failed" : "completed",
         completedAt: event.ts,
         activeNodeId: undefined,
+        usage: event.usage ?? state.usage,
+      };
+    }
+    case "run.meta": {
+      return {
+        ...state,
+        model: event.model ?? state.model,
+        effort: event.effort ?? state.effort,
         usage: event.usage ?? state.usage,
       };
     }
@@ -261,6 +270,17 @@ export function redactSecrets(text: string): string {
 }
 
 export { githubIssueFixture } from "./fixtures/github-issue-run.js";
+
+export function chronologicalNumbers(nodes: readonly TraceNode[]): Map<string, number> {
+  const numbers = new Map<string, number>();
+  let n = 0;
+  for (const node of nodes) {
+    if (node.kind === "user") n = 0;
+    n += 1;
+    numbers.set(node.id, n);
+  }
+  return numbers;
+}
 
 export function summarizeToolInput(input: string): string | undefined {
   const trimmed = input.trim();

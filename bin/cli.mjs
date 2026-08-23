@@ -16,9 +16,11 @@ const fixturePath = join(root, "fixtures", "github-issue.json");
 const HELP = `
 agent-think-map — see the agent think
 
-  npx agent-think-map          open the live demo
-  npm i agent-think-map        React / Node
-  CDN (any chat UI)            one script tag, see README
+  npx agent-think-map                 open the live demo
+  npx agent-think-map claude          live map for Claude Code CLI
+  npx agent-think-map claude --install
+  npm i agent-think-map               React / Node
+  CDN (any chat UI)                   one script tag, see README
 
   Your agent only emits JSON. The canvas is just a viewer.
 `;
@@ -46,7 +48,16 @@ if (arg === "help" || arg === "--help" || arg === "-h") {
   process.exit(0);
 }
 
-if (!existsSync(cdnJs)) {
+if (arg === "claude" || arg === "claude-code") {
+  const viteNode = join(root, "node_modules", "vite-node", "vite-node.mjs");
+  const script = join(root, "packages", "adapters", "claude-code", "src", "cli.ts");
+  const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
+    cwd: root,
+    stdio: "inherit",
+    env: { ...process.env, ATM_CWD: process.cwd() },
+  });
+  child.on("exit", (code) => process.exit(code ?? 0));
+} else if (!existsSync(cdnJs)) {
   console.log(HELP);
   console.log("Starting the Vite demo (first-time / no CDN build)...\n");
   const child = spawn("npm", ["run", "dev"], {
@@ -64,7 +75,8 @@ if (!existsSync(cdnJs)) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>agent-think-map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=IBM+Plex+Mono:wght@400&family=Syne:wght@700&display=swap" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&display=swap" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
     html, body { margin: 0; height: 100%; background: #e4d9c5; }

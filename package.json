@@ -2,7 +2,7 @@
   "name": "agent-think-map",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Embeddable canvas that shows an agent's chain-of-thought, skills, tools, and MCP inside the chat UI you already ship.",
+  "description": "Live think-map for Claude Code CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
   "keywords": [
     "ai",
     "agent",
@@ -10,6 +10,7 @@
     "think-map",
     "mcp",
     "claude",
+    "claude-code",
     "openai",
     "codex",
     "observability",
@@ -33,6 +34,7 @@
     "./react": "./src/react.ts",
     "./element": "./src/element.ts",
     "./claude": "./src/claude.ts",
+    "./claude-code": "./src/claude-code.ts",
     "./openai": "./src/openai.ts",
     "./codex": "./src/openai.ts",
     "./styles.css": "./packages/react/src/styles.css"

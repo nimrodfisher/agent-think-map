@@ -6,6 +6,7 @@ import { formatUsageCompact } from "./usage.js";
 
 export function TraceNodeView({ data, selected }: NodeProps) {
   const node = data.node as TraceNode;
+  const order = data.order as number | undefined;
   const preview = node.reason || node.text || node.outputPreview || node.error || "";
   const compact = formatUsageCompact(node.usage ?? {});
 
@@ -18,6 +19,7 @@ export function TraceNodeView({ data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Left} />
       <header>
+        {typeof order === "number" ? <span className="atc-node-index">{order}</span> : null}
         <KindKicker kind={node.kind} />
         <span className="atc-pulse" aria-hidden="true" />
       </header>

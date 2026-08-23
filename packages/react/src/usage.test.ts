@@ -11,7 +11,7 @@ describe("formatUsageDetail", () => {
         costUsd: 0.041,
       }),
     ).toEqual({
-      tokens: "1,204 in / 318 out",
+      tokens: "1,522 total · 1,204 in / 318 out",
       cache: "400 read",
       cost: "$0.041",
     });
@@ -19,7 +19,7 @@ describe("formatUsageDetail", () => {
 
   it("omits missing fields", () => {
     expect(formatUsageDetail({ outputTokens: 52, costUsd: 0.0012 })).toEqual({
-      tokens: "52 out",
+      tokens: "52 total · 52 out",
       cost: "$0.0012",
     });
   });

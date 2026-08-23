@@ -26,5 +26,24 @@ describe("Timeline", () => {
     expect(screen.getByText("+120ms")).toBeTruthy();
     expect(screen.getByText("86 tok · 0.1¢")).toBeTruthy();
     expect(screen.getByText("1.3k tok · 0.8¢")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /frontend-engineer/ }).className).toContain(
+      "atc-span--skill",
+    );
+  });
+
+  it("shows run total time and tokens on the tape", () => {
+    const state = reduceTraceAll(githubIssueFixture);
+    const store = createTraceStore(state);
+
+    render(
+      <TraceStoreProvider value={store}>
+        <Timeline />
+      </TraceStoreProvider>,
+    );
+
+    const totals = screen.getByLabelText("Run totals");
+    expect(totals.textContent).toContain("1s total");
+    expect(totals.textContent).toMatch(/tok/);
+    expect(screen.getByRole("list").lastElementChild).toBe(totals);
   });
 });

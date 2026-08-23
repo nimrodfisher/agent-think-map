@@ -11,6 +11,8 @@ coverage
 !.env.example
 .DS_Store
 .worktrees
+.superpowers
+.claude/settings.local.json
 *.tsbuildinfo
 apps/demo/dist
 packages/*/dist

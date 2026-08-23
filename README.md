@@ -5,27 +5,59 @@
 <h1 align="center">agent-think-map</h1>
 
 <p align="center">
-  <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP<br/>
-  inside the chat UI you already ship. Not a hosted dashboard.
+  <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP.<br/>
+  In <strong>Claude Code CLI</strong> (today), or inside the chat UI you already ship.
 </p>
 
 <p align="center">
   <a href="https://nimrodfisher.github.io/agent-think-map/">Live demo</a>
   &nbsp;·&nbsp;
-  <code>npx agent-think-map</code>
+  <code>npx agent-think-map claude --install</code>
   &nbsp;·&nbsp;
   no API key
 </p>
 
 <p align="center">
   <a href="https://github.com/nimrodfisher/agent-think-map/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6f5b?style=flat-square" alt="MIT license" /></a>
-  <a href="#install"><img src="https://img.shields.io/badge/embed-chat_UI-b85a2a?style=flat-square" alt="Embed in a chat UI" /></a>
+  <a href="#claude-code-cli"><img src="https://img.shields.io/badge/CLI-Claude_Code-1f6f5b?style=flat-square" alt="Claude Code CLI" /></a>
+  <a href="#embed-in-a-chat-ui"><img src="https://img.shields.io/badge/embed-chat_UI-b85a2a?style=flat-square" alt="Embed in a chat UI" /></a>
   <a href="#what-you-see"><img src="https://img.shields.io/badge/nodes-skills_·_tools_·_MCP-1c1915?style=flat-square" alt="Skills tools MCP" /></a>
 </p>
 
 ---
 
-## Install
+## Claude Code CLI
+
+The same live canvas, beside the terminal. Claude Code stays in the CLI. A local studio lists sessions and draws the route as hooks fire.
+
+```bash
+npx agent-think-map claude --install
+```
+
+1. Keep that process running. A browser tab opens `http://127.0.0.1:3334`.
+2. `--install` writes HTTP hooks into **this folder’s** `.claude/settings.local.json` (the folder where you start `claude`, 5s timeout, never blocks Stop).
+3. Restart `claude` if it was already open. Ask it to use a tool (`Read README.md`). The graph grows in the browser.
+
+`--port 3334` · `--no-open` · `--smoke` (sample turn, no Claude) · `--print-hooks`
+
+Studio today is **Claude Code only**. Other CLIs are not wired yet. The canvas itself is the same viewer as the embed.
+
+### Studio
+
+| Surface | What it does |
+| --- | --- |
+| Session rail | Search sessions. Filter live / ended, **model**, and effort. Token totals when the transcript reports them. Remove a session from the list. |
+| Canvas | Prompt → thinking → skill / tool / MCP / subagent → answer. Filter Agents, Tools, Skills, MCPs. Chronological badges reset on each user prompt. |
+| Inspector | Click a node: why it ran, pretty-printed input and output (SQL / JSON), duration. Selection stays on what you clicked. |
+| Timeline | Scrub the turn. Elapsed time and compact token totals stay on the right. |
+
+A **Stop** (end of a turn) is not the end of the Claude session. The rail marks a session **ended** on Claude’s `SessionEnd`. Parallel tools and subagents show as siblings, not a fake chain.
+
+Install hooks in the **cwd you actually launch `claude` from**. If studio is already on 3334, `--install` still writes hooks and exits; do not start a second server.
+
+---
+
+## Embed in a chat UI
 
 Four lines. Point `events-url` at your agent's SSE.
 
@@ -56,7 +88,7 @@ import "agent-think-map/styles.css";
 
 `events` is an array, an async iterator, or omit it and pass `eventsUrl="/sse"`.
 
-### Try it locally
+### Try the recorded demo
 
 ```bash
 npx agent-think-map
@@ -78,7 +110,7 @@ No account. No API key. Replays a recorded GitHub-issue turn in the browser.
 | Subagent | Nested task |
 | Answer | What went back to the user |
 
-Secrets in tool args are redacted before they hit the canvas.
+Secrets in tool args are redacted before they hit the canvas. The embed and the Claude Code studio share this graph, inspector, and timeline.
 
 ---
 
@@ -86,7 +118,7 @@ Secrets in tool args are redacted before they hit the canvas.
 
 Agents do not fail in one place. They fail in the **path**.
 
-A turn loads a skill, calls `Read`, hits an MCP server, spawns a subagent, then answers. When the answer is wrong — or slow, or expensive — the chat log shows the ending. It does not show the route.
+A turn loads a skill, calls `Read`, hits an MCP server, spawns a subagent, then answers. When the answer is wrong — or slow, or expensive — the chat log **and** the terminal show the ending. They do not show the route.
 
 You are left asking:
 
@@ -94,8 +126,9 @@ You are left asking:
 - Which **tool** ran, with what args?
 - Which **MCP** server was it?
 - **Why** did the model pick that step?
+- Which **model**, and how many **tokens**?
 
-Logs are a transcript. You need the route, inside the chat you already ship.
+Logs are a transcript. You need the route — in Claude Code, or inside the chat you already ship.
 
 ## What agent-think-map is
 
@@ -105,9 +138,9 @@ An embeddable canvas. While the run happens, the graph grows:
 
 Click a node. The inspector shows why it fired, the input, the output, and how long it took. The tape at the bottom is a **tool-call timeline** you can scrub.
 
-It is a viewer, not a new agent runtime. You do not migrate off Claude, Codex, NanoClaw, LangGraph, or your own loop. You emit JSON. The canvas draws.
+It is a viewer, not a new agent runtime. You do not migrate off Claude Code, Claude, Codex, NanoClaw, LangGraph, or your own loop. You emit JSON. The canvas draws.
 
-If you need a hosted trace warehouse, use LangSmith. If you need the trace *inside the chat you already ship*, this is the canvas.
+If you need a hosted trace warehouse, use LangSmith. If you need the trace *beside the CLI or inside the chat you already ship*, this is the canvas.
 
 ```mermaid
 flowchart LR
@@ -138,6 +171,7 @@ One JSON object per step. That is the integration.
 | `type` | When |
 | --- | --- |
 | `run.started` | User prompt |
+| `run.meta` | Optional session `model`, `effort`, `usage` |
 | `node.started` | A step begins (`kind`: `thinking` `skill` `mcp` `tool` `subagent` `answer`) |
 | `node.delta` | Streaming text |
 | `tool.input` | Tool args |
@@ -184,7 +218,7 @@ for await (const message of query({ prompt, options: { includePartialMessages: t
 }
 ```
 
-Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `agent-think-map/codex`. Any other runtime: emit the JSON yourself. Do not fork the UI.
+Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `agent-think-map/codex`, `agent-think-map/claude-code`. Any other runtime: emit the JSON yourself. Do not fork the UI.
 
 ### NanoClaw
 
@@ -196,12 +230,13 @@ Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `
 
 | You | What you get |
 | --- | --- |
+| Using **Claude Code** in the terminal | A live think-map in the browser: sessions, model, tokens, the route — without leaving the CLI |
 | Shipping a chat product | Users (and you) can **see the agent think** instead of trusting a spinner |
 | Debugging a runaway loop | A **live trace** of skills, tools, and MCP — not a 4k-line log |
 | Teaching or demoing agents | A canvas that builds in real time. Replay from a fixture. No keys. |
 | Building on MCP / skills | First-class nodes, not another generic “function call” chip |
 
-**Not for you** if you want a hosted trace warehouse. Keep LangSmith or Langfuse for that. This is the in-product canvas.
+**Not for you** if you want a hosted trace warehouse. Keep LangSmith or Langfuse for that. This is the in-product / beside-the-CLI canvas.
 
 ---
 

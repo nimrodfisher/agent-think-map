@@ -14,11 +14,18 @@ export class AgentSimulatorElement extends HTMLElement {
   }
 
   connectedCallback(): void {
+    this.style.display = "flex";
+    this.style.flexDirection = "column";
+    this.style.width = "100%";
+    this.style.height = this.getAttribute("height") ?? "100%";
+    this.style.minHeight = "0";
     this.#mount = document.createElement("div");
-    this.#mount.style.display = "block";
+    this.#mount.style.display = "flex";
+    this.#mount.style.flexDirection = "column";
+    this.#mount.style.flex = "1";
     this.#mount.style.width = "100%";
-    this.#mount.style.height = this.getAttribute("height") ?? "100%";
-    this.#mount.style.minHeight = "28rem";
+    this.#mount.style.height = "100%";
+    this.#mount.style.minHeight = "0";
     this.append(this.#mount);
     this.#root = createRoot(this.#mount);
     this.#render();

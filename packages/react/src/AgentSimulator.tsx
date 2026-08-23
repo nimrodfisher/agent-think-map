@@ -4,7 +4,6 @@ import { parseAgentTraceEvent } from "../../protocol/src/index.js";
 import type { TraceNode } from "../../core/src/index.js";
 import { ChatPane } from "./ChatPane.js";
 import { Inspector } from "./Inspector.js";
-import { RunClock } from "./RunClock.js";
 import { SplitStage } from "./SplitStage.js";
 import { Timeline } from "./Timeline.js";
 import { TraceCanvas } from "./TraceCanvas.js";
@@ -130,7 +129,6 @@ export function AgentSimulator({
           intervalMs={intervalMs}
         />
         <SelectionBridge onNodeSelect={onNodeSelect} />
-        <RunClock />
         {layout === "split" ? (
           <SplitStage
             chat={showChat ? <ChatPane>{children}</ChatPane> : undefined}
