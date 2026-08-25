@@ -1,51 +1,66 @@
-# Your agent chat log is lying to you
+# Your agent log is lying to you
 
-Publish this as-is on [ai-analytics-hub.com](https://ai-analytics-hub.com) (canonical), then Dev.to/Hashnode with that URL as `canonical`. One post this week. Do not also spin a newsletter or YouTube.
+Publish this as-is on [ai-analytics-hub.com](https://ai-analytics-hub.com) (canonical), then Dev.to/Hashnode with that URL as `canonical`. One post.
 
-Social paste (X / LinkedIn / Reddit / OSS card): `docs/channel-kit.md`.
+Social paste: `docs/channel-kit.md`. Playbook: `docs/gtm-plan.md`.
 
+**Claude Code:** `npx agent-think-map claude --install`  
 **Live demo (no key):** https://nimrodfisher.github.io/agent-think-map/  
 **Repo:** https://github.com/nimrodfisher/agent-think-map  
-**GIF:** `docs/demo.gif` — upload it into the post body, above the fold.
+**GIF:** graph growing (embed and/or Claude Code studio). Fallback: `docs/demo.gif`.
 
-**CMS:** slug `your-agent-chat-log-is-lying-to-you` · tags MCP, Cursor, Context Engineering, Claude · ~4 min
+**CMS:** slug `your-agent-log-is-lying-to-you` · tags MCP, Context Engineering, Claude, Agents · ~4 min
 
----
-
-A practical look at why agent failures hide in the path — skills, tools, MCP — and how an embeddable canvas makes that path visible inside the chat UI you already ship.
+If a Claude-only slug already went live, keep that URL as canonical and **edit the body** to the copy below. Do not publish a second competing post.
 
 ---
 
 ## TL;DR
 
-A chat log shows the ending. It does not show the route. When an agent loads a skill, calls a tool, hits an MCP server, and then answers wrong, the transcript still looks like a conversation. The bug was in the path. agent-think-map is an embeddable canvas that draws that path — chain-of-thought, skills, tools, and MCP — inside the chat UI you already ship. It is not a hosted tracing dashboard.
+A chat log — and a CLI transcript — show the ending. They do not show the route. When a skill loads, `Read` fires, an MCP server hops, and the answer is wrong, the UI still looks like a conversation. The bug was in the path. agent-think-map is a live canvas of that path: chain-of-thought, skills, tools, MCP, subagents. Same graph in the chat UI you already ship, or beside Claude Code. Model-agnostic. It is not a hosted tracing dashboard.
 
 ---
 
-## The problem: the transcript looks fine
+## The problem: the spinner looks fine
 
 I got tired of debugging agents in a 4k-line log.
 
-A turn would go: load `frontend-engineer`, `Read` a file, call `github / create_issue`, then a polite paragraph. When the issue was wrong, or slow, or expensive, I could see the paragraph. I could not see which skill actually loaded, which tool ran, or why the model picked that MCP server.
+A turn would go: load a skill, `Read` a file, call an MCP tool, then a polite paragraph. When the issue was wrong, or slow, or expensive, I could see the paragraph. I could not see which skill actually loaded, which tool ran, which **model** did it, or why it picked that MCP server.
 
-LangSmith and Langfuse are good at the warehouse job. I did not want another tab. I wanted the trace in the product, next to the chat, while the run happened.
+That is the same lie in a product chat UI and in Claude Code. The vendor is not the bug. The missing route is.
+
+LangSmith and Langfuse are good at the warehouse job. I did not want another SaaS tab as the *only* way to see a turn. I wanted the trace where the work happens.
 
 ---
 
-## The solution: the map lives in the chat
+## The solution: one canvas, two doors
 
-The canvas is a viewer. You keep Claude, Codex, OpenAI, NanoClaw, or your own loop. You emit one JSON object per step (or use the adapter that sniffs those SDKs). The graph grows: prompt → thinking → skill → tool / MCP → answer. Click a node; the inspector shows why, the input, the output, and how long it took.
+**prompt → thinking → skill → tool / MCP / subagent → answer**
 
-Try it without an API key. The demo replays a recorded GitHub-issue turn in the browser:
+Click a node; the inspector shows why, the input, the output, tokens, and how long it took.
 
-https://nimrodfisher.github.io/agent-think-map/
+### Door 1 — inside the chat UI you already ship
 
-Or four lines in any HTML page:
+Four lines. Point `events-url` at your agent's SSE. Claude, Codex, OpenAI, or your own loop — emit JSON (or use `TraceAdapter`). The canvas draws. You do not migrate runtimes.
 
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/element.cdn.js"></script>
-<agent-think-map events-url="/sse" layout="split"></agent-think-map>
+### Door 2 — beside Claude Code
+
+Keep Claude Code. One command writes local hooks into this folder’s `.claude/settings.local.json`. A browser tab at `http://127.0.0.1:3334` lists sessions and grows the same graph.
+
+```bash
+npx agent-think-map claude --install
 ```
 
-MIT. If you need a hosted trace warehouse, use LangSmith. If you need the trace inside the chat you already ship, this is the canvas.
+Restart `claude` if it was already open. Ask it to use a tool. The graph grows.
+
+The one-command CLI install is Claude Code today. Other CLIs are not wired yet. The **viewer** is not Claude-shaped.
+
+---
+
+No account. No API key for the demo. MIT. If you need a hosted trace warehouse, use LangSmith. If you need the route *while it happens*, this is the canvas.
+
+Local studio and embed stay free. Pro (when it opens) is 14 days free, then a subscription for cloud history and shareable replays — not a tax on seeing the graph on your machine.
+
+Try the fixture replay:
+
+https://nimrodfisher.github.io/agent-think-map/

@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP.<br/>
-  In <strong>Claude Code CLI</strong> (today), or inside the chat UI you already ship.
+  <strong>Model-agnostic.</strong> Same canvas in the chat UI you ship, or beside Claude Code.
 </p>
 
 <p align="center">
@@ -18,11 +18,26 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/agent-think-map"><img src="https://img.shields.io/npm/v/agent-think-map?style=flat-square&color=1f6f5b" alt="npm version" /></a>
   <a href="https://github.com/nimrodfisher/agent-think-map/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f6f5b?style=flat-square" alt="MIT license" /></a>
-  <a href="#claude-code-cli"><img src="https://img.shields.io/badge/CLI-Claude_Code-1f6f5b?style=flat-square" alt="Claude Code CLI" /></a>
+  <a href="#two-doors-same-canvas"><img src="https://img.shields.io/badge/model-agnostic-1f6f5b?style=flat-square" alt="Model-agnostic" /></a>
   <a href="#embed-in-a-chat-ui"><img src="https://img.shields.io/badge/embed-chat_UI-b85a2a?style=flat-square" alt="Embed in a chat UI" /></a>
+  <a href="#claude-code-cli"><img src="https://img.shields.io/badge/CLI-Claude_Code-1f6f5b?style=flat-square" alt="Claude Code CLI" /></a>
   <a href="#what-you-see"><img src="https://img.shields.io/badge/nodes-skills_·_tools_·_MCP-1c1915?style=flat-square" alt="Skills tools MCP" /></a>
 </p>
+
+---
+
+## Two doors, same canvas
+
+The **viewer** does not care which model ran the turn. Model is a column on the session, not a vendor lock.
+
+| You | Door |
+| --- | --- |
+| Shipping a chat UI | [Embed the canvas](#embed-in-a-chat-ui) — four lines, SSE / JSON. Claude, Codex, OpenAI, or your own loop. |
+| Living in Claude Code | [CLI studio](#claude-code-cli) — one command, graph in the browser, Claude stays in the terminal. |
+
+Other CLIs are not one-command yet. If you already emit the protocol (or use `TraceAdapter`), you do not wait for a new adapter to **see** the graph.
 
 ---
 
@@ -35,12 +50,12 @@ npx agent-think-map claude --install
 ```
 
 1. Keep that process running. A browser tab opens `http://127.0.0.1:3334`.
-2. `--install` writes HTTP hooks into **this folder’s** `.claude/settings.local.json` (the folder where you start `claude`, 5s timeout, never blocks Stop).
+2. `--install` writes HTTP hooks into **this folder’s** `.claude/settings.local.json` (the folder where you start `claude`, 5s timeout, never blocks Stop). SessionStart is a command hook that forwards the **model** name, because Claude Code does not send that event over HTTP.
 3. Restart `claude` if it was already open. Ask it to use a tool (`Read README.md`). The graph grows in the browser.
 
 `--port 3334` · `--no-open` · `--smoke` (sample turn, no Claude) · `--print-hooks`
 
-Studio today is **Claude Code only**. Other CLIs are not wired yet. The canvas itself is the same viewer as the embed.
+The **one-command CLI install** is Claude Code today. Other CLIs are not wired yet. This studio is the same viewer as the [embed](#embed-in-a-chat-ui).
 
 ### Studio
 
@@ -62,8 +77,8 @@ Install hooks in the **cwd you actually launch `claude` from**. If studio is alr
 Four lines. Point `events-url` at your agent's SSE.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/gh/nimrodfisher/agent-think-map@main/dist/element.cdn.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.0/dist/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.0/dist/element.cdn.js"></script>
 <agent-think-map events-url="/sse" layout="split"></agent-think-map>
 ```
 
@@ -74,8 +89,6 @@ Four lines. Point `events-url` at your agent's SSE.
 ```bash
 npm i agent-think-map
 ```
-
-Until the npm release is live: `npm i github:nimrodfisher/agent-think-map`
 
 ```tsx
 import { AgentSimulator } from "agent-think-map/react";
@@ -128,7 +141,7 @@ You are left asking:
 - **Why** did the model pick that step?
 - Which **model**, and how many **tokens**?
 
-Logs are a transcript. You need the route — in Claude Code, or inside the chat you already ship.
+Logs are a transcript. You need the route — inside the chat you already ship, or beside Claude Code. Same map. Any model you can emit.
 
 ## What agent-think-map is
 
@@ -230,8 +243,8 @@ Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `
 
 | You | What you get |
 | --- | --- |
-| Using **Claude Code** in the terminal | A live think-map in the browser: sessions, model, tokens, the route — without leaving the CLI |
-| Shipping a chat product | Users (and you) can **see the agent think** instead of trusting a spinner |
+| Shipping a chat product | Users (and you) can **see the agent think** — any model you emit — instead of trusting a spinner |
+| Using **Claude Code** in the terminal | The same map in the browser: sessions, model, tokens, the route — without leaving the CLI |
 | Debugging a runaway loop | A **live trace** of skills, tools, and MCP — not a 4k-line log |
 | Teaching or demoing agents | A canvas that builds in real time. Replay from a fixture. No keys. |
 | Building on MCP / skills | First-class nodes, not another generic “function call” chip |

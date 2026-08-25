@@ -1,187 +1,198 @@
-# Seed-week channel kit
+# Launch-week channel kit (model-agnostic)
 
-Paste-ready copy for **today**. This is seed, not launch week. Do **not** Show HN or Product Hunt until 25–27 Aug.
+Today: **Tue 25 Aug 2026**. Ignite **Tue 25 – Thu 27**. Full rules: `docs/gtm-plan.md`.
 
-I cannot publish from this machine: no X / LinkedIn / Reddit session, and [ai-analytics-hub.com](https://ai-analytics-hub.com) is not in this repo. Publish in this order so socials do not point at a missing page.
+**Doors:** embed in a chat UI **or** `npx agent-think-map claude --install`  
+**Demo (no key):** https://nimrodfisher.github.io/agent-think-map/  
+**Repo:** https://github.com/nimrodfisher/agent-think-map  
 
-**Asset:** `docs/demo.gif` (native upload on every channel — do not link the GIF as a URL).
+**Asset:** GIF of a **graph growing**. Best: two-beat (embed/demo, then Claude Code studio). Until a graph GIF exists, do not ignite. A static hero is not motion.
 
-| Order | Channel | Link in the post |
-| --- | --- | --- |
-| 1 | Hub — Open Source card **and** blog | Demo + GitHub |
-| 2 | LinkedIn | Hub article if live, else demo |
-| 3 | X thread | **No URL in the thread.** First reply = demo |
-| 4 | Reddit `r/mcp` only | Demo. Disclose you built it |
+Order: Hub article → Show HN (Tue 23:00) → Product Hunt (Wed 00:01 PT) → X (Wed 9:00 PT) → r/ClaudeCode (Wed after X) → one embed/protocol sub (Thu) → awesome lists.
 
-Skip `r/LocalLLaMA` today. Skip `r/programming`. One dense sub.
+**LinkedIn seed already ran.** Do not repost that Claude-only body. Follow-up is in §2.
 
-Canonical article body: `docs/seed-post.md`.
+Do not mention Pro / price in titles or tweet 1–5. Footer and first reply only.
+
+---
+
+## 0. Preflight — do not skip
+
+Throwaway folder (not this repo):
+
+```bash
+npx agent-think-map claude --install
+```
+
+Keep it running. Other terminal, same folder: `claude` → `Read README.md`. Graph must grow. If this fails, **do not Show HN**.
+
+GitHub: About + topics from `docs/gtm-plan.md`. Social preview = `docs/og.png`.
+
+Record 8–12s GIF + 15–30s MP4. Watermark `agent-think-map`.
 
 ---
 
 ## 1. Website — Open Source card
 
-Homepage category **Open Source / OSS**. Same Problem / Solution shape as the other Nimrod Fisher cards. Tools: Cursor, Claude, MCP, GitHub.
-
-**Title:** agent-think-map — see the agent think inside the chat UI you already ship
+**Title:** See the agent think — live map in your chat UI or beside Claude Code
 
 **Author:** Nimrod Fisher
 
-**Tools / tags:** Cursor · Claude · MCP · GitHub
+**Tools:** MCP · Claude · Codex · GitHub
 
-**Problem:** When an agent loads a skill, calls a tool, and hops to an MCP server, the chat log still looks like a conversation. The bug is in the path — which skill loaded, which tool ran, which server it hit — and that path is invisible next to the answer.
+**Problem:** When a skill loads, Read fires, and an MCP hop goes sideways, the chat log and the CLI still look like a conversation. The bug is in the path — and the path is invisible next to the spinner.
 
-**Solution:** Drop in an embeddable canvas (`agent-think-map`) that draws chain-of-thought, skills, tools, and MCP as live nodes inside the chat UI you already ship. Click a node for why it fired, the input, the output, and how long it took. Viewer, not a hosted tracing dashboard. MIT. No account.
+**Solution:** One canvas. Embed it in the chat UI you already ship (any model that emits JSON/SSE), or run it beside Claude Code with one command. Viewer, not a new runtime. MIT. No account.
 
-**Links:**
+**Links:** demo · GitHub
 
-- Live demo (no API key): https://nimrodfisher.github.io/agent-think-map/
-- GitHub: https://github.com/nimrodfisher/agent-think-map
-- Blog (after you publish it): https://ai-analytics-hub.com/content/your-agent-chat-log-is-lying-to-you
+Directory blurb:
 
-If the CMS also wants a one-line directory blurb:
-
-> Embeddable canvas that shows an agent’s chain-of-thought, skills, tools, and MCP inside the chat UI you already ship — not a hosted tracing dashboard.
+> Live think-map of skills, tools, and MCP. Model-agnostic. Same canvas in your chat UI or beside Claude Code.
 
 ---
 
-## 2. Website — blog CMS fields
+## 2. LinkedIn (follow-up — seed already posted)
 
-Paste the body from `docs/seed-post.md` (from the `#` title down). Fill the CMS chrome with:
+Do not start a new essay. Comment on your own post **or** a short new update with the GIF:
 
-| Field | Value |
-| --- | --- |
-| Title | Your agent chat log is lying to you |
-| Slug | `your-agent-chat-log-is-lying-to-you` |
-| Author | Nimrod Fisher |
-| Excerpt | A chat log shows the ending. It does not show the route. An embeddable canvas that draws skills, tools, and MCP inside the chat UI you already ship. |
-| Tags | MCP, Cursor, Context Engineering, Claude |
-| Read time | ~4 min |
-| Hero / inline media | `docs/demo.gif` above the fold |
-| Canonical URL | `https://ai-analytics-hub.com/content/your-agent-chat-log-is-lying-to-you` |
+```
+A lot of you felt this: the log shows the ending, not the route.
 
-If you also syndicate to Dev.to / Hashnode later this week, set **canonical** to that hub URL. Do not also spin a newsletter or YouTube.
+Quick clarification — this is not Claude-only.
+
+Same live map:
+• inside the chat UI you already ship
+• or beside Claude Code (one command)
+
+Model-agnostic. Claude, Codex, OpenAI, or your own loop.
+You emit JSON. The canvas draws.
+
+Demo (no key): https://nimrodfisher.github.io/agent-think-map/
+```
 
 ---
 
-## 3. X thread (seed)
+## 3. Show HN (Tue 25, 23:00 ICT)
 
-Native GIF on tweet 1. **No GitHub or demo URL in tweets 1–5.** 0 hashtags. After posting, stay 30–60 min and reply to comments. Then post the first reply.
+Title:
 
-**Tweet 1** (attach `docs/demo.gif`)
+```
+Show HN: See the agent think — live map in your chat UI or beside Claude Code
+```
+
+First comment: copy from `docs/gtm-plan.md` (Phase 2). Paste immediately. Staff 6 hours.
+
+---
+
+## 4. X thread (Wed 26, 23:00 ICT)
+
+GIF on tweet 1. **No URL in tweets 1–5.** First reply is the only link.
+
+**1** (attach GIF)
 
 ```
 Agents don't fail in the answer. They fail in the path.
 
-A skill loads. Read fires. An MCP server opens a GitHub issue.
-The chat UI shows a spinner.
+A skill loads. Read fires. An MCP server hops.
+The UI shows a spinner.
 ```
 
-**Tweet 2**
+**2**
 
 ```
 When the issue is wrong, or slow, or expensive, the transcript still looks like a conversation.
 
-The bug was in the route: which skill loaded, which tool ran, which MCP server it hit.
+The bug was in the route: which skill loaded, which tool ran, which MCP server it hit — and which model did it.
 ```
 
-**Tweet 3**
+**3**
 
 ```
 I got tired of debugging that in a 4k-line log.
 
-So I built an embeddable canvas that draws the path live — chain-of-thought, skills, tools, MCP — inside the chat UI you already ship.
-
-Not another hosted dashboard.
+So I built a live think-map. Same canvas two ways:
+in the chat UI you already ship, or beside Claude Code.
 ```
 
-**Tweet 4**
+**4**
 
 ```
-The demo replays a recorded GitHub-issue turn in the browser. No API key.
+Model-agnostic. You emit JSON. The canvas draws.
 
 Click a node: why it fired, the input, the output, how long it took.
+No account. No API key for the demo.
 ```
 
-**Tweet 5**
+**5**
 
 ```
 If you need a hosted trace warehouse, use LangSmith.
 
-If you need the trace inside the chat you already ship, this is the canvas.
+If you need the route while it happens, this is the canvas.
 
-If you ship a chat UI, what's still a black box?
+What's still a black box in your agent loop?
 ```
 
-**First reply** (this is the only link)
+**First reply**
 
 ```
-Try it, no key:
+Demo:
 https://nimrodfisher.github.io/agent-think-map/
-```
 
-Do not delete/repost if it is quiet. LinkedIn can carry the same GIF the same day.
+Claude Code:
+npx agent-think-map claude --install
 
----
+Embed (chat UI): four lines on the README.
 
-## 4. LinkedIn
-
-Attach `docs/demo.gif`. Ask for a try, not a star. Link is allowed.
-
-```
-Agents don't fail in the answer. They fail in the path.
-
-A skill loads. Read fires. An MCP server opens a GitHub issue. The chat UI shows a spinner. When the issue is wrong, the transcript still looks like a conversation.
-
-I got tired of debugging that in a 4k-line log.
-
-So I built an embeddable canvas that draws the route live — chain-of-thought, skills, tools, and MCP — inside the chat UI you already ship. Not a hosted tracing dashboard.
-
-If you need a warehouse, use LangSmith. If you need the trace next to the chat, this is the canvas.
-
-Try the demo. No API key.
-
-https://nimrodfisher.github.io/agent-think-map/
-```
-
-If the hub article is already live, add this line at the end instead of (or after) the demo URL:
-
-```
-Write-up: https://ai-analytics-hub.com/content/your-agent-chat-log-is-lying-to-you
+Repo:
+https://github.com/nimrodfisher/agent-think-map
 ```
 
 ---
 
-## 5. Reddit — `r/mcp` only
+## 5. Reddit — r/ClaudeCode (Wed, after X)
 
-Disclose in the first sentence. Lead with the GIF and the pain. Do not ask for stars. Do not also post `r/LocalLLaMA` / `r/ClaudeAI` / `r/openai` / `r/opensource` today.
+Disclose in sentence one. This room is Claude-shaped — that is fine. Last paragraph names the embed so you are not lying.
 
 **Title**
 
 ```
-MCP hops disappear in the chat transcript — I drew them as first-class nodes
+I was blind to the tool/MCP path — so I drew it beside Claude Code (same map embeds in a chat UI)
 ```
 
-**Body** (upload `docs/demo.gif` as the post image / first media)
+**Body**
 
 ```
 I built this. Disclosing up front.
 
-When an agent loads a skill, calls a tool, then hits an MCP server, the chat log still looks like a conversation. The hop is the interesting part — and it is invisible next to the answer.
+Claude Code's transcript still looks like a conversation when a skill loads, Read fires, then an MCP hop goes sideways. The hop is the interesting part — and it is invisible next to the spinner.
 
-agent-think-map is an embeddable canvas that draws chain-of-thought, skills, tools, and MCP as live nodes inside the chat UI you already ship. Click a node: why it fired, the input, the output, how long it took.
+agent-think-map is a local studio: one command writes HTTP hooks. Keep `claude` in the terminal. A browser tab draws skills, tools, MCP, and subagents as they fire. Click a node for why, input, output, duration.
 
-It is a viewer, not a new runtime and not a hosted dashboard. You keep Claude / OpenAI / Codex / your own loop. Emit one JSON object per step, or use the adapter.
+Same canvas can sit inside a chat UI (any model that emits the JSON/SSE). The viewer is model-agnostic; this one-command install is Claude Code.
 
-Live demo, no API key (replays a recorded GitHub-issue turn that includes an MCP hop):
+Not a new runtime and not a hosted dashboard.
+
+npx agent-think-map claude --install
+
+Fixture replay:
 
 https://nimrodfisher.github.io/agent-think-map/
-
-MIT. If you need a trace warehouse, use LangSmith. If you need the trace in the product, this is the canvas.
-
-Happy to answer how the MCP nodes are modeled.
 ```
 
-Stay on the thread and reply to technical questions. Do not ask for stars.
+**Thu (different title, different body):** r/mcp — lead with the embed + protocol, mention Claude Code as the CLI door, do not paste this post.
 
-**Hold for later (not today):** `r/LocalLLaMA` — angle = no-key, not SaaS, fixture replay in the browser. Different title, do not paste this `r/mcp` body.
+---
+
+## 6. Product Hunt (Wed 00:01 PT)
+
+Tagline: `See the agent think — chat UI or Claude Code`
+
+Maker comment:
+
+```
+Same live map two ways. Embed it in the chat UI you already ship (model-agnostic JSON/SSE), or run it beside Claude Code with one command. Viewer, not a warehouse.
+
+npx agent-think-map claude --install
+```

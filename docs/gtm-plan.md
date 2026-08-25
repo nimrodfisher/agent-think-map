@@ -1,422 +1,310 @@
 # Go-to-market: agent-think-map
 
-Executable playbook to make the repo discoverable, convert visitors into stars, and give a 48-hour launch a real chance of trending. Companion board: the GTM canvas beside this chat.
+Two tracks in parallel. Companion paste kit: `docs/channel-kit.md`. Canonical article: `docs/seed-post.md`.
 
-**Do not post anywhere until Phase 0 is done.** A weak first impression on HN/Reddit does not get a second try.
+**Track A — viral OSS (this week):** stars, tries, screenshots. The map is free locally and as an embed.
 
----
-
-## Snapshot (19 Aug 2026)
-
-The product already solves a real pain: agents fail in the **path**, and chat logs show the ending. The README’s problem statement is strong. Distribution is not. Public name is **agent-think-map** everywhere — repo, package, demo, web component. Do not say agent-trace in new copy.
-
-| Fact | Status |
-| --- | --- |
-| GitHub | [nimrodfisher/agent-think-map](https://github.com/nimrodfisher/agent-think-map) — renamed; old `agent-trace` URL 301s |
-| About line | Still the default GitHub blurb — paste the one-sentence pitch (below) |
-| Package name | `agent-think-map` — **free on npm**, not yet published |
-| `agent-trace` on npm | **Taken** by someone else: “Self-hosted observability for AI coding agents” |
-| Live demo | [GitHub Pages](https://nimrodfisher.github.io/agent-think-map/) |
-| Motion | `docs/demo.gif` + `docs/hero.png` of the live canvas |
-| Install | `npm i github:nimrodfisher/agent-think-map` until npm publish |
-| Web component | `<agent-think-map>` (`<agent-simulator>` is a deprecated alias) |
-| Your reach | 74 GitHub followers, [ai-analytics-hub.com](https://ai-analytics-hub.com) |
-
-Closest comps: [agent-prism](https://github.com/evilmartians/agent-prism) (381 stars, live demo, brand) vs [agentThinkingUI](https://github.com/footprintjs/agentThinkingUI) (same “watch any agent think” pitch, 2 stars). The pitch without packaging and a launch week does not travel.
+**Track B — paid (in flight, not in the viral posts):** 14 days free, then subscription. Do not put a paywall on the first tweet. The trial landing is a second URL, used in replies and on the hub.
 
 ---
 
-## Positioning
+## Positioning (freeze)
 
-Fill these five boxes before any tagline (April Dunford). The sentence is messaging; this table is positioning.
+The LinkedIn seed hit a real pain: **you cannot see the route**. That pain is not Claude-shaped. A chat spinner and a CLI spinner lie the same way.
 
-| Component | agent-think-map |
+| Component | Now |
 | --- | --- |
-| Competitive alternatives | Hosted dashboards (LangSmith / Langfuse) **and** the status quo: `console.log`, a custom panel, or doing nothing. OSS embedders often never intended to buy a dashboard. |
-| Unique attributes | Embeddable canvas; lives *inside* the chat UI already shipping; skills / tools / MCP as first-class nodes. |
-| Value | End users see the agent think in the product — transparency as UX, not a trip to an ops tool. |
-| Customers who care | Teams **shipping a chat UI** with an agent. Not “anyone with an agent,” not platform observability teams. |
-| Market you can win | Embeddable in-chat agent tracing. Not “LLM observability.” Same move as “embeddable database for mobile” vs “Access killer.” |
+| Competitive alternatives | The transcript / spinner **and** hosted warehouses (LangSmith / Langfuse). |
+| Unique attributes | One live canvas: skills / tools / MCP / subagents. Same graph in a chat UI **or** beside Claude Code. Model is a filter, not a lock-in. |
+| Value | See which skill loaded, which tool ran, which MCP hop, which model, tokens, duration — while the turn is still happening. |
+| Customers | (1) People who already run agents daily (Claude Code, Codex, Cursor, custom chat). (2) Teams shipping a chat UI. |
+| Market you can win | In-product / beside-the-runtime think-map. Not “LLM observability as a warehouse.” |
+
+**Do say:** model-agnostic. Same canvas whether you live in a chat UI or in Claude Code. Claude, Codex, OpenAI, or your own loop — you emit JSON (or use an adapter); the canvas draws.
+
+**Do not say:** “any AI agent” as if every CLI is one-command today. Truth: **the viewer is model-agnostic. The one-command CLI install is Claude Code. Other CLIs are not wired yet.** Embed + `TraceAdapter` already cover Claude / Codex / OpenAI streams.
 
 **One sentence (use everywhere):**
 
-> Embeddable canvas that shows an agent’s chain-of-thought, skills, tools, and MCP inside the chat UI you already ship — not a hosted tracing dashboard.
+> See the agent think — same live map in your chat UI or beside Claude Code. Model-agnostic.
 
-Cocktail-party test (what a user tells a friend): **“You can actually see the agent think.”** Keep that for X/PH. Do not say “any” AI agent in public copy — it fires ChatGPT-UI or LangSmith assumptions.
+Cocktail-party: **“You can actually see the agent think.”**
 
-**Copy when people compare:** “If you need a hosted trace warehouse, use LangSmith. If you need the trace *inside the chat you already ship*, this is the canvas.”
+**Compare copy:** “If you need a hosted trace warehouse, use LangSmith. If you need the route *while it happens* — in the chat you ship or beside the CLI — this is the canvas.”
 
 **Why a stranger stars it in 20 seconds:**
 
-1. They see the graph grow (GIF of a *host* chat, not a standalone toy).
-2. They click Live demo with no API key and prove it themselves in under 5 minutes.
-3. They copy four lines and it works.
-
-If any of those three fail, they bounce. Stars are a weak signal. The conversion that matters is a successful first embed.
+1. GIF: a tool/MCP node appears while a spinner would have been the only UI.
+2. Two doors, one graph: four-line embed **or** `npx agent-think-map claude --install`.
+3. No API key for the demo. They try it in under 5 minutes.
 
 ---
 
-## The one naming decision
+## Snapshot (25 Aug 2026)
 
-Public name is **agent-think-map**. Everywhere.
+Today is **Tue 25 Aug**. LinkedIn already ran and confirmed the pain. Ignition is **now**, with the copy below — not the old Claude-only headline.
 
-| Surface | Was | Now |
+| Fact | Status |
+| --- | --- |
+| GitHub | [nimrodfisher/agent-think-map](https://github.com/nimrodfisher/agent-think-map) |
+| CLI install | `npx agent-think-map claude --install` (Claude Code) |
+| Embed | `<agent-think-map events-url="…">` — any model that emits the JSON/SSE protocol |
+| Live demo | [GitHub Pages](https://nimrodfisher.github.io/agent-think-map/) — fixture replay, no key |
+| npm | [agent-think-map@0.1.0](https://www.npmjs.com/package/agent-think-map) — CTA is `npx agent-think-map claude --install` |
+| Motion | Need **two beats in one GIF** if you can: (1) embed/demo graph growing, (2) Claude Code studio. If you only have one, lead with the surface that matches the channel (see kit). |
+| Your reach | GitHub + [ai-analytics-hub.com](https://ai-analytics-hub.com) + LinkedIn (pain already validated) |
+
+---
+
+## This week (25–29 Aug 2026, ICT)
+
+Staff replies. Replies beat likes. LinkedIn seed is done — do **not** paste the same Claude-only body again.
+
+| When (ICT) | Channel | Job |
 | --- | --- | --- |
-| GitHub repo | `agent-trace` | `agent-think-map` (old URL 301s) |
-| GitHub About | Real time CoT Tracing | Still needs the one-sentence pitch pasted |
-| npm | unpublished | `agent-think-map` (free; still unpublished) |
-| README H1 | agent-think-map | keep |
-| Web component | `<agent-simulator>` | `<agent-think-map>` plus a deprecated alias |
-| Local folder | `ai-simulator` | ignore; not public |
+| **Tue 25, today** | Preflight + copy | GitHub About + topics. Smoke `--install` in a throwaway folder. Publish hub article with **model-agnostic** title. Record GIF. **Show HN 23:00** if install + Pages + GIF are real. |
+| **Tue 25, evening** | LinkedIn comment / follow-up | Short: “Not Claude-only. Same map in the chat UI. Model is a column, not a vendor.” Link demo. Do not start a new essay. |
+| **Tue 25, 23:00** | **Show HN** (9:00 PT) | Ignition. New title (frozen below). Staff 6 hours. |
+| **Wed 26, 14:01** | Product Hunt (00:01 PT) | Badge. Tagline is model-agnostic. Gallery shows **both** doors. |
+| **Wed 26, 23:00** | X thread (9:00 PT) | Native GIF. **No URL in tweets 1–5.** Link in first reply. Stay 30–60 min. |
+| **Wed 26, after X** | **r/ClaudeCode** | Claude-shaped angle (honest: that sub is the CLI). Disclose. |
+| **Thu 27** | **r/mcp** or **r/LocalLLaMA** (pick one) | Embed / model-agnostic angle. **Different body** from r/ClaudeCode. |
+| **Thu 27** | awesome-claude-code first, then awesome-mcp / awesome-ai-agents | Long-tail. One PR per list. |
+| **Fri 28** | LinkedIn | Recap screenshots + “14-day Pro waitlist” only in the last line, not the hook. |
 
-`agent-trace` is a generic phrase, collides with an existing npm package, and will never rank. `agent-think-map` is a visual metaphor people can repeat.
+Do **not** Show HN until:
 
-Paste this as the GitHub About (under 350 characters):
+1. `npx agent-think-map claude --install` works on a machine that is not this repo.
+2. Pages demo loads: https://nimrodfisher.github.io/agent-think-map/
+3. The GIF shows a **graph growing**, not a static README.
+
+Do **not** dump every subreddit the same hour. Density first: HN → PH → X → one Claude sub → one protocol/embed sub.
+
+---
+
+## GitHub chrome (do today)
+
+About (under 350 characters):
 
 ```
-Embeddable agent-tracing canvas for chat UIs. Live chain-of-thought, skills, tools, and MCP inside the product you already ship — not a hosted dashboard. No account. No API key. MIT.
+See the agent think — live map of skills, tools, MCP, subagents. Model-agnostic. Same canvas in your chat UI or beside Claude Code. No account. MIT.
 ```
 
-GitHub topics (max 20):
+Topics (max 20) — **do not** lead with only claude-code:
 
 ```
 ai-agents
-mcp
 observability
+claude-code
+mcp
 llm
 tracing
-claude
-openai
-react
+developer-tools
+visualization
 web-components
 typescript
-developer-tools
+openai
+codex
 llmops
 chain-of-thought
-visualization
-openai-agents
 sse
 agent-observability
-claude-code
-codex
+react
+claude
+openai-agents
 ```
 
-Social preview: 1280×640 PNG of the canvas mid-run (not the 2.2 MB hero). Settings → General → Social preview.
+Social preview: `docs/og.png`.
 
 ---
 
-## Phase 0 — Package (days 1–3)
+## Phase 0 leftovers (block ignition if undone)
 
-Nothing ships until a stranger can understand, watch, and try it without reading.
+- [ ] GitHub About + topics + social preview
+- [ ] GIF (8–12s) + MP4 for X. Watermark `agent-think-map`. Under ~5 MB.
+- [x] `npm publish` `agent-think-map@0.1.0`
+- [ ] Pin CDN to a git tag after first GitHub release (README/embed already use jsDelivr npm `@0.1.0`)
+- [ ] Smoke `--install` outside this repo
+- [ ] Hub OSS card + article (`docs/seed-post.md`)
 
-### 0.1 Live demo (highest leverage)
+---
 
-Deploy `apps/demo` (or the `npx` fixture server) to Vercel so the URL is clickable from HN.
+## Track A — Viral copy rules
 
-Requirements:
+1. **Hook = the path, not the vendor.** First line is never “for Claude Code.” First line is the lie the log tells.
+2. **Name both doors by tweet/comment 3.** Chat UI embed + Claude Code CLI.
+3. **CTA matches the room.** HN and X: demo + both commands. r/ClaudeCode: `--install`. A chat-UI thread: the four-line embed.
+4. **Do not mention price, trial, or Pro** in tweet 1–5, Show HN title, or Reddit title. Conversion lives in the first *reply*, the hub footer, and Friday LinkedIn.
+5. Ask for a **try**, not a star.
 
-- Unique `<title>` (keyword first, 50–57 characters): `Visualize AI Agent Thinking: Live Demo`
-- Meta description (140–160 chars, value in the first 100): the one-sentence pitch + “No API key.”
-- JSON-LD `SoftwareApplication` + `WebApplication` on the demo (`applicationCategory: DeveloperApplication`, `"price": "0"`). **Do not invent `aggregateRating`** until real reviews exist on the page.
-- `Organization.sameAs`: GitHub, npm, X — so Google treats the three surfaces as one entity.
-- Open Graph image = the social preview
-- Replay the GitHub-issue fixture automatically. **No API key, no signup.** Answer the “what is this?” in the first 40–60 words of the page.
-- Canonical URL in a README badge: `[Live demo](https://…)`
-- `robots.txt` must allow GPTBot / ClaudeBot / Google-Extended if you want ChatGPT / Perplexity / AI Overview citations.
+---
 
-Suggested URL: `https://agent-think-map.vercel.app` until a custom domain exists. Do not wait on a domain purchase to launch.
+## Track B — 14 days free, then subscription
 
-### 0.2 GIF of it in action
+OSS stays MIT and local/embed stay free. That is the viral engine. Paid is a **layer**, not a bait-and-switch.
 
-This is the entire launch asset. Record `npx agent-think-map` (or the Vite demo) replaying `fixtures/github-issue.json`.
+### What Pro is (freeze this story)
 
-**Shot list (8–12 seconds, loop, no voiceover):**
+| Free (forever) | Pro (trial → paid) |
+| --- | --- |
+| Local Claude Code studio | Cloud history beyond the local process |
+| Embed the canvas in your chat UI | Shareable replay links (send a turn, not a screenshot) |
+| Fixture demo, MIT, no account | Team seats, retention, export |
+| One machine, one graph | Same graph, persisted and shareable |
 
-1. Prompt appears: “File a GitHub issue for the login form overflowing…”
-2. Thinking node streams
-3. `frontend-engineer` skill card lights up
-4. Tool node (`Read`) then MCP node (`github / create_issue`)
-5. Click the MCP node — inspector shows why / input / duration
-6. Tape at the bottom scrubs
+Do not charge for “seeing the graph locally.” That would kill the LinkedIn motion.
 
-**Technical:**
+### Offer
 
-- 1280×720 or 1600×900
-- Looping GIF under ~5 MB (gifski / ScreenToGif). Also export a **15–30s native MP4** for X (upload the file; do not link YouTube). Burn in captions — sound-off scrolling.
-- Watermark a small `agent-think-map` + repo URL in the corner so shares still attribute.
-- `docs/demo.gif` in the repo; README references it **above** any screenshot
-- Compress `docs/hero.png` from 2.2 MB to under 200 KB (or drop it; the GIF replaces it)
-- Alt text: `Live think-map: prompt, chain-of-thought, skill, tool call, MCP inspector`
+- **14-day Pro trial.** Email to start. **No credit card** on day 0 (viral > friction). Card on day 12 reminder, charge on day 15 if they keep Pro.
+- After trial: **subscription**. Draft price (change after 20 talks, not after 20 tweets): **$19 / developer / month**, or **$16 / month billed annual**. Team: **$12 / seat / month** (min 3) with shared history.
+- One product: Pro. No fake four-tier grid this month.
 
-Windows: ScreenToGif or ShareX. macOS: `gifski`. Trim dead air. The graph growing is the hook; a static window is not.
+### Where the trial lives
 
-### 0.3 README that sells
+- Landing: hub page `/think-map` or `/agent-think-map` (not in this repo). Button: **Start 14-day Pro trial**. Secondary: GitHub / `npx` / embed docs.
+- In-product: local studio footer — “Free locally. Pro keeps history in the cloud — 14 days.” One line. Not a modal on first paint.
+- Waitlist until checkout exists: same button, “Get Pro when it opens — 14 days free.” Collect email. Do not delay OSS ignition for Stripe.
 
-Treat it as a landing page. Most people never scroll past the GIF.
+### Build order (do not block Show HN)
 
-**Above the fold (in this order):**
+1. **This week:** copy, waitlist form, email sequence outline (day 0, 7, 12, 14).
+2. **Week 2:** Stripe (or Lemon Squeezy) checkout + 14-day trial flag.
+3. **Week 2–3:** cheapest Pro wedge that is *true*: hosted session replay **or** shareable link. Ship one, not both.
+4. **Not this month:** SSO, warehouse ingest, “replace LangSmith.”
 
-1. Name + one sentence
-2. Looping GIF
-3. Two links: Live demo · `npx agent-think-map`
-4. Badges that matter: MIT, npm version, tests. Not vanity.
-5. Install in four lines (CDN **or** `npm i agent-think-map`)
-6. Three bullets: skill / tool / MCP / why
+### Email sequence (outline)
 
-**Below the fold:**
+| Day | Job |
+| --- | --- |
+| 0 | You are in. Local/embed stay free. Pro trial is history + share. |
+| 7 | One GIF of a shareable replay (or mock if not shipped). Ask what they would pay to send a turn to a teammate. |
+| 12 | Trial ends in 2 days. Price. Cancel = you keep OSS. |
+| 14 | Charged or expired. Receipt or “you are back on free local.” |
 
-- The problem (keep the current “fail in the path” copy — it is good)
-- Protocol JSON (proof it is a viewer, not a runtime)
-- Adapters: Claude / OpenAI / Codex
-- Who it is for (one table) — and one line who it **isn’t**: people who want a hosted trace warehouse
-- Comparison: “If you need a hosted warehouse, use LangSmith. If you need the trace inside the chat you already ship, this is the canvas.”
+---
 
-**Delete:** the keyword-stuffed last line. Google uses H1, first paragraph, About, topics, and npm keywords. A stuffed footer looks like spam and does not rank.
+## Phase 2 — Ignite posts
 
-**Do not** lead with architecture diagrams. Lead with motion.
+### Show HN — Tue 25 Aug 23:00 ICT (9:00 PT)
 
-Draft H1 block:
+**Title (freeze this):**
 
-```markdown
-<p align="center">
-  <img src="docs/demo.gif" alt="Live think-map: prompt, chain-of-thought, skill, tool call, MCP inspector" width="100%" />
-</p>
-
-<h1 align="center">agent-think-map</h1>
-
-<p align="center">
-  <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP<br/>
-  inside the chat UI you already ship. Not a hosted dashboard.
-</p>
-
-<p align="center">
-  <a href="https://agent-think-map.vercel.app">Live demo</a>
-  &nbsp;·&nbsp;
-  <code>npx agent-think-map</code>
-  &nbsp;·&nbsp;
-  no API key
-</p>
 ```
-
-### 0.4 Publish npm
-
-`npm i github:…` is a conversion leak.
-
-- Publish `agent-think-map@0.1.0` with the existing `description` and `keywords` in `package.json`
-- README install becomes `npm i agent-think-map`
-- Keep jsDelivr CDN, but pin a **release tag**, not `@main` (a broken main branch should not break every embed)
-
-### 0.5 Social proof placeholders
-
-Empty star counts look like a dead project. Until there are stars:
-
-- Show tests + MIT + “no account”
-- After PH/HN: add those badges. Not before.
-
-Star the repo yourself from a second account if you want — **do not** buy stars. Fake velocity gets you banned from trending folklore and from communities that matter.
-
----
-
-## Phase 1 — Seed (days 4–7)
-
-Warm the graph so ignition is not a cold start.
-
-1. **Your 74 followers + LinkedIn.** One post with the GIF. Ask for a try, not a star. People need to see the message ~3 times before they act — this is impression 1.
-2. **One dense community, not five thin ones.** You already have a NanoClaw adapter — that Discord/MCP circle is the school to seed. Density first; spraying five subs is how posts die.
-3. **One technical post** on [ai-analytics-hub.com](https://ai-analytics-hub.com) *and* Dev.to/Hashnode (canonical = your domain for SEO). Content is a supertanker: do not also spin a newsletter + YouTube this week.
-
-Post title options:
-
-- `Your agent chat log is lying to you`
-- `Skills, tools, MCP: the path is the bug`
-- `I got tired of debugging agents in a 4k-line transcript`
-
-Structure: 1 GIF, 1 pain story, 4-line install, link the repo once. No “please star.” Answer the claim in the first 40–60 words (AI Overviews cite passages, not pages).
-
-4. **Personal DMs** to 10 people who ship **chat UIs** (the actual customer). “Would this have helped last time a tool loop went sideways?” Genuine product questions beat launch spam.
-5. **10–15 min before any X post:** leave 5–10 substantive replies in agent/MCP threads (participant signal). Do this during seed week so ignition isn’t a cold account.
-
----
-
-## Phase 2 — Ignite (Tue–Thu of week 2)
-
-Star **velocity** is what GitHub Trending measures. Concentrate into 48 hours. Tuesday–Thursday. Not Monday, not Friday, not a holiday.
-
-Staff the window: one person on HN, one on X replies, one on GitHub issues — or one person who does not context-switch. The first 30–60 minutes after an X post decide distribution; late likes do not revive a dead post. Replies you answer beat likes.
-
-### Show HN (Tuesday 9:00 PT)
-
-Title — pick one and freeze it:
-
-1. `Show HN: agent-think-map – see the agent think, inside the chat UI you already ship`
-2. `Show HN: Embed a live think-map of Claude/OpenAI agents (no API key to try)`
-3. `Show HN: Visual agent tracing – skills, tools, and MCP, not another dashboard`
+Show HN: See the agent think — live map in your chat UI or beside Claude Code
+```
 
 First comment (paste immediately):
 
 ```
-I built this because my agents failed in the path, not the answer.
+I built this because agents fail in the path, not the answer.
 
-Chat logs show the ending. I wanted the route: which skill loaded, which
-tool ran, which MCP server it hit, and why.
+A skill loads. Read fires. An MCP server hops. The chat UI and the
+CLI both show a spinner. The transcript still looks like a conversation.
 
-It is a viewer, not a new runtime. Emit JSON (or use the Claude / OpenAI /
-Codex adapter). Drop a web component into the chat UI you already ship.
+agent-think-map is a viewer, not a new runtime. Same canvas two ways:
 
-If you need a hosted trace warehouse, use LangSmith. If you need the trace
-inside the product, this is the canvas.
+1. Embed in the chat UI you already ship (SSE / JSON). Model-agnostic —
+   Claude, Codex, OpenAI, or your own loop.
+2. Beside Claude Code: one command writes local hooks. Claude stays in
+   the terminal. The graph opens in the browser.
 
-Live demo, no key: <URL>
-npx agent-think-map
+npx agent-think-map claude --install
+
+If you need a hosted warehouse, use LangSmith. If you need the route
+while it happens, this is the canvas.
+
+Live fixture demo (no key):
+https://nimrodfisher.github.io/agent-think-map/
 ```
 
-Stay on the thread for 6 hours. Reply to every technical question. HN converts on honesty and on a working demo. Do not ask for stars.
+Stay 6 hours. Reply to hooks, embed, protocol, ports. If someone asks about paid: Pro is 14 days free then a subscription for **cloud history / shareable replay**; local and embed stay free. One sentence. Do not pitch.
 
-### Product Hunt (Wednesday 00:01 PT)
+### Product Hunt — Wed 26 14:01 ICT (00:01 PT)
 
-- Tagline (how a user describes it to a friend): `See the agent think — in the chat UI you already ship`
-- Maker comment: brief. People flip; they don’t read essays.
-- Gallery as a **slideshow story**: (1) spinner / opaque chat, (2) graph growing, (3) inspector click, (4) four-line embed, (5) fixture replay. Not five random screenshots.
-- Hunt with a maker who will comment, or self-hunt. PH is a **badge**, not the main traffic source
-- If you hit top 5, put the badge on the README the same day
-
-### X (Wednesday 9:00 AM audience TZ — strongest window)
-
-Native GIF/MP4 in the hook tweet. **No GitHub link in the body** (link penalty). 5–9 tweets. Link in the **last tweet or the first reply**. 0–1 hashtags. Reply to ≥90% of comments for 30–60 minutes — that *is* the launch.
-
-Thread shape:
-
-1. Hook (standalone): `Agents don't fail in the answer. They fail in the path.` + native video
-2. Numbered: skill loads → tool fires → MCP hop → spinner in the chat
-3. Concrete: the GitHub-issue fixture, no API key
-4. Counter-intuitive: the map is the product, not another dashboard
-5. Summary + reply prompt: “If you ship a chat UI, what’s still a black box?”
-6. Last tweet / first reply: repo + `npx agent-think-map`
-
-Do not delete/repost if it is quiet. Do not burst 10 tweets. LinkedIn can carry the same GIF the same day; it is not scored by the X ranker.
-
-### Reddit (Wednesday, one primary sub)
-
-Pick **r/mcp** as the dense seed (first-class MCP nodes is the wedge). Optional second: r/LocalLLaMA (no-key, not SaaS). Do not also hit r/ClaudeAI + r/openai + r/opensource on day one.
-
-Reddit removes “here is my startup.” Lead with the GIF and the pain. Disclose you built it.
-
-### Awesome lists (Thursday)
-
-Open PRs (one per list, follow their format):
-
-- awesome-mcp
-- awesome-ai-agents
-- awesome-llmops
-- awesome-claude-code (if they list UI tools)
-
-These are long-tail SEO, not a spike.
+- Tagline: `See the agent think — chat UI or Claude Code`
+- Gallery: (1) spinner / lying log, (2) embed four lines, (3) graph growing, (4) `--install` + studio, (5) inspector click
+- Maker comment: both doors + what it is not
 
 ---
 
 ## Phase 3 — Compound (weeks 3–8)
 
-Trending is a one-time gift. Retention is weekly motion.
-
-1. **Ship a visible adapter or layout every 1–2 weeks** so the repo looks alive.
-2. **GIF-first posts** when something new is visible (LangGraph adapter, overlay layout, cost on nodes).
-3. **“Built with” loop.** Pin an issue: `Show us your embed`. Add a small visible signature on public demos so the canvas is the billboard (Hotmail / Snyk-PR analog). Screenshots become social proof.
-4. **Comparison page** only after you have users, and as its **own URL** — not on the demo. “Langfuse records. We render in the product.” Do not start a war.
-5. **Optional Cursor/Claude skill** that emits the protocol — dogfood in public.
+1. Ship a visible canvas tweak every 1–2 weeks (repo looks alive).
+2. GIF-first posts: model filter, subagent siblings, token totals, **shareable replay** when Pro exists.
+3. Pin `Show us your map`. Dual audience: studio screenshots **and** in-chat embeds.
+4. Convert waitlist → trial as soon as one Pro wedge is real.
 
 ---
 
-## SEO (Google and AI Overviews — not the launch)
-
-Launch week is HN / X / density. Organic search is a **supertanker** (expect 6+ months). Do not kill it at month 3. If total addressable search volume on the core set is under ~500/month, community and PR stay the primary channel.
-
-**One intent per URL** (two keywords share a page only if they are the same SERP):
+## SEO (supertanker — not this week)
 
 | Surface | Intent | Owns |
 | --- | --- | --- |
-| Live demo | Transactional / tool | `visualize AI agent thinking`, product name |
-| GitHub README | Navigational + install | `[pkg] github`, how the protocol works |
-| npm | Install | `npm i agent-think-map` |
-| Flagship blog | Informational | “why the chat log is lying” — **not** a “best tools” roundup |
-| Later: `/vs` page | Commercial | LangSmith/Langfuse comparison. Do not put this on the demo. |
+| README | Navigational | `see the agent think`, `agent think map` |
+| Live demo | Try without a key | `visualize AI agent thinking` |
+| Hub article | Informational | “the log is lying / the path is the bug” |
+| Later `/vs` | Commercial | vs LangSmith. Own URL. |
 
-**Demo `<title>` formula:** `[Primary Keyword]: [Differentiator]` — keyword in the first 40 characters, 50–57 total. Brand name does **not** lead on the demo page.
-
-**AEO (ChatGPT / Perplexity / AI Overviews):** answer in the first 40–60 words; paragraphs ≤3 sentences; first sentence of each paragraph is a complete claim; H2 = the question, answer immediately under it. Keep an FAQ block even though FAQ rich results are deprecated — it still feeds LLM retrieval. Plan for zero-click on informational queries; put conversion on the demo and npm.
-
-**Phase 1 on the demo domain, then wait:** sitemap of canonical URLs → robots.txt → JSON-LD → Search Console verify + sitemap. Wait **14+ days**. If fewer than half the URLs are indexed, stop and fix indexation before writing more pages. The first 10 backlinks (awesome lists, HN, the blog) matter more than the next 100 articles.
-
-**Do not** buy a content mill, spam directories, or stuff a keyword footer. Do not fabricate schema ratings.
-
-If you later want a docs site: VitePress/Starlight on the same Vercel project at `/docs`. Not required for launch.
+Do not fabricate schema ratings. Do not buy stars.
 
 ---
 
-## Copy bank (freeze before launch day)
+## Copy bank (freeze)
 
-**GitHub About** — see naming section.
-
-**npm description:**
-
-```
-Embeddable canvas that shows an agent’s chain-of-thought, skills, tools, and MCP inside the chat UI you already ship.
-```
-
-**Product Hunt tagline:**
-
-```
-See the agent think — in the chat UI you already ship
-```
-
-**X hook (no link):**
+**Hook (no link):**
 
 ```
 Agents don't fail in the answer. They fail in the path.
 ```
 
-**What it is not (use when people compare):**
+**Both doors:**
+
+```
+Same live map in the chat UI you ship, or beside Claude Code.
+Model-agnostic. You emit JSON. The canvas draws.
+```
+
+**What it is not:**
 
 ```
 If you need a hosted trace warehouse, use LangSmith.
-If you need the trace inside the chat you already ship, this is the canvas.
-You emit JSON. No account.
+If you need the route while it happens, this is the canvas.
+Local and embed stay free. No account to try.
+```
+
+**Pro (replies / footer only):**
+
+```
+Pro is 14 days free, then a subscription — cloud history and shareable
+replays. The local studio and the embed stay MIT.
 ```
 
 ---
 
-## Metrics (so “virality” is not a feeling)
-
-Stars are likes: weakest signal. Also count clones and a successful first embed (`npx` or the four-line drop-in). X reply rate ≥1.5% in the test window is a real distribution signal.
+## Metrics
 
 | Window | Weak | On track | Hit |
 | --- | --- | --- | --- |
-| 48h after ignition | < 30 stars, demo unused | 80–200 stars **and** embeds in the wild | TypeScript Trending |
-| 7 days | < 50 | 200–500, GIF circulating | inbound “how do I emit X” |
-| 30 days | flat | weekly organic stars | a “built with” screenshot |
+| 48h | < 30 stars, nobody ran install or opened demo | 80–200 stars **and** “I tried it” comments from **both** CLI and embed people | Trending |
+| 7 days | < 50 | 200–500, GIF circulating | inbound protocol / hook questions |
+| 14 days | no waitlist emails | 50+ trial/waitlist emails | first paid (when checkout exists) |
+| 30 days | flat stars | weekly organic + repeat screenshots | Pro conversion ≥ 5% of trials |
 
-If 48h is weak: do **not** delete/repost the same X thread. Fix the leak (demo down, GIF unclear, install broken) and wait 4–6 weeks for a v0.2 launch with a new visible capability.
-
-There is no sustained viral coefficient >1. What you are designing is word of mouth from a remarkable demo, plus one in-product loop later (a visible “built with agent-think-map” mark on public embeds — the Snyk-PR analog).
+If 48h is weak: do not delete/repost the X thread. Fix the leak (install broken, GIF is a static hero) and wait 4–6 weeks.
 
 ---
 
 ## Execution checklist
 
-- [x] Rename GitHub repo to `agent-think-map` (old `agent-trace` URL 301s)
-- [ ] Set About, topics, social preview (`docs/og.png` is the 1280×640 card)
-- [x] Record `docs/demo.gif` (fixture loop, 1.44 MB, watermarked)
-- [x] Replace `docs/hero.png` with the GIF (hero dropped from README)
-- [x] Demo SEO + GitHub Pages workflow (enable Pages → GitHub Actions after merge)
-- [x] Rewrite README: GIF first, demo, four-line install
-- [ ] Publish `agent-think-map` to npm (`npm publish` — not run; needs your npm login)
-- [ ] Pin CDN to a release tag (after first GitHub release)
-- [x] Alias `<agent-think-map>` web component (`<agent-simulator>` still works)
-- [ ] Seed post + 10 DMs
-- [x] Freeze Show HN title and first comment (copy bank above)
-- [ ] Tue Show HN (staff the thread 6h)
-- [ ] Wed 00:01 PT Product Hunt (gallery as a story)
-- [ ] Wed 9:00 AM X thread: native video, **no link in the body**, reply 30–60 min
-- [ ] Wed r/mcp only (optional r/LocalLLaMA)
-- [ ] Thu awesome-list PRs
-
-Phase 0 in-repo work is on branch `gtm-phase-0`. Remaining items are remote (rename, topics, Pages enable, npm publish) or launch-week posts.
+- [ ] About, topics, social preview (model-agnostic)
+- [ ] GIF + MP4
+- [x] npm publish (`0.1.0`)
+- [ ] Smoke `--install` outside this repo
+- [ ] Hub OSS + article (new title)
+- [ ] LinkedIn follow-up (both doors) — seed already posted
+- [ ] Tue Show HN (title frozen above)
+- [ ] Wed PH + X + r/ClaudeCode
+- [ ] Thu second sub (embed angle) + awesome lists
+- [ ] Waitlist / trial landing copy live (even if Stripe is not)
+- [ ] Fri LinkedIn recap + Pro last line
