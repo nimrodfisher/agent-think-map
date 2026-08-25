@@ -70,6 +70,10 @@ A **Stop** (end of a turn) is not the end of the Claude session. The rail marks 
 
 Install hooks in the **cwd you actually launch `claude` from**. If studio is already on 3334, `--install` still writes hooks and exits; do not start a second server.
 
+<p align="center">
+  <img src="docs/studio.gif" alt="Studio graph growing: prompt, Read tool, answer, inspector" width="100%" />
+</p>
+
 ---
 
 ## Embed in a chat UI
