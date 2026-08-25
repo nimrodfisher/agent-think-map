@@ -18,3 +18,5 @@ apps/demo/dist
 packages/*/dist
 packages/adapters/*/dist
 docs/demo-frames
+docs/gtm-plan.md
+docs/channel-kit.md

@@ -2,8 +2,6 @@
 
 Publish this as-is on [ai-analytics-hub.com](https://ai-analytics-hub.com) (canonical), then Dev.to/Hashnode with that URL as `canonical`. One post.
 
-Social paste: `docs/channel-kit.md`. Playbook: `docs/gtm-plan.md`.
-
 **Claude Code:** `npx agent-think-map claude --install`  
 **Live demo (no key):** https://nimrodfisher.github.io/agent-think-map/  
 **Repo:** https://github.com/nimrodfisher/agent-think-map  
