@@ -81,8 +81,8 @@ Install hooks in the **cwd you actually launch `claude` from**. If studio is alr
 Four lines. Point `events-url` at your agent's SSE.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.0/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.0/dist/element.cdn.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.1/dist/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.1/dist/element.cdn.js"></script>
 <agent-think-map events-url="/sse" layout="split"></agent-think-map>
 ```
 
