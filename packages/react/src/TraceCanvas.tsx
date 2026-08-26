@@ -15,6 +15,7 @@ import {
   ALL_KIND_FILTER,
   filterTraceGraph,
   layoutTraceGraph,
+  neighborhoodIds,
   type KindFilter,
 } from "./layout.js";
 import { PhosphorEdge } from "./PhosphorEdge.js";
@@ -35,7 +36,9 @@ function CanvasInner() {
   const nodes = useTraceStore((state) => state.nodes);
   const edges = useTraceStore((state) => state.edges);
   const selectedNodeId = useTraceStore((state) => state.selectedNodeId);
+  const hoveredNodeId = useTraceStore((state) => state.hoveredNodeId);
   const select = useTraceStore((state) => state.select);
+  const hover = useTraceStore((state) => state.hover);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
   const [filter, setFilter] = useState<KindFilter>(ALL_KIND_FILTER);
   const [graph, setGraph] = useState({ nodes: [], edges: [] } as Awaited<
@@ -63,17 +66,31 @@ function CanvasInner() {
     };
   }, [topologyKey, visible.nodes, visible.edges, fitView]);
 
+  const focusId = hoveredNodeId ?? selectedNodeId;
+  const neighbors = useMemo(
+    () => (focusId ? neighborhoodIds(focusId, edges) : new Set<string>()),
+    [focusId, edges],
+  );
+
   const flowNodes = useMemo(
     () =>
-      graph.nodes.map((node) => ({
-        ...node,
-        selected: node.id === selectedNodeId,
-        data: {
-          node: nodes.find((item) => item.id === node.id) ?? node.data.node,
-          order: numbers.get(node.id),
-        },
-      })),
-    [graph.nodes, nodes, numbers, selectedNodeId],
+      graph.nodes.map((node) => {
+        const hovered = node.id === hoveredNodeId;
+        const dimmed = Boolean(focusId) && !neighbors.has(node.id);
+        return {
+          ...node,
+          selected: node.id === selectedNodeId,
+          className: [hovered ? "is-hovered" : "", dimmed ? "is-dimmed" : ""].filter(Boolean).join(" "),
+          data: {
+            node: nodes.find((item) => item.id === node.id) ?? node.data.node,
+            order: numbers.get(node.id),
+            hovered,
+            dimmed,
+            hover,
+          },
+        };
+      }),
+    [graph.nodes, nodes, numbers, selectedNodeId, hoveredNodeId, focusId, neighbors, hover],
   );
 
   return (
@@ -84,6 +101,8 @@ function CanvasInner() {
       edgeTypes={edgeTypes}
       onNodeClick={(_, node) => select(node.id)}
       onPaneClick={() => select(undefined)}
+      onNodeMouseEnter={(_, node) => hover(node.id)}
+      onNodeMouseLeave={() => hover(undefined)}
       fitView
       minZoom={0.25}
       maxZoom={2.5}

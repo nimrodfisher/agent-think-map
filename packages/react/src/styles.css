@@ -807,6 +807,43 @@
   }
 }
 
+.atc-node {
+  transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+@media (hover: hover) {
+  .atc-node.is-hovered:not(.is-selected) {
+    transform: translateY(-2px);
+    translate: 0 -2px;
+    border-color: color-mix(in srgb, var(--atc-copper) 55%, var(--atc-rule));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--atc-copper) 35%, transparent);
+  }
+}
+
+.atc-node.is-dimmed {
+  opacity: 0.55;
+}
+
+.react-flow__node {
+  transition: opacity 180ms ease;
+}
+
+.react-flow__node.is-dimmed {
+  opacity: 0.55;
+}
+
+.atc-node:focus-visible {
+  outline: 2px solid var(--atc-ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-node,
+  .react-flow__node {
+    transition-duration: 0ms;
+  }
+}
+
 @container atc (max-width: 520px) {
   .atc-stage,
   .atc-stage[data-chat][data-inspector],
