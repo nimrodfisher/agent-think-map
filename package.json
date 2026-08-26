@@ -1,6 +1,6 @@
 {
   "name": "agent-think-map",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "Live think-map for Claude Code CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
   "keywords": [
@@ -75,6 +75,7 @@
     "@xyflow/react": "^12.8.4",
     "elkjs": "^0.10.0",
     "motion": "^12.23.12",
+    "vite-node": "^3.2.4",
     "zod": "^4.0.17",
     "zustand": "^5.0.7"
   },
