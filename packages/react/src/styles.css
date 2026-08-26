@@ -784,6 +784,11 @@
   stroke-dasharray: 64 280;
   animation: atc-beam 1.6s linear infinite;
   filter: drop-shadow(0 0 4px var(--atc-phosphor-glow));
+  transition: opacity 180ms ease;
+}
+
+.react-flow__edge-path.atc-edge-beam.is-dimmed {
+  opacity: 0.28;
 }
 
 .react-flow {
@@ -857,7 +862,8 @@
 @media (prefers-reduced-motion: reduce) {
   .atc-node,
   .react-flow__node,
-  .react-flow__edge-path.atc-edge {
+  .react-flow__edge-path.atc-edge,
+  .react-flow__edge-path.atc-edge-beam {
     transition-duration: 0ms;
   }
 }
