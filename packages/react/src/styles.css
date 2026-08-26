@@ -808,7 +808,7 @@
 }
 
 .atc-node {
-  transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition: transform 180ms ease, translate 180ms ease, opacity 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 @media (hover: hover) {
