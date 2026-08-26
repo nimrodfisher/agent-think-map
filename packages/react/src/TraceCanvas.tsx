@@ -49,7 +49,6 @@ function CanvasInner() {
   const hover = useTraceStore((state) => state.hover);
   const setKindFilter = useTraceStore((state) => state.setKindFilter);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
-  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
   const [graph, setGraph] = useState({ nodes: [], edges: [] } as Awaited<
     ReturnType<typeof layoutTraceGraph>
   >);
@@ -184,6 +183,8 @@ function CanvasInner() {
             void zoomOut();
           }}
           onFit={() => {
+            const reduce =
+              window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
             void fitView({ padding: 0.18, duration: reduce ? 0 : 280 });
           }}
         />
