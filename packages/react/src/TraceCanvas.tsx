@@ -12,9 +12,8 @@ import "@xyflow/react/dist/style.css";
 import { chronologicalNumbers } from "../../core/src/index.js";
 import { CanvasZoomControls } from "./CanvasZoomControls.js";
 import {
-  ALL_KIND_FILTER,
+  countKinds,
   edgeSpotlight,
-  filterTraceGraph,
   layoutTraceGraph,
   neighborhoodIds,
   type KindFilter,
@@ -33,26 +32,34 @@ const FILTERS: Array<{ key: keyof KindFilter; label: string }> = [
   { key: "mcp", label: "MCPs" },
 ];
 
+function isFilteredKind(kind: string, filter: KindFilter): boolean {
+  if (kind !== "tool" && kind !== "skill" && kind !== "mcp" && kind !== "subagent") {
+    return false;
+  }
+  return filter[kind] === false;
+}
+
 function CanvasInner() {
   const nodes = useTraceStore((state) => state.nodes);
   const edges = useTraceStore((state) => state.edges);
   const selectedNodeId = useTraceStore((state) => state.selectedNodeId);
   const hoveredNodeId = useTraceStore((state) => state.hoveredNodeId);
+  const kindFilter = useTraceStore((state) => state.kindFilter);
   const select = useTraceStore((state) => state.select);
   const hover = useTraceStore((state) => state.hover);
+  const setKindFilter = useTraceStore((state) => state.setKindFilter);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
-  const [filter, setFilter] = useState<KindFilter>(ALL_KIND_FILTER);
   const [graph, setGraph] = useState({ nodes: [], edges: [] } as Awaited<
     ReturnType<typeof layoutTraceGraph>
   >);
-  const visible = useMemo(() => filterTraceGraph(nodes, edges, filter), [nodes, edges, filter]);
   const numbers = useMemo(() => chronologicalNumbers(nodes), [nodes]);
+  const counts = useMemo(() => countKinds(nodes), [nodes]);
 
-  const topologyKey = `${visible.nodes.length}:${visible.edges.length}:${FILTERS.map((item) => filter[item.key]).join("")}`;
+  const topologyKey = `${nodes.length}:${edges.map((edge) => edge.id).join("\0")}`;
 
   useEffect(() => {
     let cancelled = false;
-    void layoutTraceGraph(visible.nodes, visible.edges).then((next) => {
+    void layoutTraceGraph(nodes, edges).then((next) => {
       if (cancelled) return;
       setGraph({
         nodes: next.nodes,
@@ -65,7 +72,7 @@ function CanvasInner() {
     return () => {
       cancelled = true;
     };
-  }, [topologyKey, visible.nodes, visible.edges, fitView]);
+  }, [topologyKey, nodes, edges, fitView]);
 
   const focusId = hoveredNodeId ?? selectedNodeId;
   const neighbors = useMemo(
@@ -78,20 +85,29 @@ function CanvasInner() {
       graph.nodes.map((node) => {
         const hovered = node.id === hoveredNodeId;
         const dimmed = Boolean(focusId) && !neighbors.has(node.id);
+        const traceNode = nodes.find((item) => item.id === node.id) ?? node.data.node;
+        const filteredOut = isFilteredKind(traceNode.kind, kindFilter);
         return {
           ...node,
           selected: node.id === selectedNodeId,
-          className: [hovered ? "is-hovered" : "", dimmed ? "is-dimmed" : ""].filter(Boolean).join(" "),
+          className: [
+            hovered ? "is-hovered" : "",
+            dimmed ? "is-dimmed" : "",
+            filteredOut ? "is-filtered-out" : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
           data: {
-            node: nodes.find((item) => item.id === node.id) ?? node.data.node,
+            node: traceNode,
             order: numbers.get(node.id),
             hovered,
             dimmed,
+            filteredOut,
             hover,
           },
         };
       }),
-    [graph.nodes, nodes, numbers, selectedNodeId, hoveredNodeId, focusId, neighbors, hover],
+    [graph.nodes, nodes, numbers, selectedNodeId, hoveredNodeId, focusId, neighbors, hover, kindFilter],
   );
 
   const flowEdges = useMemo(
@@ -101,14 +117,25 @@ function CanvasInner() {
           { id: edge.id, source: edge.source, target: edge.target },
           focusId,
         );
-        const running = nodes.find((item) => item.id === edge.target)?.status === "running";
+        const sourceNode = nodes.find((item) => item.id === edge.source);
+        const targetNode = nodes.find((item) => item.id === edge.target);
+        const running = targetNode?.status === "running";
+        const filteredOut =
+          isFilteredKind(sourceNode?.kind ?? "", kindFilter) ||
+          isFilteredKind(targetNode?.kind ?? "", kindFilter);
         return {
           ...edge,
-          className: [`is-${spotlight}`, running ? "is-running" : ""].filter(Boolean).join(" "),
-          data: { spotlight, running },
+          className: [
+            `is-${spotlight}`,
+            running ? "is-running" : "",
+            filteredOut ? "is-filtered-out" : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
+          data: { spotlight, running, filteredOut },
         };
       }),
-    [graph.edges, focusId, nodes],
+    [graph.edges, focusId, nodes, kindFilter],
   );
 
   return (
@@ -136,10 +163,13 @@ function CanvasInner() {
             key={item.key}
             type="button"
             className={`atc-kind-chip atc-kind-chip--${item.key}`}
-            aria-pressed={filter[item.key]}
-            onClick={() => setFilter((current) => ({ ...current, [item.key]: !current[item.key] }))}
+            aria-pressed={kindFilter[item.key]}
+            onClick={() =>
+              setKindFilter((current) => ({ ...current, [item.key]: !current[item.key] }))
+            }
           >
             {item.label}
+            <span className="atc-kind-count">{counts[item.key]}</span>
           </button>
         ))}
       </Panel>

@@ -183,6 +183,7 @@
   padding: 0.18rem 0.5rem;
   border-radius: 999px;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
 }
 
 .atc-kind-chip[aria-pressed="true"] {
@@ -213,6 +214,28 @@
   border-color: var(--atc-kind-agent);
   color: var(--atc-kind-agent);
   background: color-mix(in srgb, var(--atc-kind-agent) 14%, var(--atc-card));
+}
+
+.atc-kind-chip[aria-pressed="false"] {
+  opacity: 0.45;
+}
+
+@media (hover: hover) {
+  .atc-kind-chip:hover {
+    border-color: var(--atc-copper);
+  }
+}
+
+.atc-kind-chip:focus-visible {
+  outline: 2px solid var(--atc-ink);
+  outline-offset: 2px;
+}
+
+.atc-kind-count {
+  font-family: var(--atc-font-mono);
+  font-size: 0.68rem;
+  margin-left: 0.28em;
+  opacity: 0.75;
 }
 
 .atc-zoom {
@@ -854,6 +877,15 @@
   opacity: 0.55;
 }
 
+.atc-node.is-filtered-out,
+.react-flow__edge-path.atc-edge.is-filtered-out {
+  opacity: 0.28;
+}
+
+.react-flow__node.is-filtered-out {
+  opacity: 0.28;
+}
+
 .atc-node:focus-visible {
   outline: 2px solid var(--atc-ink);
   outline-offset: 2px;
@@ -863,7 +895,8 @@
   .atc-node,
   .react-flow__node,
   .react-flow__edge-path.atc-edge,
-  .react-flow__edge-path.atc-edge-beam {
+  .react-flow__edge-path.atc-edge-beam,
+  .atc-kind-chip {
     transition-duration: 0ms;
   }
 }

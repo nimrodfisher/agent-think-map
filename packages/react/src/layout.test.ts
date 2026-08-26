@@ -86,7 +86,7 @@ describe("edgeSpotlight", () => {
   });
 });
 
-describe("filterTraceGraph", () => {
+describe("filterTraceGraph (hide helper, unused by canvas)", () => {
   it("hides tools and their edges when Tools is off", () => {
     const state = reduceTraceAll(githubIssueFixture);
     const filtered = filterTraceGraph(state.nodes, state.edges, {

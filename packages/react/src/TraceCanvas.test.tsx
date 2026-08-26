@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
+import { AgentSimulator } from "./AgentSimulator.js";
 import { TraceStoreProvider, createTraceStore } from "./store.js";
 import { TraceCanvas } from "./TraceCanvas.js";
 
@@ -38,5 +39,27 @@ describe("TraceCanvas hover", () => {
     });
     fireEvent.mouseLeave(article!);
     expect(store.getState().hoveredNodeId).toBeUndefined();
+  });
+});
+
+describe("TraceCanvas kind chips", () => {
+  it("toggles Tools off without removing the tool node from the document", async () => {
+    render(<AgentSimulator events={githubIssueFixture} replay={false} />);
+    const tools = screen.getByRole("button", { name: /Tools/ });
+    expect(tools.getAttribute("aria-pressed")).toBe("true");
+    await waitFor(() => {
+      expect(document.querySelector(".atc-node--tool")).toBeTruthy();
+    });
+    fireEvent.click(tools);
+    expect(tools.getAttribute("aria-pressed")).toBe("false");
+    expect(document.querySelector(".atc-node--tool")).toBeTruthy();
+    await waitFor(() => {
+      expect(document.querySelector(".atc-node--tool")?.className).toContain("is-filtered-out");
+    });
+  });
+
+  it("shows a count on each kind chip", () => {
+    render(<AgentSimulator events={githubIssueFixture} replay={false} />);
+    expect(screen.getByRole("button", { name: /Tools/ }).textContent).toMatch(/\d/);
   });
 });

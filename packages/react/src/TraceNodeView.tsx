@@ -17,6 +17,7 @@ export function TraceNodeView({ data, selected }: NodeProps) {
     selected ? "is-selected" : "",
     data.hovered ? "is-hovered" : "",
     data.dimmed ? "is-dimmed" : "",
+    data.filteredOut ? "is-filtered-out" : "",
   ]
     .filter(Boolean)
     .join(" ");

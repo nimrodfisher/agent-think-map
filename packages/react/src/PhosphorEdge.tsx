@@ -24,12 +24,17 @@ export function PhosphorEdge({
   });
   const spotlight = (data?.spotlight as string) ?? "idle";
   const running = Boolean(data?.running);
+  const filteredOut = Boolean(data?.filteredOut);
   const showBeam = running || spotlight === "related";
 
   return (
     <>
       <path d={path} className="atc-edge-hit" />
-      <BaseEdge id={id} path={path} className={`atc-edge is-${spotlight}${running ? " is-running" : ""}`} />
+      <BaseEdge
+        id={id}
+        path={path}
+        className={`atc-edge is-${spotlight}${running ? " is-running" : ""}${filteredOut ? " is-filtered-out" : ""}`}
+      />
       {showBeam ? (
         <path
           d={path}
