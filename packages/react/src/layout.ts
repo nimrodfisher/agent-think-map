@@ -69,6 +69,17 @@ export function neighborhoodIds(nodeId: string, edges: TraceEdge[]): Set<string>
   return ids;
 }
 
+export type EdgeSpotlight = "related" | "dimmed" | "idle";
+
+export function edgeSpotlight(
+  edge: TraceEdge,
+  focusId: string | undefined,
+): EdgeSpotlight {
+  if (!focusId) return "idle";
+  if (edge.source === focusId || edge.target === focusId) return "related";
+  return "dimmed";
+}
+
 export async function layoutTraceGraph(
   nodes: TraceNode[],
   edges: TraceEdge[],

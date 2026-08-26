@@ -13,6 +13,7 @@ import { chronologicalNumbers } from "../../core/src/index.js";
 import { CanvasZoomControls } from "./CanvasZoomControls.js";
 import {
   ALL_KIND_FILTER,
+  edgeSpotlight,
   filterTraceGraph,
   layoutTraceGraph,
   neighborhoodIds,
@@ -93,10 +94,27 @@ function CanvasInner() {
     [graph.nodes, nodes, numbers, selectedNodeId, hoveredNodeId, focusId, neighbors, hover],
   );
 
+  const flowEdges = useMemo(
+    () =>
+      graph.edges.map((edge) => {
+        const spotlight = edgeSpotlight(
+          { id: edge.id, source: edge.source, target: edge.target },
+          focusId,
+        );
+        const running = nodes.find((item) => item.id === edge.target)?.status === "running";
+        return {
+          ...edge,
+          className: [`is-${spotlight}`, running ? "is-running" : ""].filter(Boolean).join(" "),
+          data: { spotlight, running },
+        };
+      }),
+    [graph.edges, focusId, nodes],
+  );
+
   return (
     <ReactFlow
       nodes={flowNodes}
-      edges={graph.edges}
+      edges={flowEdges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodeClick={(_, node) => select(node.id)}

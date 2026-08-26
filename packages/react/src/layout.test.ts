@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
-import { countKinds, filterTraceGraph, layoutTraceGraph, neighborhoodIds } from "./layout.js";
+import { countKinds, edgeSpotlight, filterTraceGraph, layoutTraceGraph, neighborhoodIds } from "./layout.js";
 
 describe("layoutTraceGraph", () => {
   it("places later nodes further to the right", async () => {
@@ -75,6 +75,14 @@ describe("neighborhoodIds", () => {
       { id: "c", source: "other", target: "other-2" },
     ]);
     expect([...ids].sort()).toEqual(["answer-1", "think-1", "tool-read"]);
+  });
+});
+
+describe("edgeSpotlight", () => {
+  it("marks incident edges related and others dimmed when a node is focused", () => {
+    expect(edgeSpotlight({ id: "e", source: "a", target: "b" }, "a")).toBe("related");
+    expect(edgeSpotlight({ id: "e", source: "x", target: "y" }, "a")).toBe("dimmed");
+    expect(edgeSpotlight({ id: "e", source: "a", target: "b" }, undefined)).toBe("idle");
   });
 });
 

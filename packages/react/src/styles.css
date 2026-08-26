@@ -755,9 +755,26 @@
   border-style: dashed;
 }
 
+.atc-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+  pointer-events: stroke;
+}
+
 .react-flow__edge-path.atc-edge {
   stroke: var(--atc-rule);
   stroke-width: 1.6;
+  transition: stroke 180ms ease, stroke-width 180ms ease, opacity 180ms ease;
+}
+
+.react-flow__edge-path.atc-edge.is-related {
+  stroke: var(--atc-phosphor);
+  stroke-width: 2;
+}
+
+.react-flow__edge-path.atc-edge.is-dimmed {
+  opacity: 0.28;
 }
 
 .react-flow__edge-path.atc-edge-beam {
@@ -839,7 +856,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .atc-node,
-  .react-flow__node {
+  .react-flow__node,
+  .react-flow__edge-path.atc-edge {
     transition-duration: 0ms;
   }
 }
