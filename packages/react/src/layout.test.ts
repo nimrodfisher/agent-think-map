@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
-import { filterTraceGraph, layoutTraceGraph } from "./layout.js";
+import { countKinds, filterTraceGraph, layoutTraceGraph, neighborhoodIds } from "./layout.js";
 
 describe("layoutTraceGraph", () => {
   it("places later nodes further to the right", async () => {
@@ -54,6 +54,27 @@ describe("layoutTraceGraph", () => {
     expect(b).toBeTruthy();
     expect(Math.abs((a?.position.x ?? 0) - (b?.position.x ?? 0))).toBeLessThan(20);
     expect(Math.abs((a?.position.y ?? 0) - (b?.position.y ?? 0))).toBeGreaterThan(40);
+  });
+});
+
+describe("countKinds", () => {
+  it("counts filterable kinds and ignores prompt/answer", () => {
+    const state = reduceTraceAll(githubIssueFixture);
+    const counts = countKinds(state.nodes);
+    expect(counts.tool).toBeGreaterThan(0);
+    expect(counts.skill).toBeGreaterThanOrEqual(0);
+    expect("user" in counts).toBe(false);
+  });
+});
+
+describe("neighborhoodIds", () => {
+  it("includes the node and both ends of incident edges", () => {
+    const ids = neighborhoodIds("tool-read", [
+      { id: "a", source: "think-1", target: "tool-read" },
+      { id: "b", source: "tool-read", target: "answer-1" },
+      { id: "c", source: "other", target: "other-2" },
+    ]);
+    expect([...ids].sort()).toEqual(["answer-1", "think-1", "tool-read"]);
   });
 });
 

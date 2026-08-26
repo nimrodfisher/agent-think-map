@@ -48,6 +48,27 @@ export function filterTraceGraph(
   };
 }
 
+export function countKinds(nodes: TraceNode[]): Record<keyof KindFilter, number> {
+  const counts = { tool: 0, skill: 0, mcp: 0, subagent: 0 };
+  for (const node of nodes) {
+    if (node.kind === "tool" || node.kind === "skill" || node.kind === "mcp" || node.kind === "subagent") {
+      counts[node.kind] += 1;
+    }
+  }
+  return counts;
+}
+
+export function neighborhoodIds(nodeId: string, edges: TraceEdge[]): Set<string> {
+  const ids = new Set<string>([nodeId]);
+  for (const edge of edges) {
+    if (edge.source === nodeId || edge.target === nodeId) {
+      ids.add(edge.source);
+      ids.add(edge.target);
+    }
+  }
+  return ids;
+}
+
 export async function layoutTraceGraph(
   nodes: TraceNode[],
   edges: TraceEdge[],
