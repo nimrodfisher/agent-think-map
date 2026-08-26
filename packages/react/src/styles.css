@@ -878,7 +878,8 @@
 }
 
 .atc-node.is-filtered-out,
-.react-flow__edge-path.atc-edge.is-filtered-out {
+.react-flow__edge-path.atc-edge.is-filtered-out,
+.react-flow__edge-path.atc-edge-beam.is-filtered-out {
   opacity: 0.28;
 }
 

@@ -55,8 +55,9 @@ function CanvasInner() {
   const numbers = useMemo(() => chronologicalNumbers(nodes), [nodes]);
   const counts = useMemo(() => countKinds(nodes), [nodes]);
 
-  const topologyKey = `${nodes.length}:${edges.map((edge) => edge.id).join("\0")}`;
+  const topologyKey = `${nodes.length}:${nodes.map((node) => node.id).join("\0")}:${edges.map((edge) => edge.id).join("\0")}`;
 
+  // Layout once per node/edge identity, not payload (delta/status) or kindFilter.
   useEffect(() => {
     let cancelled = false;
     void layoutTraceGraph(nodes, edges).then((next) => {
@@ -72,7 +73,7 @@ function CanvasInner() {
     return () => {
       cancelled = true;
     };
-  }, [topologyKey, nodes, edges, fitView]);
+  }, [topologyKey, fitView]);
 
   const focusId = hoveredNodeId ?? selectedNodeId;
   const neighbors = useMemo(

@@ -38,7 +38,7 @@ export function PhosphorEdge({
       {showBeam ? (
         <path
           d={path}
-          className={`react-flow__edge-path atc-edge-beam${spotlight === "dimmed" ? " is-dimmed" : ""}`}
+          className={`react-flow__edge-path atc-edge-beam${spotlight === "dimmed" ? " is-dimmed" : ""}${filteredOut ? " is-filtered-out" : ""}`}
         />
       ) : null}
     </>
