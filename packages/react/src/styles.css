@@ -555,12 +555,23 @@
   border-radius: 2px;
   box-shadow: inset 0 -2px 0 var(--atc-rule);
   font: inherit;
+  transition: opacity 180ms ease, outline-color 180ms ease;
 }
 
-.atc-span:hover,
 .atc-span:focus-visible {
   outline: 2px solid var(--atc-copper);
   outline-offset: 1px;
+}
+
+@media (hover: hover) {
+  .atc-span.is-hovered:not(.is-active) {
+    outline: 2px solid color-mix(in srgb, var(--atc-copper) 70%, transparent);
+    outline-offset: 1px;
+  }
+}
+
+.atc-span.is-filtered-out {
+  opacity: 0.35;
 }
 
 .atc-span--skill {
@@ -897,7 +908,8 @@
   .react-flow__node,
   .react-flow__edge-path.atc-edge,
   .react-flow__edge-path.atc-edge-beam,
-  .atc-kind-chip {
+  .atc-kind-chip,
+  .atc-span {
     transition-duration: 0ms;
   }
 }
