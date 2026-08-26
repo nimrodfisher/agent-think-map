@@ -19,6 +19,7 @@ import {
   type KindFilter,
 } from "./layout.js";
 import { PhosphorEdge } from "./PhosphorEdge.js";
+import { canvasFitViewOptions } from "./reducedMotion.js";
 import { TraceNodeView } from "./TraceNodeView.js";
 import { useTraceStore } from "./store.js";
 
@@ -67,7 +68,7 @@ function CanvasInner() {
         edges: next.edges,
       });
       requestAnimationFrame(() => {
-        void fitView({ padding: 0.18, duration: 280 });
+        void fitView(canvasFitViewOptions());
       });
     });
     return () => {
@@ -183,9 +184,7 @@ function CanvasInner() {
             void zoomOut();
           }}
           onFit={() => {
-            const reduce =
-              window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-            void fitView({ padding: 0.18, duration: reduce ? 0 : 280 });
+            void fitView(canvasFitViewOptions());
           }}
         />
       </Panel>

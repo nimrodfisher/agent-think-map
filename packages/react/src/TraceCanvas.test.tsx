@@ -1,9 +1,14 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { githubIssueFixture, reduceTraceAll } from "@agent-think-map/core";
 import { AgentSimulator } from "./AgentSimulator.js";
 import { TraceStoreProvider, createTraceStore } from "./store.js";
 import { TraceCanvas } from "./TraceCanvas.js";
+
+const canvasSource = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "TraceCanvas.tsx"), "utf8");
 
 class ResizeObserverStub {
   observe() {}
@@ -61,5 +66,18 @@ describe("TraceCanvas kind chips", () => {
   it("shows a count on each kind chip", () => {
     render(<AgentSimulator events={githubIssueFixture} replay={false} />);
     expect(screen.getByRole("button", { name: /Tools/ }).textContent).toMatch(/\d/);
+  });
+});
+
+describe("TraceCanvas reduced motion fit", () => {
+  it("resolves fitView duration inside callbacks, not during render", () => {
+    const effect = canvasSource.slice(
+      canvasSource.indexOf("useEffect"),
+      canvasSource.indexOf("}, [topologyKey, fitView]"),
+    );
+    expect(effect).toContain("canvasFitViewOptions()");
+    expect(effect).not.toMatch(/duration:\s*280/);
+    expect(canvasSource).toMatch(/onFit=\{\(\) => \{[\s\S]*canvasFitViewOptions\(\)/);
+    expect(canvasSource).not.toMatch(/const reduce\s*=/);
   });
 });

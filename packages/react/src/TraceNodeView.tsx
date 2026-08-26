@@ -2,6 +2,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { motion } from "motion/react";
 import type { TraceNode } from "../../core/src/index.js";
 import { KindKicker } from "./KindKicker.js";
+import { prefersReducedMotion } from "./reducedMotion.js";
 import { formatUsageCompact } from "./usage.js";
 
 export function TraceNodeView({ data, selected }: NodeProps) {
@@ -10,6 +11,7 @@ export function TraceNodeView({ data, selected }: NodeProps) {
   const hover = data.hover as ((id: string | undefined) => void) | undefined;
   const preview = node.reason || node.text || node.outputPreview || node.error || "";
   const compact = formatUsageCompact(node.usage ?? {});
+  const reduce = prefersReducedMotion();
   const className = [
     "atc-node",
     `atc-node--${node.kind}`,
@@ -26,9 +28,9 @@ export function TraceNodeView({ data, selected }: NodeProps) {
     <motion.article
       className={className}
       title={node.title}
-      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      initial={reduce ? false : { opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={reduce ? { duration: 0 } : { duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
       onMouseEnter={() => hover?.(node.id)}
       onMouseLeave={() => hover?.(undefined)}
     >

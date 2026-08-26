@@ -116,10 +116,16 @@
   cursor: col-resize;
 }
 
-.atc-split-handle:hover,
+@media (hover: hover) {
+  .atc-split-handle:hover {
+    background: var(--atc-copper);
+  }
+}
+
 .atc-split-handle:focus-visible {
   background: var(--atc-copper);
-  outline: none;
+  outline: 2px solid var(--atc-ink);
+  outline-offset: 2px;
 }
 
 .atc-latest {
@@ -143,11 +149,18 @@
   box-shadow: 0 8px 18px rgba(28, 25, 21, 0.18);
 }
 
-.atc-latest:hover,
 .atc-latest:focus-visible {
   background: var(--atc-ink);
   outline: 2px solid var(--atc-copper);
   outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .atc-latest:hover {
+    background: var(--atc-ink);
+    outline: 2px solid var(--atc-copper);
+    outline-offset: 2px;
+  }
 }
 
 .atc-canvas {
@@ -231,6 +244,10 @@
   outline-offset: 2px;
 }
 
+.atc-kind-chip:active {
+  transform: scale(0.96);
+}
+
 .atc-kind-count {
   font-family: var(--atc-font-mono);
   font-size: 0.68rem;
@@ -275,6 +292,10 @@
 .atc-zoom button:focus-visible {
   outline: 2px solid var(--atc-ink);
   outline-offset: 2px;
+}
+
+.atc-zoom button:active {
+  transform: scale(0.96);
 }
 
 .atc-zoom-fit {
@@ -377,10 +398,16 @@
   border-radius: 2px;
 }
 
-.atc-sql-toggle:hover,
 .atc-sql-toggle:focus-visible {
   outline: 2px solid var(--atc-copper);
   outline-offset: 1px;
+}
+
+@media (hover: hover) {
+  .atc-sql-toggle:hover {
+    outline: 2px solid var(--atc-copper);
+    outline-offset: 1px;
+  }
 }
 
 .atc-pretty-actions {
@@ -452,13 +479,22 @@
   text-align: left;
 }
 
-.atc-clock-tick:hover,
-.atc-clock-tick:focus-visible {
-  z-index: 2;
-  outline: none;
+@media (hover: hover) {
+  .atc-clock-tick:hover {
+    z-index: 2;
+  }
+
+  .atc-clock-tick:hover b {
+    color: var(--atc-copper);
+  }
 }
 
-.atc-clock-tick:hover b,
+.atc-clock-tick:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--atc-ink);
+  outline-offset: 2px;
+}
+
 .atc-clock-tick:focus-visible b {
   color: var(--atc-copper);
 }
@@ -920,6 +956,7 @@
   .react-flow__edge-path.atc-edge,
   .react-flow__edge-path.atc-edge-beam,
   .atc-kind-chip,
+  .atc-zoom button,
   .atc-span {
     transition-duration: 0ms;
   }
