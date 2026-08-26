@@ -266,10 +266,21 @@
   border-bottom: 0;
 }
 
-.atc-zoom button:hover,
+@media (hover: hover) {
+  .atc-zoom button:hover {
+    background: color-mix(in srgb, var(--atc-copper) 16%, var(--atc-card));
+  }
+}
+
 .atc-zoom button:focus-visible {
-  background: color-mix(in srgb, var(--atc-copper) 16%, var(--atc-card));
-  outline: none;
+  outline: 2px solid var(--atc-ink);
+  outline-offset: 2px;
+}
+
+.atc-zoom-fit {
+  font-family: var(--atc-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
 }
 
 .atc-root[data-layout="overlay"] .atc-inspector {
