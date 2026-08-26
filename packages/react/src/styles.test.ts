@@ -50,10 +50,13 @@ describe("styles a11y and motion audit", () => {
     expect(css).not.toMatch(/\.atc-node[^{]*:active[^{]*\{[^}]*scale\(/);
   });
 
-  it("lifts hovered nodes with translateY, not scale-up", () => {
+  it("lifts hovered nodes with translate, not transform", () => {
     const hoverCss = hoverMediaCss();
-    expect(hoverCss).toMatch(/\.atc-node\.is-hovered[^{]*\{[^}]*translateY\(-2px\)/);
+    expect(hoverCss).toMatch(/\.atc-node\.is-hovered[^{]*\{[^}]*translate:\s*0 -2px/);
+    expect(hoverCss).not.toMatch(/\.atc-node\.is-hovered[^{]*\{[^}]*transform:/);
     expect(hoverCss).not.toMatch(/\.atc-node\.is-hovered[^{]*\{[^}]*scale\(/);
+    expect(css).toMatch(/\.atc-node\s*\{[^}]*transition:[^}]*translate 180ms ease/);
+    expect(css).not.toMatch(/\.atc-node\s*\{[^}]*transition:[^}]*transform 180ms/);
   });
 
   it("uses ink focus-visible rings on chips and zoom without outline none", () => {
