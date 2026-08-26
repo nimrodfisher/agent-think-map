@@ -49,7 +49,7 @@ if (arg === "help" || arg === "--help" || arg === "-h") {
 }
 
 if (arg === "claude" || arg === "claude-code") {
-  const viteNode = join(root, "node_modules", "vite-node", "vite-node.mjs");
+  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
   const script = join(root, "packages", "adapters", "claude-code", "src", "cli.ts");
   const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
     cwd: root,
