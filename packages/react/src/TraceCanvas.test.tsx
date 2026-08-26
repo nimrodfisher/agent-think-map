@@ -59,7 +59,9 @@ describe("TraceCanvas kind chips", () => {
     expect(tools.getAttribute("aria-pressed")).toBe("false");
     expect(document.querySelector(".atc-node--tool")).toBeTruthy();
     await waitFor(() => {
-      expect(document.querySelector(".atc-node--tool")?.className).toContain("is-filtered-out");
+      const tool = document.querySelector(".atc-node--tool");
+      expect(tool?.closest(".react-flow__node")?.className).toContain("is-filtered-out");
+      expect(tool?.className).not.toContain("is-filtered-out");
     });
   });
 

@@ -922,10 +922,6 @@
   }
 }
 
-.atc-node.is-dimmed {
-  opacity: 0.55;
-}
-
 .react-flow__node {
   transition: opacity 180ms ease;
 }
@@ -934,7 +930,6 @@
   opacity: 0.55;
 }
 
-.atc-node.is-filtered-out,
 .react-flow__edge-path.atc-edge.is-filtered-out,
 .react-flow__edge-path.atc-edge-beam.is-filtered-out {
   opacity: 0.28;
@@ -944,7 +939,7 @@
   opacity: 0.28;
 }
 
-.atc-node:focus-visible {
+.react-flow__node.selectable:focus-visible {
   outline: 2px solid var(--atc-ink);
   outline-offset: 2px;
 }

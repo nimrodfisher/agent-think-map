@@ -9,7 +9,7 @@ import {
   type EdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { chronologicalNumbers } from "../../core/src/index.js";
+import { chronologicalNumbers, type TraceNode } from "../../core/src/index.js";
 import { CanvasZoomControls } from "./CanvasZoomControls.js";
 import {
   countKinds,
@@ -87,13 +87,13 @@ function CanvasInner() {
       graph.nodes.map((node) => {
         const hovered = node.id === hoveredNodeId;
         const dimmed = Boolean(focusId) && !neighbors.has(node.id);
-        const traceNode = nodes.find((item) => item.id === node.id) ?? node.data.node;
+        const traceNode =
+          nodes.find((item) => item.id === node.id) ?? (node.data.node as TraceNode);
         const filteredOut = isFilteredKind(traceNode.kind, kindFilter);
         return {
           ...node,
           selected: node.id === selectedNodeId,
           className: [
-            hovered ? "is-hovered" : "",
             dimmed ? "is-dimmed" : "",
             filteredOut ? "is-filtered-out" : "",
           ]

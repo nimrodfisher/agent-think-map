@@ -59,17 +59,24 @@ describe("styles a11y and motion audit", () => {
     expect(css).not.toMatch(/\.atc-node\s*\{[^}]*transition:[^}]*transform 180ms/);
   });
 
-  it("uses ink focus-visible rings on chips and zoom without outline none", () => {
+  it("uses ink focus-visible rings on chips, zoom, and canvas nodes without outline none", () => {
     expect(css).toMatch(
       /\.atc-kind-chip:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--atc-ink\)/,
     );
     expect(css).toMatch(
       /\.atc-zoom button:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--atc-ink\)/,
     );
+    expect(css).toMatch(
+      /\.react-flow__node\.selectable:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--atc-ink\)/,
+    );
     const chipFocus = css.match(/\.atc-kind-chip:focus-visible\s*\{[^}]+\}/)?.[0] ?? "";
     const zoomFocus = css.match(/\.atc-zoom button:focus-visible\s*\{[^}]+\}/)?.[0] ?? "";
+    const nodeFocus =
+      css.match(/\.react-flow__node\.selectable:focus-visible\s*\{[^}]+\}/)?.[0] ?? "";
     expect(chipFocus).not.toMatch(/outline:\s*none/);
     expect(zoomFocus).not.toMatch(/outline:\s*none/);
+    expect(nodeFocus).not.toMatch(/outline:\s*none/);
+    expect(nodeFocus).toMatch(/outline-offset:\s*2px/);
   });
 
   it("snaps transitions and beam travel under reduced motion", () => {
