@@ -19,6 +19,8 @@ agent-think-map — see the agent think
   npx agent-think-map                 open the live demo
   npx agent-think-map claude          live map for Claude Code CLI
   npx agent-think-map claude --install
+  npx agent-think-map codex           live map for Codex CLI
+  npx agent-think-map codex --install
   npm i agent-think-map               React / Node
   CDN (any chat UI)                   one script tag, see README
 
@@ -55,6 +57,24 @@ if (arg === "claude" || arg === "claude-code") {
     cwd: root,
     stdio: "inherit",
     env: { ...process.env, ATM_CWD: process.cwd() },
+  });
+  child.on("exit", (code) => process.exit(code ?? 0));
+} else if (arg === "codex") {
+  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
+  const script = join(root, "packages", "adapters", "codex", "src", "cli.ts");
+  const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
+    cwd: root,
+    stdio: "inherit",
+    env: { ...process.env, ATM_CWD: process.cwd() },
+  });
+  child.on("exit", (code) => process.exit(code ?? 0));
+} else if (arg === "hook-forward") {
+  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
+  const script = join(root, "packages", "adapters", "codex", "src", "forward-cli.ts");
+  const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
+    cwd: root,
+    stdio: ["inherit", "ignore", "inherit"],
+    env: { ...process.env },
   });
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (!existsSync(cdnJs)) {

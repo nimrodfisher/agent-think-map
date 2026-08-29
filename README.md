@@ -6,13 +6,15 @@
 
 <p align="center">
   <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP.<br/>
-  <strong>Model-agnostic.</strong> Same canvas in the chat UI you ship, or beside Claude Code.
+  <strong>Model-agnostic.</strong> Same canvas in the chat UI you ship, or beside Claude Code and Codex.
 </p>
 
 <p align="center">
   <a href="https://nimrodfisher.github.io/agent-think-map/">Live demo</a>
   &nbsp;·&nbsp;
   <code>npx agent-think-map claude --install</code>
+  &nbsp;·&nbsp;
+  <code>npx agent-think-map codex --install</code>
   &nbsp;·&nbsp;
   no API key
 </p>
@@ -23,6 +25,7 @@
   <a href="#two-doors-same-canvas"><img src="https://img.shields.io/badge/model-agnostic-1f6f5b?style=flat-square" alt="Model-agnostic" /></a>
   <a href="#embed-in-a-chat-ui"><img src="https://img.shields.io/badge/embed-chat_UI-b85a2a?style=flat-square" alt="Embed in a chat UI" /></a>
   <a href="#claude-code-cli"><img src="https://img.shields.io/badge/CLI-Claude_Code-1f6f5b?style=flat-square" alt="Claude Code CLI" /></a>
+  <a href="#codex-cli"><img src="https://img.shields.io/badge/CLI-Codex-1f6f5b?style=flat-square" alt="Codex CLI" /></a>
   <a href="#what-you-see"><img src="https://img.shields.io/badge/nodes-skills_·_tools_·_MCP-1c1915?style=flat-square" alt="Skills tools MCP" /></a>
 </p>
 
@@ -36,8 +39,9 @@ The **viewer** does not care which model ran the turn. Model is a column on the 
 | --- | --- |
 | Shipping a chat UI | [Embed the canvas](#embed-in-a-chat-ui) — four lines, SSE / JSON. Claude, Codex, OpenAI, or your own loop. |
 | Living in Claude Code | [CLI studio](#claude-code-cli) — one command, graph in the browser, Claude stays in the terminal. |
+| Living in Codex | [CLI studio](#codex-cli) — one command, graph in the browser, Codex stays in the terminal. |
 
-Other CLIs are not one-command yet. If you already emit the protocol (or use `TraceAdapter`), you do not wait for a new adapter to **see** the graph.
+If you already emit the protocol (or use `TraceAdapter`), you do not wait for a new adapter to **see** the graph. NanoClaw copies a runner hook; any other runtime can POST the JSON yourself.
 
 ---
 
@@ -55,7 +59,7 @@ npx agent-think-map claude --install
 
 `--port 3334` · `--no-open` · `--smoke` (sample turn, no Claude) · `--print-hooks`
 
-The **one-command CLI install** is Claude Code today. Other CLIs are not wired yet. This studio is the same viewer as the [embed](#embed-in-a-chat-ui).
+The **one-command CLI install** is Claude Code (HTTP hooks) and Codex (command hooks). This studio is the same viewer as the [embed](#embed-in-a-chat-ui).
 
 ### Studio
 
@@ -73,6 +77,29 @@ Install hooks in the **cwd you actually launch `claude` from**. If studio is alr
 <p align="center">
   <img src="docs/studio.gif" alt="Studio graph growing: prompt, Read tool, answer, inspector" width="100%" />
 </p>
+
+---
+
+## Codex CLI
+
+The same live canvas, beside the Codex terminal. Codex stays in the CLI. A local studio lists sessions and draws the route as lifecycle hooks fire.
+
+```bash
+npx agent-think-map codex --install
+```
+
+1. Keep that process running. A browser tab opens `http://127.0.0.1:3335`.
+2. `--install` writes **command** hooks into **this folder’s** `.codex/hooks.json` (the folder where you start `codex`). Codex has no HTTP hook type: each event runs `npx agent-think-map hook-forward --url …`, which POSTs stdin JSON to the studio and prints nothing back (so Codex is not steered).
+3. In Codex, open `/hooks` and **trust** the agent-think-map command. New or changed hooks are skipped until you trust them.
+4. Ask Codex to use a tool (read a file, run a command). The graph grows in the browser.
+
+`--port 3335` · `--no-open` · `--smoke` (sample turn, no Codex) · `--print-hooks`
+
+**What the Codex CLI map shows:** prompt → tools (`Bash`, `apply_patch`, …) / MCP / subagents → answer. Codex lifecycle hooks do **not** stream chain-of-thought, so thinking nodes do not appear on this path. For reasoning items, ingest [Codex app-server](#any-agent-claude-codex-openai) notifications with `TraceAdapter` / `agent-think-map/codex`.
+
+A **Stop** (end of a turn) is not the end of the Codex session. The rail marks a session **ended** on Codex `SessionEnd`. The studio UI is the same as Claude Code: session rail, canvas, inspector, timeline.
+
+Install hooks in the **cwd you actually launch `codex` from**. If studio is already on 3335, `--install` still writes hooks and exits; do not start a second server.
 
 ---
 
@@ -127,7 +154,7 @@ No account. No API key. Replays a recorded GitHub-issue turn in the browser.
 | Subagent | Nested task |
 | Answer | What went back to the user |
 
-Secrets in tool args are redacted before they hit the canvas. The embed and the Claude Code studio share this graph, inspector, and timeline.
+Secrets in tool args are redacted before they hit the canvas. The embed and the Claude Code / Codex studios share this graph, inspector, and timeline.
 
 ---
 
@@ -145,7 +172,7 @@ You are left asking:
 - **Why** did the model pick that step?
 - Which **model**, and how many **tokens**?
 
-Logs are a transcript. You need the route — inside the chat you already ship, or beside Claude Code. Same map. Any model you can emit.
+Logs are a transcript. You need the route — inside the chat you already ship, or beside Claude Code or Codex. Same map. Any model you can emit.
 
 ## What agent-think-map is
 
@@ -249,6 +276,7 @@ Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `
 | --- | --- |
 | Shipping a chat product | Users (and you) can **see the agent think** — any model you emit — instead of trusting a spinner |
 | Using **Claude Code** in the terminal | The same map in the browser: sessions, model, tokens, the route — without leaving the CLI |
+| Using **Codex** in the terminal | The same map: sessions and tools as hooks fire — without leaving the CLI |
 | Debugging a runaway loop | A **live trace** of skills, tools, and MCP — not a 4k-line log |
 | Teaching or demoing agents | A canvas that builds in real time. Replay from a fixture. No keys. |
 | Building on MCP / skills | First-class nodes, not another generic “function call” chip |
