@@ -1,6 +1,6 @@
 {
   "name": "agent-think-map",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "description": "Live think-map beside Claude Code or Codex CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
   "keywords": [
@@ -68,8 +68,12 @@
     "react-dom": ">=18"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@xyflow/react": "^12.8.4",
