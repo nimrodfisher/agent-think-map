@@ -289,6 +289,65 @@ describe("classifyToolName", () => {
       title: "Read",
     });
   });
+
+  it("titles Codex Bash nodes from the command", () => {
+    expect(classifyToolName("Bash", { command: "cat src/Login.tsx" })).toEqual({
+      kind: "tool",
+      title: "cat",
+    });
+    expect(classifyToolName("Bash")).toEqual({
+      kind: "tool",
+      title: "Bash",
+    });
+    expect(classifyToolName("apply_patch", { command: "*** Begin Patch" })).toEqual({
+      kind: "tool",
+      title: "apply_patch",
+    });
+  });
+
+    it("classifies Read into .claude/skills/<name>/ as that skill", () => {
+    expect(
+      classifyToolName("Read", {
+        file_path: ".claude/skills/foo/references/bar.md",
+      }),
+    ).toEqual({ kind: "skill", title: "foo" });
+    expect(
+      classifyToolName("Read", {
+        file_path: ".claude/skills/foo/SKILL.md",
+      }),
+    ).toEqual({ kind: "skill", title: "foo" });
+    expect(
+      classifyToolName("Grep", { path: ".claude/skills/foo/references" }),
+    ).toEqual({ kind: "skill", title: "foo" });
+    expect(
+      classifyToolName("Glob", { pattern: ".claude/skills/foo/**/*.md" }),
+      ).toEqual({ kind: "skill", title: "foo" });
+    });
+
+    it("classifies Codex skill paths and shell-backed skill reads", () => {
+      expect(
+        classifyToolName("Get-Content", {
+          command: "Get-Content -LiteralPath C:\\Users\\me\\.codex\\plugins\\cache\\skills\\browser\\SKILL.md",
+        }),
+      ).toEqual({ kind: "skill", title: "browser" });
+      expect(
+        classifyToolName("Bash", {
+          command: "cat .agents/skills/frontend-engineer/SKILL.md",
+        }),
+      ).toEqual({ kind: "skill", title: "frontend-engineer" });
+      expect(
+        classifyToolName("Read", { file_path: ".codex/skills/reviewer/references/checks.md" }),
+      ).toEqual({ kind: "skill", title: "reviewer" });
+    });
+
+  it("classifies Read of an unrelated path as tool", () => {
+    expect(
+      classifyToolName("Read", { file_path: "src/Login.tsx" }),
+    ).toEqual({ kind: "tool", title: "Read" });
+    expect(
+      classifyToolName("Read", { path: "packages/core/src/index.ts" }),
+    ).toEqual({ kind: "tool", title: "Read" });
+  });
 });
 
 describe("reasonFor", () => {

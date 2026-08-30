@@ -2,7 +2,7 @@
   "name": "agent-think-map",
   "version": "0.1.1",
   "license": "MIT",
-  "description": "Live think-map for Claude Code CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
+  "description": "Live think-map beside Claude Code or Codex CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
   "keywords": [
     "ai",
     "agent",

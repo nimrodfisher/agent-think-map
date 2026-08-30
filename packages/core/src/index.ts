@@ -211,7 +211,44 @@ export interface ClassifiedTool {
   tool?: string;
 }
 
-export function classifyToolName(name: string): ClassifiedTool {
+const SKILL_FILE_TOOLS = new Set(["Read", "Grep", "Glob"]);
+const SKILL_DIR_RE = /(?:^|[/\\])(?:\.claude[/\\]|\.agents[/\\]|\.codex[/\\])?skills[/\\]([^/\\]+)/i;
+
+export function parseToolInput(input: string): Record<string, unknown> | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return undefined;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+function asToolInputRecord(
+  input?: Record<string, unknown> | string,
+): Record<string, unknown> | undefined {
+  if (!input) return undefined;
+  return typeof input === "string" ? parseToolInput(input) : input;
+}
+
+function skillNameFromPathInput(input: Record<string, unknown>): string | undefined {
+  for (const key of ["file_path", "path", "pattern", "command"] as const) {
+    const value = input[key];
+    if (typeof value !== "string" || !value) continue;
+    const name = value.match(SKILL_DIR_RE)?.[1];
+    if (name && !/[*?[\]]/.test(name)) return name;
+  }
+  return undefined;
+}
+
+export function classifyToolName(
+  name: string,
+  input?: Record<string, unknown> | string,
+): ClassifiedTool {
   if (name === "Skill" || name.toLowerCase() === "skill") {
     return { kind: "skill", title: name };
   }
@@ -227,6 +264,19 @@ export function classifyToolName(name: string): ClassifiedTool {
       server,
       tool,
     };
+  }
+  const parsed = asToolInputRecord(input);
+  const skill = parsed ? skillNameFromPathInput(parsed) : undefined;
+  if (skill && (SKILL_FILE_TOOLS.has(name) || name === "Bash" || name === "bash" || name === "Get-Content")) {
+    return { kind: "skill", title: skill };
+  }
+  if (name === "Bash" || name === "bash") {
+    const command = typeof parsed?.command === "string" ? parsed.command.trim() : "";
+    const title = command.split(/\s+/)[0] || "Bash";
+    return { kind: "tool", title };
+  }
+  if (SKILL_FILE_TOOLS.has(name)) {
+    return { kind: "tool", title: name };
   }
   return { kind: "tool", title: name };
 }
@@ -282,19 +332,20 @@ export function chronologicalNumbers(nodes: readonly TraceNode[]): Map<string, n
   return numbers;
 }
 
-export function summarizeToolInput(input: string): string | undefined {
+export function summarizeToolInput(
+  input: string,
+  parsed?: Record<string, unknown>,
+): string | undefined {
   const trimmed = input.trim();
   if (!trimmed) return undefined;
-  try {
-    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+  const record = parsed ?? parseToolInput(trimmed);
+  if (record) {
     for (const key of ["path", "query", "url", "file_path", "command", "skill", "name"]) {
-      const value = parsed[key];
+      const value = record[key];
       if (typeof value === "string" && value.length > 0) {
         return value.length > 120 ? `${value.slice(0, 117)}...` : value;
       }
     }
-  } catch {
-    return trimmed.length > 120 ? `${trimmed.slice(0, 117)}...` : trimmed;
   }
   return trimmed.length > 120 ? `${trimmed.slice(0, 117)}...` : trimmed;
 }

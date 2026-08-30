@@ -257,7 +257,8 @@
 
 .atc-zoom {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
   border: 1px solid var(--atc-ink);
   background: var(--atc-card);
   box-shadow: 0 10px 22px rgba(28, 25, 21, 0.1);
@@ -270,7 +271,7 @@
   margin: 0;
   padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--atc-rule);
+  border-right: 1px solid var(--atc-rule);
   background: transparent;
   color: var(--atc-ink);
   font-family: var(--atc-font-mono);
@@ -280,7 +281,10 @@
 }
 
 .atc-zoom button:last-child {
-  border-bottom: 0;
+  width: auto;
+  min-width: 2.4rem;
+  padding: 0 0.45rem;
+  border-right: 0;
 }
 
 @media (hover: hover) {
