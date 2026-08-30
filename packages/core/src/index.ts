@@ -212,7 +212,7 @@ export interface ClassifiedTool {
 }
 
 const SKILL_FILE_TOOLS = new Set(["Read", "Grep", "Glob"]);
-const SKILL_DIR_RE = /(?:^|[/\\])\.claude[/\\]skills[/\\]([^/\\]+)/;
+const SKILL_DIR_RE = /(?:^|[/\\])(?:\.claude[/\\]|\.agents[/\\]|\.codex[/\\])?skills[/\\]([^/\\]+)/i;
 
 export function parseToolInput(input: string): Record<string, unknown> | undefined {
   const trimmed = input.trim();
@@ -236,7 +236,7 @@ function asToolInputRecord(
 }
 
 function skillNameFromPathInput(input: Record<string, unknown>): string | undefined {
-  for (const key of ["file_path", "path", "pattern"] as const) {
+  for (const key of ["file_path", "path", "pattern", "command"] as const) {
     const value = input[key];
     if (typeof value !== "string" || !value) continue;
     const name = value.match(SKILL_DIR_RE)?.[1];
@@ -265,16 +265,18 @@ export function classifyToolName(
       tool,
     };
   }
+  const parsed = asToolInputRecord(input);
+  const skill = parsed ? skillNameFromPathInput(parsed) : undefined;
+  if (skill && (SKILL_FILE_TOOLS.has(name) || name === "Bash" || name === "bash" || name === "Get-Content")) {
+    return { kind: "skill", title: skill };
+  }
   if (name === "Bash" || name === "bash") {
-    const parsed = asToolInputRecord(input);
     const command = typeof parsed?.command === "string" ? parsed.command.trim() : "";
     const title = command.split(/\s+/)[0] || "Bash";
     return { kind: "tool", title };
   }
   if (SKILL_FILE_TOOLS.has(name)) {
-    const parsed = asToolInputRecord(input);
-    const skill = parsed ? skillNameFromPathInput(parsed) : undefined;
-    if (skill) return { kind: "skill", title: skill };
+    return { kind: "tool", title: name };
   }
   return { kind: "tool", title: name };
 }

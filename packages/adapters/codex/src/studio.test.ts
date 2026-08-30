@@ -123,5 +123,7 @@ describe("studioPage", () => {
     expect(html).toContain("Remove session");
     expect(html).toContain("Excalifont");
     expect(html).toContain('session.id !== "smoke"');
+    expect(html).toContain("usage.costUsd");
+    expect(html).toContain("cacheCreationTokens");
   });
 });

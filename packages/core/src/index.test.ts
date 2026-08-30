@@ -305,7 +305,7 @@ describe("classifyToolName", () => {
     });
   });
 
-  it("classifies Read into .claude/skills/<name>/ as that skill", () => {
+    it("classifies Read into .claude/skills/<name>/ as that skill", () => {
     expect(
       classifyToolName("Read", {
         file_path: ".claude/skills/foo/references/bar.md",
@@ -321,8 +321,24 @@ describe("classifyToolName", () => {
     ).toEqual({ kind: "skill", title: "foo" });
     expect(
       classifyToolName("Glob", { pattern: ".claude/skills/foo/**/*.md" }),
-    ).toEqual({ kind: "skill", title: "foo" });
-  });
+      ).toEqual({ kind: "skill", title: "foo" });
+    });
+
+    it("classifies Codex skill paths and shell-backed skill reads", () => {
+      expect(
+        classifyToolName("Get-Content", {
+          command: "Get-Content -LiteralPath C:\\Users\\me\\.codex\\plugins\\cache\\skills\\browser\\SKILL.md",
+        }),
+      ).toEqual({ kind: "skill", title: "browser" });
+      expect(
+        classifyToolName("Bash", {
+          command: "cat .agents/skills/frontend-engineer/SKILL.md",
+        }),
+      ).toEqual({ kind: "skill", title: "frontend-engineer" });
+      expect(
+        classifyToolName("Read", { file_path: ".codex/skills/reviewer/references/checks.md" }),
+      ).toEqual({ kind: "skill", title: "reviewer" });
+    });
 
   it("classifies Read of an unrelated path as tool", () => {
     expect(

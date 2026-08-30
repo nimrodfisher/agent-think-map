@@ -20,16 +20,53 @@ describe("CodexTraceHub", () => {
       expect.objectContaining({ id: "b", prompt: "Open issue", live: true }),
     ]);
   });
+
+  it("updates cumulative session usage once", () => {
+    const hub = new CodexTraceHub({ now: () => 12 });
+    hub.ingest({
+      session_id: "usage-session",
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Count this",
+    });
+    const usage = { inputTokens: 1200, outputTokens: 80, costUsd: 0.0123 };
+    expect(hub.updateUsage("usage-session", usage)).toBe(true);
+    expect(hub.updateUsage("usage-session", usage)).toBe(false);
+    expect(hub.list()[0]).toMatchObject({ usage });
+  });
+
+  it("updates model and reasoning effort once", () => {
+    const hub = new CodexTraceHub({ now: () => 13 });
+    hub.ingest({
+      session_id: "metadata-session",
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Filter this",
+    });
+    expect(hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(true);
+    expect(hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(false);
+    expect(hub.list()[0]).toMatchObject({ model: "gpt-5.6-luna", effort: "high" });
+  });
 });
 
 describe("codexHookSettings", () => {
   const cliJs = "/tmp/agent-think-map/bin/cli.mjs";
+
+  it("uses a Windows PATH executable for Codex command hooks", () => {
+    const command = hookForwardCommand("http://127.0.0.1:3335/hook", cliJs);
+    if (process.platform === "win32") {
+      expect(command.startsWith("node ")).toBe(true);
+      expect(command).not.toContain("Program Files");
+    }
+  });
 
   it("emits command hooks, not HTTP hooks", () => {
     const settings = codexHookSettings(
       hookForwardCommand("http://127.0.0.1:3335/hook", cliJs, "node"),
     );
     expect(settings.hooks.UserPromptSubmit[0].hooks[0]).toMatchObject({
+      type: "command",
+      timeout: 5,
+    });
+    expect(settings.hooks.SessionStart[0].hooks[0]).toMatchObject({
       type: "command",
       timeout: 5,
     });

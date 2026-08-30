@@ -3,27 +3,28 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exec, spawn } from "node:child_process";
 import { CodexTraceHub, codexHookSettings, hookForwardCommand } from "./hub.js";
-import { installCodexHooks } from "./install.js";
+import { codexProjectRoot, installCodexHooks } from "./install.js";
+import { resetCodexConsent } from "./consent.js";
 import { createCodexStudio } from "./studio.js";
 import { SMOKE } from "./smoke.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 const HELP = `
-agent-think-map codex — live think-map for Codex CLI
+agent-think-map codex — live think-map for Codex
 
   1. Keep this process running. A browser tab opens the session studio.
-  2. In the project where you run \`codex\`, install hooks (this folder):
+  2. Install once for your Codex account. This covers future Codex projects and sessions:
 
        npx agent-think-map codex --install
 
-  3. In Codex, open /hooks and trust the agent-think-map command.
-  4. Ask Codex to use a tool (e.g. read README.md). The graph builds in the browser.
+  3. On the first session, Codex asks whether to enable Agent Think Map. Reply yes, no, or later.
+  4. If you choose yes, the graph builds in the browser as Codex uses tools and subagents.
 
-  Codex CLI hooks do not stream chain-of-thought. The map is prompt → tools / MCP → answer.
+  Codex hooks do not stream chain-of-thought. The map is prompt → tools / MCP → answer.
   For reasoning items, ingest app-server notifications via TraceAdapter / agent-think-map/codex.
 
-  Flags: --port 3335   --install   --print-hooks   --smoke   --no-open
+  Flags: --port 3335   --install   --project   --print-hooks   --smoke   --no-open
   --smoke loads a fake demo session. Omit it when mapping a live Codex run.
 `;
 
@@ -44,6 +45,7 @@ function parseArgs(argv: string[]) {
     portFlag >= 0 ? Number(argv[portFlag + 1]) : Number(process.env.PORT) || 3335;
   return {
     install: flags.has("--install"),
+    project: flags.has("--project"),
     printHooks: flags.has("--print-hooks"),
     smoke: flags.has("--smoke"),
     open: !flags.has("--no-open"),
@@ -90,11 +92,17 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
 
   await ensureCdn();
 
-  const installDir = process.env.ATM_CWD || process.cwd();
   if (args.install) {
-    const file = installCodexHooks(installDir, hookUrl, cliJs);
+    const installDir = codexProjectRoot(process.env.ATM_CWD || process.cwd());
+    const scope = args.project ? "project" : "user";
+    const file = installCodexHooks(installDir, hookUrl, cliJs, scope);
+    if (scope === "user") resetCodexConsent();
     console.log(`Wrote Codex hooks → ${file}`);
-    console.log("Restart Codex in that project and trust the new hook-forward command in /hooks.\n");
+    console.log(
+      scope === "user"
+        ? "Restart Codex and trust the new hook-forward command when prompted. The first session will ask for consent.\n"
+        : "Restart Codex in that project and trust the new hook-forward command when prompted.\n",
+    );
   }
 
   const hub = new CodexTraceHub();
@@ -128,7 +136,7 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
   console.log(`Studio → ${origin}`);
   console.log(`Hooks  → POST ${hookUrl}\n`);
   if (!args.install) {
-    console.log("To attach the current folder's Codex CLI:\n");
+    console.log("To install the user-level Codex hooks:\n");
     console.log(`  npx agent-think-map codex --install --port ${args.port}\n`);
   }
   if (args.open) openBrowser(origin);

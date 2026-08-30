@@ -8,6 +8,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AgentTraceEvent } from "../../../protocol/src/index.js";
 import { CodexTraceHub, codexHookSettings, hookForwardCommand } from "./hub.js";
+import { codexSessionUsage } from "./session-usage.js";
+import { codexSessionMetadata } from "./session-metadata.js";
 
 export interface CodexStudioOptions {
   hub?: CodexTraceHub;
@@ -17,6 +19,15 @@ export interface CodexStudioOptions {
 
 function formatSse(event: AgentTraceEvent): string {
   return `data: ${JSON.stringify(event)}\n\n`;
+}
+
+function refreshSessionMetadata(hub: CodexTraceHub): void {
+  for (const session of hub.list()) {
+    const usage = codexSessionUsage(session.id);
+    if (usage) hub.updateUsage(session.id, usage);
+    const metadata = codexSessionMetadata(session.id);
+    if (metadata) hub.updateMetadata(session.id, metadata);
+  }
 }
 
 function mime(path: string): string {
@@ -90,7 +101,7 @@ export function studioPage(): string {
   <div class="studio">
     <aside class="rail">
       <h1>Sessions</h1>
-      <p>Live map for this Codex CLI. Click a session.</p>
+      <p>Live map for Codex. Click a session.</p>
       <input id="filter-query" type="search" placeholder="Filter sessions" />
       <div class="chips" id="status-filters"></div>
       <div class="chips" id="model-filters"></div>
@@ -143,14 +154,33 @@ export function studioPage(): string {
       return text.length > 48 ? text.slice(0, 45) + "…" : text;
     }
 
+    function costOf(value) {
+      if (value >= 1) return "$" + value.toFixed(2);
+      if (value > 0 && value < 0.01) return (value * 100).toFixed(1) + "¢";
+      return "$" + value.toFixed(4).replace(/0+$/, "").replace(/\\.$/, "");
+    }
+
+    function usageLine(usage) {
+      if (!usage) return "";
+      const input = typeof usage.inputTokens === "number" ? usage.inputTokens : 0;
+      const output = typeof usage.outputTokens === "number" ? usage.outputTokens : 0;
+      const cacheRead = typeof usage.cacheReadTokens === "number" ? usage.cacheReadTokens : 0;
+      const cacheWrite = typeof usage.cacheCreationTokens === "number" ? usage.cacheCreationTokens : 0;
+      const parts = [];
+      const total = input + output;
+      if (total) parts.push(total.toLocaleString("en-US") + " tok");
+      const cache = cacheRead + cacheWrite;
+      if (cache) parts.push(cache.toLocaleString("en-US") + " cache");
+      if (typeof usage.costUsd === "number") parts.push(costOf(usage.costUsd));
+      return parts.join(" · ");
+    }
+
     function metaLine(session) {
       const parts = [session.live ? "live" : "ended"];
       if (session.model) parts.push(String(session.model));
       if (session.effort) parts.push(session.effort);
-      const usage = session.usage || {};
-      const tokens = (usage.inputTokens || 0) + (usage.outputTokens || 0)
-        + (usage.cacheReadTokens || 0) + (usage.cacheCreationTokens || 0);
-      if (tokens) parts.push(tokens.toLocaleString("en-US") + " tok");
+      const usage = usageLine(session.usage);
+      if (usage) parts.push(usage);
       parts.push(session.eventCount + " events");
       return parts.join(" · ");
     }
@@ -314,6 +344,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
     }
 
     if (url.pathname === "/sessions") {
+      refreshSessionMetadata(hub);
       res.writeHead(200, {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",

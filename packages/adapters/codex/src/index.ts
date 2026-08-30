@@ -27,14 +27,21 @@ function asNumber(value: unknown): number | undefined {
 }
 
 function effortFrom(msg: Record<string, unknown>): string | undefined {
-  if (typeof msg.effort === "string") return asString(msg.effort);
-  return asString(asRecord(msg.effort)?.level);
+  return (
+    asString(msg.effort) ??
+    asString(asRecord(msg.effort)?.level) ??
+    asString(msg.reasoning_effort) ??
+    asString(msg.reasoningEffort) ??
+    asString(asRecord(msg.message)?.effort) ??
+    asString(asRecord(msg.message)?.reasoning_effort)
+  );
 }
 
 function modelFrom(msg: Record<string, unknown>): string | undefined {
   return (
     asString(msg.model) ??
     asString(asRecord(msg.message)?.model) ??
+    asString(asRecord(msg.payload)?.model) ??
     asString(asRecord(msg.tool_response)?.resolvedModel) ??
     asString(asRecord(msg.tool_input)?.model)
   );
@@ -113,7 +120,7 @@ export class CodexHookAdapter {
         handled = [...context, ...this.onStop(msg)];
         break;
       case "SessionEnd":
-        handled = [...context, ...this.onSessionEnd()];
+        handled = [...context, ...this.onSessionEnd(msg)];
         break;
       default:
         handled = [];
@@ -303,13 +310,17 @@ export class CodexHookAdapter {
   }
 
   private onStop(msg: Record<string, unknown>): AgentTraceEvent[] {
+    const usage = usageFromUnknown(msg);
+    if (usage) this.usage = usage;
     const text = asString(msg.last_assistant_message);
-    if (!text) return [];
+    const meta = usage ? this.metaEvent() : [];
+    if (!text) return meta;
     const id = this.nextId("answer");
     const parentId = this.spineId || this.lastId;
     this.spineId = id;
     this.lastId = id;
     return [
+      ...meta,
       {
         type: "node.started",
         id,
@@ -323,7 +334,9 @@ export class CodexHookAdapter {
     ];
   }
 
-  private onSessionEnd(): AgentTraceEvent[] {
+  private onSessionEnd(msg: Record<string, unknown>): AgentTraceEvent[] {
+    const usage = usageFromUnknown(msg);
+    if (usage) this.usage = usage;
     if (!this.opened) return [];
     return [
       {

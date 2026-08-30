@@ -73,7 +73,7 @@ if (arg === "claude" || arg === "claude-code") {
   const script = join(root, "packages", "adapters", "codex", "src", "forward-cli.ts");
   const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
     cwd: root,
-    stdio: ["inherit", "ignore", "inherit"],
+    stdio: ["inherit", "inherit", "inherit"],
     env: { ...process.env },
   });
   child.on("exit", (code) => process.exit(code ?? 0));

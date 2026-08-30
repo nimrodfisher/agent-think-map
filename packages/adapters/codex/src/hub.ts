@@ -2,6 +2,7 @@ import type { AgentTraceEvent, TraceUsage } from "../../../protocol/src/index.js
 import { CodexHookAdapter } from "./index.js";
 
 export const CODEX_HOOK_EVENTS = [
+  "SessionStart",
   "UserPromptSubmit",
   "PreToolUse",
   "PostToolUse",
@@ -77,7 +78,14 @@ export function hookForwardCommand(
   cliJs: string,
   nodeBin = process.execPath,
 ): string {
-  return `${shellQuote(nodeBin)} ${shellQuote(cliJs)} hook-forward --url ${hookUrl}`;
+  // Codex executes Windows hooks through its command runner. An absolute
+  // Node path such as `C:\\Program Files\\nodejs\\node.exe` is valid in a
+  // terminal but is parsed incorrectly by the runner when it contains a
+  // space. `node` is already on PATH for an npm-installed CLI and avoids
+  // that Windows-specific failure. Keep the explicit nodeBin for tests and
+  // non-Windows callers that need a pinned runtime.
+  const executable = process.platform === "win32" && nodeBin === process.execPath ? "node" : nodeBin;
+  return `${shellQuote(executable)} ${shellQuote(cliJs)} hook-forward --url ${hookUrl}`;
 }
 
 function isThinkMapForwarder(command: string | undefined): boolean {
@@ -164,6 +172,52 @@ export class CodexTraceHub {
       effort: session.effort,
       usage: session.usage,
     }));
+  }
+
+  updateUsage(sessionId: string, usage: TraceUsage): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    const fields: Array<keyof TraceUsage> = [
+      "inputTokens",
+      "outputTokens",
+      "cacheReadTokens",
+      "cacheCreationTokens",
+      "costUsd",
+    ];
+    if (fields.every((field) => session.usage?.[field] === usage[field])) return false;
+    session.usage = usage;
+    const event: AgentTraceEvent = {
+      type: "run.meta",
+      runId: session.id,
+      usage,
+      ts: this.options.now?.() ?? Date.now(),
+    };
+    session.events.push(event);
+    session.updatedAt = event.ts;
+    for (const listener of session.listeners) listener(event);
+    return true;
+  }
+
+  updateMetadata(sessionId: string, metadata: { model?: string; effort?: string }): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    const model = metadata.model ?? session.model;
+    const effort = metadata.effort ?? session.effort;
+    if (model === session.model && effort === session.effort) return false;
+    session.model = model;
+    session.effort = effort;
+    const event: AgentTraceEvent = {
+      type: "run.meta",
+      runId: session.id,
+      model,
+      effort,
+      usage: session.usage,
+      ts: this.options.now?.() ?? Date.now(),
+    };
+    session.events.push(event);
+    session.updatedAt = event.ts;
+    for (const listener of session.listeners) listener(event);
+    return true;
   }
 
   subscribe(sessionId: string, listener: Listener): () => void {

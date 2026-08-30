@@ -36,10 +36,13 @@ export function usageFromUnknown(value: unknown): TraceUsage | undefined {
     inputTokens: numberField(raw, "inputTokens") ?? numberField(raw, "input_tokens"),
     outputTokens: numberField(raw, "outputTokens") ?? numberField(raw, "output_tokens"),
     cacheReadTokens:
-      numberField(raw, "cacheReadTokens") ?? numberField(raw, "cache_read_input_tokens"),
+      numberField(raw, "cacheReadTokens") ??
+      numberField(raw, "cache_read_input_tokens") ??
+      numberField(raw, "cached_input_tokens"),
     cacheCreationTokens:
       numberField(raw, "cacheCreationTokens") ??
-      numberField(raw, "cache_creation_input_tokens"),
+      numberField(raw, "cache_creation_input_tokens") ??
+      numberField(raw, "cache_write_input_tokens"),
     costUsd:
       numberField(root, "total_cost_usd") ??
       numberField(root, "totalCostUsd") ??
