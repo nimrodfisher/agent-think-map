@@ -16,6 +16,7 @@ export type CodexHookEvent = (typeof CODEX_HOOK_EVENTS)[number];
 export interface CommandHookHandler {
   type: "command";
   command: string;
+  commandWindows?: string;
   timeout: number;
 }
 
@@ -62,12 +63,25 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 
 function commandGroup(command: string, timeout: number): HookMatcherGroup {
   return {
-    hooks: [{ type: "command", command, timeout }],
+    hooks: [{ type: "command", command, commandWindows: command, timeout }],
   };
 }
 
-export function hookForwardCommand(hookUrl: string): string {
-  return `npx agent-think-map hook-forward --url ${hookUrl}`;
+function shellQuote(value: string): string {
+  if (!/[\s"]/.test(value)) return value;
+  return `"${value.replaceAll('"', '\\"')}"`;
+}
+
+export function hookForwardCommand(
+  hookUrl: string,
+  cliJs: string,
+  nodeBin = process.execPath,
+): string {
+  return `${shellQuote(nodeBin)} ${shellQuote(cliJs)} hook-forward --url ${hookUrl}`;
+}
+
+function isThinkMapForwarder(command: string | undefined): boolean {
+  return Boolean(command?.includes("hook-forward"));
 }
 
 export function codexHookSettings(command: string): CodexHookSettings {
@@ -91,11 +105,14 @@ export function mergeCodexHookSettings(
     const prior = Array.isArray(current[event])
       ? (current[event] as HookMatcherGroup[])
       : [];
-    const already = prior.some((group) =>
+    const kept = prior.filter(
+      (group) => !group.hooks?.some((hook) => isThinkMapForwarder(hook.command)),
+    );
+    const already = kept.some((group) =>
       group.hooks?.some((hook) => hook.type === "command" && hook.command === command),
     );
     const ours = commandGroup(command, event === "SessionEnd" ? 3 : 5);
-    hooks[event] = already ? prior : [...prior, ours];
+    hooks[event] = already ? kept : [...kept, ours];
   }
   for (const [event, groups] of Object.entries(current)) {
     if (!(event in hooks) && Array.isArray(groups)) {

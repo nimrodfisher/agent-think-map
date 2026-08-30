@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterSessions, sessionEfforts, sessionModels } from "./sessions.js";
+import { filterSessions, pickStudioSession, sessionEfforts, sessionModels } from "./sessions.js";
 import type { SessionSummary } from "./hub.js";
 
 const sessions: SessionSummary[] = [
@@ -41,5 +41,39 @@ describe("filterSessions", () => {
   it("lists distinct model and effort values for filter chips", () => {
     expect(sessionModels(sessions)).toEqual(["gpt-5.4", "gpt-5.4-mini"]);
     expect(sessionEfforts(sessions)).toEqual(["high", "low"]);
+  });
+});
+
+describe("pickStudioSession", () => {
+  const smoke: SessionSummary = {
+    id: "smoke",
+    prompt: "Read README.md and summarize it",
+    live: true,
+    updatedAt: 1,
+    eventCount: 8,
+  };
+  const live: SessionSummary = {
+    id: "thr_real",
+    prompt: "Fix the login form",
+    live: true,
+    updatedAt: 2,
+    eventCount: 4,
+  };
+
+  it("ignores a smoke URL when a live Codex session exists", () => {
+    expect(
+      pickStudioSession([smoke, live], { selected: "smoke", userPicked: false }),
+    ).toBe("thr_real");
+  });
+
+  it("keeps smoke only when the user clicked it", () => {
+    expect(
+      pickStudioSession([smoke, live], { selected: "smoke", userPicked: true }),
+    ).toBe("smoke");
+  });
+
+  it("follows the newest live real session", () => {
+    const later: SessionSummary = { ...live, id: "thr_later", updatedAt: 3 };
+    expect(pickStudioSession([smoke, live, later], { selected: "thr_real" })).toBe("thr_later");
   });
 });

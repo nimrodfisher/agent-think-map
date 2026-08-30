@@ -38,3 +38,27 @@ export function sessionEfforts(sessions: readonly SessionSummary[]): string[] {
 function unique(values: Array<string | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
+
+const SMOKE_SESSION_ID = "smoke";
+
+export function pickStudioSession(
+  sessions: readonly SessionSummary[],
+  options: { selected?: string | null; userPicked?: boolean } = {},
+): string | undefined {
+  if (!sessions.length) return undefined;
+  const selected = options.selected ?? undefined;
+  const listed = (id: string | undefined) =>
+    Boolean(id && sessions.some((session) => session.id === id));
+
+  if (options.userPicked && listed(selected)) return selected;
+
+  const newestLiveReal = [...sessions]
+    .reverse()
+    .find((session) => session.live && session.id !== SMOKE_SESSION_ID);
+  if (newestLiveReal) return newestLiveReal.id;
+
+  const newestReal = [...sessions].reverse().find((session) => session.id !== SMOKE_SESSION_ID);
+  if (newestReal) return newestReal.id;
+
+  return sessions[sessions.length - 1]?.id;
+}

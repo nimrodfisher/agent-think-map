@@ -94,6 +94,8 @@ describe("createCodexStudio", () => {
     const body = await (await fetch(`${started.url}/hooks.json`)).text();
     expect(body).toContain('"type": "command"');
     expect(body).toContain("hook-forward");
+    expect(body).toContain("cli.mjs");
+    expect(body).not.toContain("npx agent-think-map");
     expect(body).not.toContain('"type": "http"');
   });
 
@@ -120,5 +122,6 @@ describe("studioPage", () => {
     expect(html).toContain("Waiting for Codex");
     expect(html).toContain("Remove session");
     expect(html).toContain("Excalifont");
+    expect(html).toContain('session.id !== "smoke"');
   });
 });

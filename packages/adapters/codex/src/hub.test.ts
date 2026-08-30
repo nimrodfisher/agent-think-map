@@ -23,24 +23,39 @@ describe("CodexTraceHub", () => {
 });
 
 describe("codexHookSettings", () => {
+  const cliJs = "/tmp/agent-think-map/bin/cli.mjs";
+
   it("emits command hooks, not HTTP hooks", () => {
     const settings = codexHookSettings(
-      hookForwardCommand("http://127.0.0.1:3335/hook"),
+      hookForwardCommand("http://127.0.0.1:3335/hook", cliJs, "node"),
     );
     expect(settings.hooks.UserPromptSubmit[0].hooks[0]).toMatchObject({
       type: "command",
       timeout: 5,
     });
+    expect(settings.hooks.UserPromptSubmit[0].hooks[0].command).toContain("cli.mjs");
+    expect(settings.hooks.UserPromptSubmit[0].hooks[0].command).not.toContain("npx ");
     expect(JSON.stringify(settings)).not.toMatch(/"type":"http"/);
     expect(settings.hooks.SessionEnd[0].hooks[0].timeout).toBe(3);
   });
 
-  it("merges without dropping unrelated hook groups", () => {
-    const command = hookForwardCommand("http://127.0.0.1:3335/hook");
+  it("replaces an older npx hook-forward without dropping unrelated groups", () => {
+    const command = hookForwardCommand("http://127.0.0.1:3335/hook", cliJs, "node");
     const merged = mergeCodexHookSettings(
       {
         hooks: {
-          Stop: [{ hooks: [{ type: "command", command: "echo keep-me", timeout: 5 }] }],
+          Stop: [
+            { hooks: [{ type: "command", command: "echo keep-me", timeout: 5 }] },
+            {
+              hooks: [
+                {
+                  type: "command",
+                  command: "npx agent-think-map hook-forward --url http://127.0.0.1:3335/hook",
+                  timeout: 5,
+                },
+              ],
+            },
+          ],
         },
       },
       command,
@@ -48,6 +63,7 @@ describe("codexHookSettings", () => {
     expect(merged.hooks.Stop.some((group) => group.hooks[0]?.command === "echo keep-me")).toBe(
       true,
     );
+    expect(JSON.stringify(merged.hooks.Stop)).not.toContain("npx agent-think-map");
     expect(merged.hooks.UserPromptSubmit[0].hooks[0].command).toBe(command);
   });
 });

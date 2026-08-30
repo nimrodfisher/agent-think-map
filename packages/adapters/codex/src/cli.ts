@@ -24,6 +24,7 @@ agent-think-map codex — live think-map for Codex CLI
   For reasoning items, ingest app-server notifications via TraceAdapter / agent-think-map/codex.
 
   Flags: --port 3335   --install   --print-hooks   --smoke   --no-open
+  --smoke loads a fake demo session. Omit it when mapping a live Codex run.
 `;
 
 function openBrowser(url: string) {
@@ -80,9 +81,10 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
   const host = "127.0.0.1";
   const origin = `http://${host}:${args.port}`;
   const hookUrl = `${origin}/hook`;
+  const cliJs = join(root, "bin", "cli.mjs");
 
   if (args.printHooks) {
-    console.log(JSON.stringify(codexHookSettings(hookForwardCommand(hookUrl)), null, 2));
+    console.log(JSON.stringify(codexHookSettings(hookForwardCommand(hookUrl, cliJs)), null, 2));
     return;
   }
 
@@ -90,13 +92,14 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
 
   const installDir = process.env.ATM_CWD || process.cwd();
   if (args.install) {
-    const file = installCodexHooks(installDir, hookUrl);
+    const file = installCodexHooks(installDir, hookUrl, cliJs);
     console.log(`Wrote Codex hooks → ${file}`);
-    console.log("Run `codex` in that project. Trust the hooks in /hooks.\n");
+    console.log("Restart Codex in that project and trust the new hook-forward command in /hooks.\n");
   }
 
   const hub = new CodexTraceHub();
   if (args.smoke) {
+    console.log("Demo session `smoke` loaded. Omit --smoke to follow a live Codex run.\n");
     for (const hook of SMOKE) hub.ingest(hook);
   }
 
@@ -115,6 +118,7 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
     if (busy) {
       console.log(`Port ${args.port} is already in use. Studio is probably already at ${origin}`);
       console.log(`Open ${origin} — do not start a second server.`);
+      console.log("If the tab still shows ?session=smoke, stop that old process and restart without --smoke.");
       if (args.install) return;
     }
     throw error;

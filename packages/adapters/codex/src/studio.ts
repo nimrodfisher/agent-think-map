@@ -108,8 +108,19 @@ export function studioPage(): string {
     const modelFilters = document.getElementById("model-filters");
     const effortFilters = document.getElementById("effort-filters");
     let selected = new URLSearchParams(location.search).get("session");
+    let userPicked = false;
     let allSessions = [];
     const filter = { query: "", status: "all", model: "", effort: "" };
+
+    function pickStudioSession(sessions, current, picked) {
+      if (!sessions.length) return undefined;
+      if (picked && current && sessions.some((session) => session.id === current)) return current;
+      const newestLiveReal = [...sessions].reverse().find((session) => session.live && session.id !== "smoke");
+      if (newestLiveReal) return newestLiveReal.id;
+      const newestReal = [...sessions].reverse().find((session) => session.id !== "smoke");
+      if (newestReal) return newestReal.id;
+      return sessions[sessions.length - 1].id;
+    }
 
     function unique(values) {
       return [...new Set(values.filter(Boolean))].sort();
@@ -178,7 +189,8 @@ export function studioPage(): string {
       );
     }
 
-    function selectSession(id) {
+    function selectSession(id, fromUser) {
+      if (fromUser) userPicked = true;
       selected = id;
       map.setAttribute("events-url", "/sse?session=" + encodeURIComponent(id));
       history.replaceState(null, "", "?session=" + encodeURIComponent(id));
@@ -197,8 +209,9 @@ export function studioPage(): string {
         list.textContent = "No sessions match these filters.";
         return;
       }
-      if (!selected || !sessions.some((session) => session.id === selected)) {
-        selectSession(sessions[sessions.length - 1].id);
+      const next = pickStudioSession(sessions, selected, userPicked);
+      if (next && (next !== selected || !map.getAttribute("events-url"))) {
+        selectSession(next);
       }
       list.className = "";
       list.replaceChildren();
@@ -213,7 +226,7 @@ export function studioPage(): string {
         button.querySelector("strong").textContent = titleOf(session);
         button.querySelector("span").textContent = metaLine(session);
         button.addEventListener("click", () => {
-          selectSession(session.id);
+          selectSession(session.id, true);
           draw();
         });
         const remove = document.createElement("button");
@@ -224,7 +237,10 @@ export function studioPage(): string {
         remove.addEventListener("click", async (event) => {
           event.stopPropagation();
           await fetch("/sessions/" + encodeURIComponent(session.id), { method: "DELETE" });
-          if (selected === session.id) selected = null;
+          if (selected === session.id) {
+            selected = null;
+            userPicked = false;
+          }
           refresh();
         });
         row.append(button, remove);
@@ -308,7 +324,10 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
 
     if (url.pathname === "/hooks.json") {
       const origin = options.origin ?? `http://127.0.0.1`;
-      const command = hookForwardCommand(`${origin}/hook`);
+      const command = hookForwardCommand(
+        `${origin}/hook`,
+        join(options.root, "bin", "cli.mjs"),
+      );
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(codexHookSettings(command), null, 2));
       return;

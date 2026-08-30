@@ -89,11 +89,11 @@ npx agent-think-map codex --install
 ```
 
 1. Keep that process running. A browser tab opens `http://127.0.0.1:3335`.
-2. `--install` writes **command** hooks into **this folder’s** `.codex/hooks.json` (the folder where you start `codex`). Codex has no HTTP hook type: each event runs `npx agent-think-map hook-forward --url …`, which POSTs stdin JSON to the studio and prints nothing back (so Codex is not steered).
+2. `--install` writes **command** hooks into **this folder’s** `.codex/hooks.json` (the folder where you start `codex`). Codex has no HTTP hook type: each event runs this repo’s `bin/cli.mjs hook-forward` (not published `npx`), which POSTs stdin JSON to the studio and prints nothing back (so Codex is not steered).
 3. In Codex, open `/hooks` and **trust** the agent-think-map command. New or changed hooks are skipped until you trust them.
 4. Ask Codex to use a tool (read a file, run a command). The graph grows in the browser.
 
-`--port 3335` · `--no-open` · `--smoke` (sample turn, no Codex) · `--print-hooks`
+`--port 3335` · `--no-open` · `--smoke` (fake demo session only — omit this for a live Codex run) · `--print-hooks`
 
 **What the Codex CLI map shows:** prompt → tools (`Bash`, `apply_patch`, …) / MCP / subagents → answer. Codex lifecycle hooks do **not** stream chain-of-thought, so thinking nodes do not appear on this path. For reasoning items, ingest [Codex app-server](#any-agent-claude-codex-openai) notifications with `TraceAdapter` / `agent-think-map/codex`.
 

@@ -79,6 +79,12 @@ describe("styles a11y and motion audit", () => {
     expect(nodeFocus).toMatch(/outline-offset:\s*2px/);
   });
 
+  it("places Fit beside zoom in a horizontal cluster", () => {
+    expect(css).toMatch(/\.atc-zoom\s*\{[^}]*flex-direction:\s*row/);
+    expect(css).toMatch(/\.atc-zoom button\s*\{[^}]*border-right:\s*1px solid var\(--atc-rule\)/);
+    expect(css).toMatch(/\.atc-zoom-fit\s*\{[^}]*font-size:\s*0\.68rem/);
+  });
+
   it("snaps transitions and beam travel under reduced motion", () => {
     const reduce = mediaBlocks("(prefers-reduced-motion: reduce)").join("\n");
     expect(reduce).toMatch(/transition-duration:\s*0ms/);
