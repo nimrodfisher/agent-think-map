@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="docs/hero.png?v=2" alt="Live think-map: prompt, chain-of-thought, skill, tool call, MCP inspector" width="100%" />
+  <img src="docs/hero.png?v=2" alt="Visual agent debugger showing a prompt, execution path, tool calls, skills, MCP calls, and inspector" width="100%" />
 </p>
 
 <h1 align="center">agent-think-map</h1>
 
 <p align="center">
-  <strong>See the agent think</strong> — chain-of-thought, skills, tools, and MCP.<br/>
-  <strong>Model-agnostic.</strong> Same canvas in the chat UI you ship, or beside Claude Code and Codex.
+  <strong>The visual debugger for AI agents.</strong><br/>
+  See the execution path behind every answer - tools, skills, MCP calls, subagents, latency, and cost - live beside your coding agent or inside your product.
 </p>
 
 <p align="center">
@@ -156,8 +156,8 @@ If the studio is already running on port 3335, re-running `--install` still writ
 Four lines. Point `events-url` at your agent's SSE.
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.1/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.1/dist/element.cdn.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.2/dist/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.2/dist/element.cdn.js"></script>
 <agent-think-map events-url="/sse" layout="split"></agent-think-map>
 ```
 
@@ -195,7 +195,7 @@ No account. No API key. Replays a recorded GitHub-issue turn in the browser.
 | Node | Meaning |
 | --- | --- |
 | Prompt | What the user asked |
-| Thinking | Streaming chain-of-thought |
+| Thinking | Reasoning events, when the runtime exposes them |
 | Skill | On-demand instruction pack that loaded, and why |
 | Tool | Builtin call (`Read`, `Bash`, `Grep`, …) with a one-line reason |
 | MCP | `server / tool` — the Model Context Protocol hop |
@@ -220,13 +220,13 @@ You are left asking:
 - **Why** did the model pick that step?
 - Which **model**, and how many **tokens**?
 
-Logs are a transcript. You need the route — inside the chat you already ship, or beside Claude Code or Codex. Same map. Any model you can emit.
+Your logs show events. Agent Think Map shows the route - inside the chat you already ship, or beside Claude Code or Codex. Same map. Any model you can emit.
 
 ## What agent-think-map is
 
-An embeddable canvas. While the run happens, the graph grows:
+A visual debugger and embeddable execution UI. While the run happens, the graph grows:
 
-**prompt → thinking → skill → tool / MCP → answer**
+**prompt → reasoning (when exposed) → skill → tool / MCP → answer**
 
 Click a node. The inspector shows why it fired, the input, the output, and how long it took. The tape at the bottom is a **tool-call timeline** you can scrub.
 
@@ -236,7 +236,7 @@ If you need a hosted trace warehouse, use LangSmith. If you need the trace *besi
 
 ```mermaid
 flowchart LR
-  Prompt[Prompt] --> Think[Chain of thought]
+  Prompt[Prompt] --> Think[Reasoning when exposed]
   Think --> Skill[Skill replay]
   Skill --> Tool[Tool call]
   Tool --> Mcp[MCP inspector]
@@ -322,10 +322,10 @@ Optional explicit imports: `agent-think-map/claude`, `agent-think-map/openai`, `
 
 | You | What you get |
 | --- | --- |
-| Shipping a chat product | Users (and you) can **see the agent think** — any model you emit — instead of trusting a spinner |
+| Shipping a chat product | Users (and you) can inspect the agent execution path instead of trusting a spinner |
 | Using **Claude Code** in the terminal | The same map in the browser: sessions, model, tokens, the route — without leaving the CLI |
 | Using **Codex Desktop or CLI** | The same map: sessions, model, effort, skills, tools, and MCP as hooks fire — without changing your Codex workflow |
-| Debugging a runaway loop | A **live trace** of skills, tools, and MCP — not a 4k-line log |
+| Debugging a runaway loop | A **live trace** of skills, tools, and MCP that makes the route clear without a 4k-line log |
 | Teaching or demoing agents | A canvas that builds in real time. Replay from a fixture. No keys. |
 | Building on MCP / skills | First-class nodes, not another generic “function call” chip |
 

@@ -13,9 +13,8 @@ export default function App() {
           <span className="atc-kicker">Live demo</span>
           <h1>agent-think-map</h1>
           <p>
-            See the agent think — embeddable tracing for chain-of-thought, skills,
-            tools, and MCP inside the chat UI you already ship. Not a hosted
-            dashboard. No API key.
+            The visual debugger for AI agents. See the execution path behind every
+            answer: tools, skills, MCP calls, subagents, latency, and cost. No API key.
           </p>
         </div>
         <button type="button" className="demo-replay" onClick={() => setEpoch((n) => n + 1)}>

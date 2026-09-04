@@ -2,7 +2,7 @@
   "name": "agent-think-map",
   "version": "0.1.2",
   "license": "MIT",
-  "description": "Live think-map beside Claude Code or Codex CLI, or an embeddable canvas for the chat UI you already ship — chain-of-thought, skills, tools, and MCP.",
+  "description": "Visual debugger for AI agents: inspect tools, skills, MCP calls, subagents, latency, and cost beside Claude Code or Codex, or inside your product.",
   "keywords": [
     "ai",
     "agent",
