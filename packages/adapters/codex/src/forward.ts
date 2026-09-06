@@ -6,6 +6,8 @@ export async function forwardHookPayload(
       method: "POST",
       headers: { "content-type": "application/json" },
       body: payload,
+      // Leave room for Node startup and exit within SessionEnd's 3s limit.
+      signal: AbortSignal.timeout(1500),
     });
     return { ok: res.ok };
   },

@@ -76,16 +76,13 @@ if (arg === "claude" || arg === "claude-code") {
   process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (arg === "hook-forward") {
-  const viteNode = realpathSync.native(fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs")));
-  const script = join(root, "packages", "adapters", "codex", "src", "forward-cli.ts");
-  const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
-    cwd: root,
-    stdio: ["inherit", "inherit", "inherit"],
-    env: { ...process.env },
-  });
-  process.once("SIGTERM", () => child.kill("SIGTERM"));
-  process.once("SIGINT", () => child.kill("SIGINT"));
-  child.on("exit", (code) => process.exit(code ?? 0));
+  // SessionEnd allows only three seconds. Do not spawn a TypeScript loader
+  // (or another Node process) on the per-event delivery path.
+  if (!existsSync(join(root, "dist", "lib", "hook-forward.js"))) {
+    console.error("Agent Think Map hook forwarding needs a build. Run npm run build first.");
+    process.exit(1);
+  }
+  await import(new URL("../dist/lib/hook-forward.js", import.meta.url).href);
 } else if (!existsSync(cdnJs)) {
   console.log(HELP);
   console.log("Starting the Vite demo (first-time / no CDN build)...\n");

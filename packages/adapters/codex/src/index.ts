@@ -116,6 +116,10 @@ export class CodexHookAdapter {
     if (!msg) return [];
     const eventName = asString(msg.hook_event_name);
     if (!eventName) return [];
+    // SessionStart has no prompt. Opening here creates a permanent placeholder
+    // in history and an extra synthetic User node before the real first turn.
+    // A resumed adapter already has history; keep its context updates below.
+    if (!this.opened && eventName === "SessionStart") return [];
     const context = this.noteContext(msg);
 
     if (!this.opened && eventName !== "UserPromptSubmit") {
@@ -125,6 +129,9 @@ export class CodexHookAdapter {
 
     let handled: AgentTraceEvent[];
     switch (eventName) {
+      case "SessionStart":
+        handled = context;
+        break;
       case "UserPromptSubmit":
         handled = [...context, ...this.onPrompt(msg)];
         break;

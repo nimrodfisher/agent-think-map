@@ -114,6 +114,38 @@ try {
     assert(output.includes('Wrote'), `Packed ${adapter} install failed: ${output}`);
     // Async child allows the Studio process to ingest while the doctor runs.
     assert.match(run([cli, adapter, "--doctor", "--port", String(port)]), /Doctor OK: observed synthetic event/);
+    if (adapter === "codex") {
+      // Exercise the packed entry point without a TypeScript runtime. Every
+      // invocation must fit even Codex's shortest (SessionEnd) hook deadline.
+      writeFileSync(join(home, '.agent-think-map', 'codex-consent.json'), JSON.stringify({consent:'enabled'}));
+      const hooks = await (await fetch(`http://127.0.0.1:${port}/hooks.json`)).json();
+      const hookUrl = hooks.hooks.UserPromptSubmit[0].hooks[0].command.match(/--url (\S+)/)[1];
+      const sessionId = 'package-compiled-hook';
+      const deliveries = [
+        {hook_event_name:'SessionStart'},
+        {hook_event_name:'UserPromptSubmit',prompt:'compiled hook startup regression'},
+        {hook_event_name:'PreToolUse',tool_use_id:'compiled-call',tool_name:'Bash',tool_input:{command:'echo ok'}},
+        {hook_event_name:'PostToolUse',tool_use_id:'compiled-call',tool_response:'ok'},
+        {hook_event_name:'Stop',last_assistant_message:'done'},
+        {hook_event_name:'SessionEnd'},
+      ];
+      const durations = [];
+      for (const delivery of deliveries) {
+        const started = Date.now();
+        execFileSync(process.execPath, [cli,'hook-forward','--url',hookUrl], {
+          cwd:room,env,windowsHide:true,timeout:3000,encoding:'utf8',
+          input:JSON.stringify({session_id:sessionId,...delivery}),
+        });
+        durations.push(Date.now()-started);
+      }
+      const record = await (await fetch(`http://127.0.0.1:${port}/api/runs/${sessionId}`)).json();
+      const events = await (await fetch(`http://127.0.0.1:${port}/api/runs/${sessionId}/events`)).json();
+      assert.equal(record.prompt,'compiled hook startup regression');
+      assert.equal(record.status,'completed');
+      assert(events.items.some(event => event.payload.type==='node.completed' && event.payload.id==='compiled-call'));
+      assert.equal(events.items.filter(event => event.payload.type==='node.started' && event.payload.kind==='user').length,0);
+      console.log(`PASS: packed Codex startup/tool/answer/session-end capture; hook durations ${durations.join(', ')} ms`);
+    }
     assert.match(run([cli, adapter, "--rollback"]), /Restored hooks/);
     console.log(`PASS: packed ${adapter} CLI starts Studio, installs, observes doctor and rolls back`);
     const base = 'http://127.0.0.1:' + port;

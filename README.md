@@ -30,14 +30,16 @@ Run Studio beside Claude Code or Codex, or embed the canvas in your own applicat
 
 ## From “what happened?” to the original evidence
 
-The new Studio brings run history, agent handoffs, and recurring problems into one workspace.
+Studio brings live traces, imported history, run comparison, agent handoffs, and recurring problems into one local workspace. The current source checkout is version **0.2.0**.
 
 | Start here | What you can do |
 | --- | --- |
-| **Runs** | Search recorded history, use quick filters, bookmark useful runs, and mark outcomes as Worked or Needs work. |
+| **Runs** | Search recorded history; filter by provider, status, origin, outcome, bookmarks, and date; label and bookmark runs; and mark outcomes as Worked or Needs work. |
+| **History import** | Load existing Claude Code main-session transcripts without installing hooks. Preview counts with a dry-run, repeat imports as transcripts grow, and distinguish Imported from Live runs. |
 | **Trace** | Follow the execution graph. Select a step to inspect captured input, output, errors, and duration. |
 | **Overview** | Scan run metrics and recorded failures before exploring the full trace. |
 | **Agents** | Follow captured parent–child handoffs within a run and jump to the corresponding trace step. |
+| **Compare** | Compare a candidate with a chosen baseline, inspect changed, reordered, inserted, and missing steps, and see the evidence behind exact or inferred correspondence. |
 | **Problems** | Find repeated operation/error pairs across recorded runs, open occurrences, and inspect the evidence with suggested troubleshooting checks. |
 
 **A workspace that makes room for your trace.** Drag the history divider to resize it. Collapse it when you need the canvas. Open History again without losing the trace; narrow screens use a compact drawer. Your sidebar preferences are remembered locally.
@@ -58,7 +60,7 @@ npm run build
 node node_modules/vite-node/vite-node.mjs scripts/preview-history.ts
 ```
 
-Open the local URL printed in your terminal. Explore sample runs, nested agents, and repeated errors. This preview uses synthetic data in a temporary database, separate from your real run history. Press Ctrl+C to stop it.
+Open the local URL printed in your terminal. Explore sample runs, nested agents, repeated errors, and run comparison. This preview uses synthetic data in a temporary database, separate from your real run history. Press Ctrl+C to stop it.
 
 Want a quick look at the published canvas instead?
 
@@ -137,14 +139,16 @@ Studio stores versioned events in `~/.agent-think-map/runs.db` using SQLite. Cla
 Import existing Claude Code history without setting up hooks (available in this source checkout):
 
 ```bash
-npx agent-think-map claude --import-history --dry-run
-npx agent-think-map claude --import-history
+node bin/cli.mjs claude --import-history --dry-run
+node bin/cli.mjs claude --import-history
 # Optional: --history-root /path/to/claude/projects
 ```
 
-Use `node /path/to/agent-think-map/bin/cli.mjs` in place of `npx agent-think-map` until this source version is published. The command reads main-session transcripts under `~/.claude/projects`, prints import/skip counts, and exits. Open Studio normally afterward to search, label, and bookmark the imported runs. They show an **Imported** marker and can be selected using **Filters → Origin**. Everything stays local; dry-run simulates against an in-memory snapshot without creating or migrating the history database.
+Run these commands from the built source checkout, or use an absolute path to `bin/cli.mjs`. The command reads main-session transcripts under `~/.claude/projects`, reports created and updated runs, appended and duplicate events, skipped live sessions, and malformed or unreadable input, then exits without starting Studio or changing hooks. Open Studio normally afterward to search, label, bookmark, and compare imported runs. They show an **Imported** marker and can be selected using **Filters → Origin**. Dry-run simulates ingestion in memory using a temporary snapshot of existing history; it leaves the target database unchanged, including when no database exists.
 
 Repeat imports add only new transcript events. Sessions already containing live-captured evidence are skipped. If live capture later continues an imported session, its origin becomes Live and further imports skip it; historical overlap is not reconciled. Separate subagent transcript files are excluded, while Task and sidechain relationships recorded in the main transcript are retained. An assistant finishing a turn does not prove the session ended: without explicit session-end evidence, an imported run is shown as interrupted. This indicates incomplete capture, not a failed outcome.
+
+History import is manual and currently supports **Claude Code only**. Codex supports live capture; retroactive Codex history import is not available.
 
 - **No hosted account required.** The Studio integrations send trace events to the local server.
 - **Search recorded context.** Search covers indexed prompts, labels, models, operations, previews, and errors; it is not a full-text search of every raw payload.
@@ -152,11 +156,24 @@ Repeat imports add only new transcript events. Sessions already containing live-
 - **Inspect recurring errors.** Problem groups match captured operation/error identity. They scan up to the newest 10,000 errors and show up to 20 recent occurrences per group, with a notice when coverage is partial.
 - **Keep evidence close.** Suggested troubleshooting checks are starting points, not verified root causes or automatic fixes.
 
-Mark a run Worked, then use Compare… on a candidate to choose it as a baseline and jump to the first detected difference. Everything stays local. Alignment is provisional: divergence is a lead to investigate, not proven causation.
-
-Backend analyzer V2 reports `match` (`exact` or `inferred`) and `matchBasis` on every alignment row. Exact correspondence requires captured operation identities, equal fingerprints unique within each turn, and finished steps. Only exact pairs with equal status/output class are matched; structural user/answer nodes can therefore be inferred differences even when identical. Warnings count inferred paired steps, excluding missing/inserted steps. The first divergence is an investigative lead, not proof of a cause. Fingerprint V1 remains provisional.
-
 Trace data can contain prompts and tool content. Review captured data before sharing a screenshot or attaching a trace to an issue.
+
+## Compare runs using recorded evidence
+
+Comparison is available in both the Claude Code and Codex Studios, including for imported runs.
+
+1. Mark a useful reference run **Worked**.
+2. Select the run you want to investigate and click **Compare…**. Search the baseline picker, which defaults to Worked runs. You can choose another outcome after explicit confirmation.
+3. Inspect **Baseline** and **Candidate** side by side. Both panes show their actual outcomes. Select a row to highlight the corresponding steps in both panes, follow linked scrolling, and inspect the original captured events.
+4. Use **First detected difference** to jump to the first non-matched row. Read its evidence explanation and the comparison warnings before drawing a conclusion.
+
+**Compare…** always opens the picker. The **Compare** workspace tab reopens the current comparison, or opens the picker if none exists. Switching workspace tabs retains the comparison; **Back to trace** restores the saved trace selection and history scroll position and removes the baseline from the URL. Local session/baseline links can reopen a comparison when its runs are still available.
+
+Each row explains whether correspondence is **exact** or **inferred**. Exact correspondence requires captured operation identities, equal fingerprints unique within each turn, and finished steps. An exact pair is only classified as matched when its status and output class also agree. Running steps, repeated fingerprints, missing identity, structural identity alone, and differing input shapes can weaken the evidence; inferred pairs never receive high confidence. Warnings report inferred pairs as a share of all paired steps, excluding inserted and missing steps.
+
+**Alignment is provisional.** Even identical user or answer steps can be inferred differences when operation identity is unavailable, so the first detected difference can point to insufficient evidence. It is an investigative lead, not a proven cause or an automated diagnosis. Original-step inspection shows captured event envelopes, not a reconstructed historical canvas.
+
+For the analyzer V2 API fields and evidence vocabulary, see the [diff evidence handoff](docs/diff-evidence-handoff.md). The [history import handoff](docs/history-import-handoff.md) and [comparison UI handoff](docs/comparison-ui-handoff.md) record implementation details, boundaries, and validation.
 
 ## Put the canvas in your own app
 

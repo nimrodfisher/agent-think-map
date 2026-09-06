@@ -41,8 +41,11 @@ explicit stylesheet export.
 `npm run build` builds the library with tsup and the existing CDN bundle with
 Vite. `npm pack` runs that build automatically. `npm run test:package` packs the
 package, installs it outside the monorepo, and checks Node imports, declarations,
-Vite execution and styles, and both CLI install/doctor/rollback flows. The CLI
-still uses its existing vite-node runner. Claude CLI, Codex CLI, and Vite consumers
+Vite execution and styles, and both CLI install/doctor/rollback flows. Studio
+startup uses the existing vite-node runner. Codex's per-event `hook-forward`
+command loads a compiled entry directly in Node to fit the short hook deadlines;
+build the source checkout before installing hooks. Studio refreshes optional
+transcript metadata after acknowledging event ingestion. Claude CLI, Codex CLI, and Vite consumers
 already worked on 0.1.2; this maintenance change fixes plain Node library imports.
 
 

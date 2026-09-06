@@ -2,6 +2,26 @@ import { describe, expect, it } from "vitest";
 import { CodexTraceHub, codexHookSettings, hookForwardCommand, mergeCodexHookSettings } from "./hub.js";
 
 describe("CodexTraceHub", () => {
+  it("keeps startup prompt searchable and retains explicit completion after adapter rehydration", async () => {
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 10 });
+    try {
+      await hub.ingest({ session_id: "startup", hook_event_name: "SessionStart" });
+      expect(await hub.store.getRun("startup")).toBeUndefined();
+      await hub.ingest({ session_id: "startup", hook_event_name: "UserPromptSubmit", prompt: "unique startup marker" });
+      await hub.ingest({ session_id: "startup", hook_event_name: "PreToolUse", tool_use_id: "call", tool_name: "Bash", tool_input: { command: "echo ok" } });
+      await hub.ingest({ session_id: "startup", hook_event_name: "PostToolUse", tool_use_id: "call", tool_response: "ok" });
+      await hub.ingest({ session_id: "startup", hook_event_name: "SessionEnd" });
+      expect((await hub.listRuns({ q: "unique startup marker" })).items).toHaveLength(1);
+      expect(await hub.store.getRun("startup")).toMatchObject({ prompt: "unique startup marker", status: "completed" });
+      // SessionEnd releases the adapter; the resumed prompt must retain history.
+      await hub.ingest({ session_id: "startup", hook_event_name: "SessionStart", source: "resume" });
+      await hub.ingest({ session_id: "startup", hook_event_name: "UserPromptSubmit", prompt: "continue" });
+      const history = await hub.store.readRun("startup");
+      expect(history.filter(event => event.payload.type === "run.started")).toHaveLength(1);
+      expect(history.filter(event => event.payload.type === "node.started" && event.payload.kind === "user")).toHaveLength(1);
+    } finally { await hub.close(); }
+  });
+
   it("isolates sessions and lists the Codex model", async () => {
     const hub = new CodexTraceHub({ path: ":memory:", now: () => 11 });
     await hub.ingest({

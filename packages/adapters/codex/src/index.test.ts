@@ -7,6 +7,25 @@ function eventsOf(adapter: CodexHookAdapter, hooks: unknown[]) {
 }
 
 describe("CodexHookAdapter", () => {
+  it("waits for the first prompt after SessionStart without adding a placeholder turn", () => {
+    const adapter = new CodexHookAdapter({ now: () => 10 });
+    expect(adapter.ingest({ session_id: "startup", hook_event_name: "SessionStart", model: "gpt-6-astra" })).toEqual([]);
+    const events = eventsOf(adapter, [
+      { session_id: "startup", hook_event_name: "UserPromptSubmit", prompt: "Find the startup regression", model: "gpt-6-astra" },
+      { session_id: "startup", hook_event_name: "PreToolUse", tool_use_id: "call", tool_name: "Bash", tool_input: { command: "echo ok" } },
+    ]);
+    expect(events[0]).toMatchObject({ type: "run.started", prompt: "Find the startup regression" });
+    expect(reduceTraceAll(events).nodes.filter(node => node.kind === "user")).toHaveLength(1);
+    const restored = new CodexHookAdapter({ now: () => 20 });
+    restored.restore(events);
+    const resumed = eventsOf(restored, [
+      { session_id: "startup", hook_event_name: "SessionStart", source: "resume" },
+      { session_id: "startup", hook_event_name: "UserPromptSubmit", prompt: "Continue" },
+    ]);
+    expect(resumed.some(event => event.type === "run.started")).toBe(false);
+    expect(reduceTraceAll([...events, ...resumed]).nodes.filter(node => node.kind === "user")).toHaveLength(2);
+  });
+
   it("opens a run on UserPromptSubmit and tags the Codex model", () => {
     const adapter = new CodexHookAdapter({ now: () => 10 });
     const events = eventsOf(adapter, [

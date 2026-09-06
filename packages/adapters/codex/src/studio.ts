@@ -97,7 +97,6 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
       try {
         const body = JSON.parse(await readBody(req) || "{}") as unknown;
         const events = await hub.ingest(body);
-        if (body && typeof body === "object" && "session_id" in body && typeof body.session_id === "string") await refreshSessionMetadata(hub,body.session_id);
         const name =
           body && typeof body === "object" && "hook_event_name" in body
             ? String((body as { hook_event_name?: unknown }).hook_event_name)
@@ -107,6 +106,15 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
           "Content-Type": "application/json",
         });
         res.end("{}");
+        // Acknowledge durable ingestion before optional filesystem scans. Tool
+        // events need no transcript enrichment; refresh at turn boundaries.
+        if (events.length && body && typeof body === "object" && "session_id" in body && typeof body.session_id === "string"
+          && ["UserPromptSubmit", "Stop", "SessionEnd"].includes(name)) {
+          const id = body.session_id;
+          setImmediate(() => { void refreshSessionMetadata(hub, id).catch(() => {
+            console.error("Codex transcript metadata unavailable; captured hook events were retained.");
+          }); });
+        }
       } catch (error) {
         res.writeHead(400, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Invalid hook" }));

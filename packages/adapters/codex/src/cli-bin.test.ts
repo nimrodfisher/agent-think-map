@@ -26,7 +26,7 @@ describe("codex CLI entry for npx install", () => {
     expect(cli).toMatch(/arg === "codex"/);
     expect(cli).toMatch(/arg === "hook-forward"/);
     expect(cli).toMatch(/"codex",\s*"src",\s*"cli\.ts"/);
-    expect(cli).toMatch(/"codex",\s*"src",\s*"forward-cli\.ts"/);
+    expect(cli).toContain("../dist/lib/hook-forward.js");
   });
 
   it("keeps the stream adapter on agent-think-map/codex", () => {
