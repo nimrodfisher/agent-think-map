@@ -44,14 +44,14 @@ The new Studio brings run history, agent handoffs, and recurring problems into o
 
 For example: open **Problems**, select a repeated permissions error, inspect its captured input, then open the affected run and follow the agent that made the call. Suggested checks help you investigate; the original trace is there to verify them.
 
-> The redesigned Studio is available in the source checkout on `codex/instinct-improvements`. The npm package and hosted canvas demo may lag behind this branch. Use the source preview below to try these changes now.
+> The redesigned Studio is on `main`. The npm package and hosted canvas demo may lag behind the source. Use the source preview below to try these changes now.
 
 ## Try the new Studio
 
 **No account or API key needed for the sample preview.** Requires Node.js **22.13 or newer**.
 
 ```bash
-git clone --branch codex/instinct-improvements https://github.com/nimrodfisher/agent-think-map.git
+git clone https://github.com/nimrodfisher/agent-think-map.git
 cd agent-think-map
 npm ci
 npm run build
