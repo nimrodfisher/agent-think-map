@@ -175,8 +175,8 @@ describe("studioPage", () => {
     expect(html).toContain('replay="false"');
     expect(html).toContain("grid-template-rows: minmax(0, 1fr)");
     expect(html).toContain("overflow: hidden");
-    expect(html).toContain("Remove session");
-    expect(html).toContain('placeholder="Filter sessions"');
+    expect(html).toContain("Delete run");
+    expect(html).toContain('placeholder="Prompt, tool, model, answer, error"');
     expect(html).toContain("Excalifont");
     expect(html).not.toContain("Figtree");
     expect(html).not.toContain("Syne");

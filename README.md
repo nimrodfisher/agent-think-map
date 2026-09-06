@@ -388,3 +388,7 @@ already worked on 0.1.2; this maintenance change fixes plain Node library import
 ### Durable Studio history
 
 Studio requires Node 22.13 or newer and stores versioned events in `~/.agent-think-map/runs.db` using built-in SQLite. Claude and Codex share the storage implementation; unfinished sessions become interrupted after restart. SSE supports `Last-Event-ID` and `?after=` cursors. Storage APIs are available from `agent-think-map/storage`; hub mutations and listings are asynchronous. See [Brief 1 verification](docs/brief-1-verification.md) for limits, Node support, and verification evidence.
+
+Studio history now helps you **find a run, label what worked or failed, and choose a successful baseline**. Search prompt text, tool names, models, answer/output previews and errors. Expand Filters to combine provider, exact model, status, outcome, bookmarks and updated dates. History loads 20 runs per page; Search / refresh reloads the list while the selected trace continues streaming.
+
+Mark **Worked** or **Failed** using your own judgment, add a short label, and bookmark useful runs. **Choose baseline** is enabled for Worked runs and saves the run reference in the page URL. This prepares a good/bad pair for later comparison; it does not compare traces, diagnose failures or orchestrate agents. Outcomes are separate from execution status. [Brief 2 verification](docs/brief-2-verification.md) documents the shared API, migration, acceptance checks and limits.

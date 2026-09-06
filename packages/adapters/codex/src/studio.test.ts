@@ -201,11 +201,11 @@ describe("studioPage", () => {
     const html = studioPage();
     expect(html).toContain('layout="split"');
     expect(html).toContain('replay="false"');
-    expect(html).toContain("Waiting for Codex");
-    expect(html).toContain("Remove session");
+    expect(html).toContain("Run history");
+    expect(html).toContain("Delete run");
     expect(html).toContain("Excalifont");
-    expect(html).toContain('session.id !== "smoke"');
-    expect(html).toContain("usage.costUsd");
-    expect(html).toContain("cacheCreationTokens");
+    expect(html).toContain('Choose baseline');
+    expect(html).toContain("/api/runs?");
+    expect(html).toContain("All providers");
   });
 });

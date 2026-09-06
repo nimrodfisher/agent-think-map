@@ -121,7 +121,7 @@ try {
     let db = new DatabaseSync(dbPath);
     const priorEvents = db.prepare('SELECT sequence,payload_json FROM events WHERE run_id=? ORDER BY sequence').all(session.id);
     assert(priorEvents.length > 0); assert.equal(db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal');
-    assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").get().n, 4);
+    assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").get().n, 5);
     db.close();
     // Abruptly terminate only this isolated CLI tree, then launch from its installed package.
     if (process.platform === 'win32') execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], {windowsHide:true,stdio:'ignore'});

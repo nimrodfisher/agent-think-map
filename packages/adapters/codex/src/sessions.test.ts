@@ -77,3 +77,11 @@ describe("pickStudioSession", () => {
     expect(pickStudioSession([smoke, live, later], { selected: "thr_real" })).toBe("thr_later");
   });
 });
+
+
+// Legacy helpers remain available; new Studio queries have one shared parser.
+import { parseRunQuery } from "./sessions.js";
+it("uses shared paginated history query semantics", () => {
+  expect(parseRunQuery(new URLSearchParams("q=read_file&outcome=worked&bookmarked=true&limit=10"))).toEqual({q:"read_file",outcome:"worked",bookmarked:true,pageSize:10});
+  expect(() => parseRunQuery(new URLSearchParams("limit=101"))).toThrow();
+});

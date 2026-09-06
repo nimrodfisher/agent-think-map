@@ -1,3 +1,5 @@
+/** Legacy helpers for callers with an already bounded page. Studio uses the shared server query API. */
+export { parseRunQuery } from "../../shared/studio-api.js";
 import type { SessionSummary } from "./hub.js";
 
 export type SessionStatusFilter = "all" | "live" | "ended";

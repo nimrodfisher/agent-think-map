@@ -12,9 +12,12 @@ export interface RunSummary {
 }
 export interface RunRecord extends RunSummary { byteSize: number }
 export interface RunFilter {
-  provider?: Provider; status?: RunStatus; bookmarked?: boolean;
+  q?: string; provider?: Provider; model?: string; status?: RunStatus;
+  outcome?: "worked" | "failed" | null; bookmarked?: boolean;
+  from?: number; to?: number; pageSize?: number;
   limit?: number; cursor?: string;
 }
+export interface RunPatch { outcome?: "worked" | "failed" | null; bookmarked?: boolean; label?: string | null }
 export interface Page<T> { items: T[]; nextCursor?: string }
 export interface RetentionPolicy {
   before?: number; maxRuns?: number; maxBytes?: number;
@@ -31,6 +34,8 @@ export interface RunStore {
   readRun(runId: string, afterSequence?: number): Promise<TraceEnvelopeV1[]>;
   setOutcome(runId: string, outcome: "worked" | "failed" | null): Promise<void>;
   setBookmark(runId: string, bookmark: boolean, label?: string): Promise<void>;
+  patchRun(runId: string, patch: RunPatch): Promise<RunRecord | undefined>;
+  rebuildSearchIndex(): Promise<void>;
   markInterrupted(before: number, provider?: Provider): Promise<number>;
   deleteRun(runId: string): Promise<boolean>;
   prune(policy: RetentionPolicy): Promise<number>;

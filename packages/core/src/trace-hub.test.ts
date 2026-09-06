@@ -6,6 +6,27 @@ import { TraceHub } from "./trace-hub.js";
 import { reduceTraceAll } from "./index.js";
 
 for (const Hub of [ClaudeCodeTraceHub,CodexTraceHub]) describe(`${Hub.name} shared contract`,()=>{
+  it("discards a live adapter after history is deleted through another store caller",async()=>{
+    const hub=new Hub({path:":memory:",now:()=>10});
+    try {
+      await hub.ingest({session_id:"deleted",hook_event_name:"UserPromptSubmit",prompt:"old prompt"});
+      await hub.store.deleteRun("deleted");
+      await hub.ingest({session_id:"deleted",hook_event_name:"UserPromptSubmit",prompt:"new prompt"});
+      const events=await hub.store.readRun("deleted");
+      expect(events[0].payload).toMatchObject({type:"run.started",prompt:"new prompt"});
+      expect(events[0].sequence).toBe(1);
+    }finally{await hub.close();}
+  });
+  it("shares history queries, patches and index rebuild through the hub",async()=>{
+    const hub=new Hub({path:":memory:",recover:false});
+    try {
+      const ingest=hub.ingest({session_id:"history",hook_event_name:"UserPromptSubmit",prompt:"baseline orchard"});
+      const page=await hub.listRuns({q:"orchard",pageSize:1});await ingest;
+      expect(page.items[0].runId).toBe("history");
+      expect(await hub.patchRun("history",{outcome:"worked",bookmarked:true,label:"reference"})).toMatchObject({outcome:"worked",bookmarked:true,label:"reference"});
+      await hub.rebuildSearchIndex();expect((await hub.listRuns({q:"reference",outcome:"worked"})).items).toHaveLength(1);
+    }finally{await hub.close();}
+  });
   it("restores the conversation spine and generated IDs after adapter eviction",async()=>{
     const hub=new Hub({path:":memory:",now:()=>10});
     try {

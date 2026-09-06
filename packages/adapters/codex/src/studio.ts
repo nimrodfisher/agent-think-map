@@ -1,3 +1,5 @@
+import { routeStudioApi, apiError } from "../../shared/studio-api.js";
+import { studioHistoryPage } from "../../shared/studio-history.js";
 import { randomBytes } from "node:crypto";
 import {
   createServer,
@@ -12,6 +14,12 @@ import { CodexTraceHub, codexHookSettings, hookForwardCommand } from "./hub.js";
 import { codexSessionUsage } from "./session-usage.js";
 import { codexSessionMetadata } from "./session-metadata.js";
 
+async function refreshSessionMetadata(hub: CodexTraceHub, id: string) {
+  const metadata = codexSessionMetadata(id);
+  const usage = codexSessionUsage(id);
+  if (metadata || usage) await hub.updateMetadata(id,{...metadata,...(usage ? {usage} : {})});
+}
+
 export interface CodexStudioOptions {
   hub?: CodexTraceHub;
   root: string;
@@ -22,15 +30,6 @@ export interface CodexStudioOptions {
 
 function formatSse(event: TraceEnvelopeV1): string {
   return `id: ${event.sequence}\ndata: ${JSON.stringify(event.payload)}\n\n`;
-}
-
-async function refreshSessionMetadata(hub: CodexTraceHub): Promise<void> {
-  for (const session of await hub.list()) {
-    const usage = codexSessionUsage(session.id);
-    if (usage) await hub.updateUsage(session.id, usage);
-    const metadata = codexSessionMetadata(session.id);
-    if (metadata) await hub.updateMetadata(session.id, metadata);
-  }
 }
 
 function mime(path: string): string {
@@ -50,255 +49,7 @@ async function readBody(req: IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-export function studioPage(): string {
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Codex · agent-think-map</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&display=swap" />
-  <link rel="stylesheet" href="/styles.css" />
-  <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #e4d9c5; font-family: Excalifont, "Segoe UI", cursive; }
-    .studio {
-      display: grid;
-      grid-template-columns: 248px minmax(0, 1fr);
-      grid-template-rows: minmax(0, 1fr);
-      height: 100%;
-      min-height: 0;
-    }
-    .rail { min-height: 0; overflow: auto; border-right: 1px solid #c9bba3; background: #f6f0e4; padding: 1rem 0.75rem; font-family: Excalifont, "Segoe UI", cursive; }
-    .rail h1 { font-family: Excalifont, "Segoe UI", cursive; font-size: 0.95rem; margin: 0 0 0.25rem; }
-    .rail p { margin: 0 0 0.55rem; color: #5c564c; font-size: 0.75rem; }
-    .rail input[type="search"] {
-      width: 100%; box-sizing: border-box; margin: 0 0 0.45rem; padding: 0.4rem 0.5rem;
-      border: 1px solid #c9bba3; background: #e4d9c5; color: #1c1915; font: inherit; font-size: 0.78rem; border-radius: 6px;
-    }
-    .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.55rem; }
-    .chip {
-      appearance: none; border: 1px solid #c9bba3; background: #e4d9c5; color: #5c564c;
-      font: inherit; font-size: 0.68rem; padding: 0.18rem 0.45rem; border-radius: 999px; cursor: pointer;
-    }
-    .chip[aria-pressed="true"] { border-color: #1f6f5b; background: #e8f0ec; color: #1f6f5b; }
-    .session-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem; margin: 0 0 0.4rem; align-items: stretch; }
-    .session { display: block; width: 100%; text-align: left; border: 1px solid #c9bba3; background: #e4d9c5; border-radius: 8px; padding: 0.5rem 0.6rem; cursor: pointer; font: inherit; }
-    .session[aria-current="true"] { border-color: #1f6f5b; background: #e8f0ec; }
-    .session strong { display: block; font-size: 0.8rem; }
-    .session span { display: block; color: #5c564c; font-size: 0.7rem; line-height: 1.35; }
-    .remove {
-      appearance: none; width: 1.7rem; border: 1px solid #c9bba3; background: #e4d9c5; color: #5c564c;
-      border-radius: 8px; cursor: pointer; font: inherit; line-height: 1;
-    }
-    .remove:hover, .remove:focus-visible { border-color: #8c2f1b; color: #8c2f1b; }
-    .empty { color: #5c564c; font-size: 0.8rem; }
-    agent-think-map {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      min-height: 0;
-      height: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div class="studio">
-    <aside class="rail">
-      <h1>Sessions</h1>
-      <p>Live map for Codex. Click a session.</p>
-      <input id="filter-query" type="search" placeholder="Filter sessions" />
-      <div class="chips" id="status-filters"></div>
-      <div class="chips" id="model-filters"></div>
-      <div class="chips" id="effort-filters"></div>
-      <div id="sessions" class="empty">Waiting for Codex…</div>
-    </aside>
-    <agent-think-map id="map" layout="split" replay="false"></agent-think-map>
-  </div>
-  <script type="module" src="/element.js"></script>
-  <script>
-    const list = document.getElementById("sessions");
-    const map = document.getElementById("map");
-    const queryInput = document.getElementById("filter-query");
-    const statusFilters = document.getElementById("status-filters");
-    const modelFilters = document.getElementById("model-filters");
-    const effortFilters = document.getElementById("effort-filters");
-    let selected = new URLSearchParams(location.search).get("session");
-    let userPicked = false;
-    let allSessions = [];
-    const filter = { query: "", status: "all", model: "", effort: "" };
-
-    function pickStudioSession(sessions, current, picked) {
-      if (!sessions.length) return undefined;
-      if (picked && current && sessions.some((session) => session.id === current)) return current;
-      const newestLiveReal = [...sessions].reverse().find((session) => session.live && session.id !== "smoke");
-      if (newestLiveReal) return newestLiveReal.id;
-      const newestReal = [...sessions].reverse().find((session) => session.id !== "smoke");
-      if (newestReal) return newestReal.id;
-      return sessions[sessions.length - 1].id;
-    }
-
-    function unique(values) {
-      return [...new Set(values.filter(Boolean))].sort();
-    }
-
-    function filterSessions(sessions) {
-      const needle = filter.query.trim().toLowerCase();
-      return sessions.filter((session) => {
-        if (needle && !(session.prompt + " " + session.id).toLowerCase().includes(needle)) return false;
-        if (filter.status === "live" && !session.live) return false;
-        if (filter.status === "ended" && session.live) return false;
-        if (filter.model && session.model !== filter.model) return false;
-        if (filter.effort && session.effort !== filter.effort) return false;
-        return true;
-      });
-    }
-
-    function titleOf(session) {
-      const text = session.prompt || session.id;
-      return text.length > 48 ? text.slice(0, 45) + "…" : text;
-    }
-
-    function costOf(value) {
-      if (value >= 1) return "$" + value.toFixed(2);
-      if (value > 0 && value < 0.01) return (value * 100).toFixed(1) + "¢";
-      return "$" + value.toFixed(4).replace(/0+$/, "").replace(/\\.$/, "");
-    }
-
-    function usageLine(usage) {
-      if (!usage) return "";
-      const input = typeof usage.inputTokens === "number" ? usage.inputTokens : 0;
-      const output = typeof usage.outputTokens === "number" ? usage.outputTokens : 0;
-      const cacheRead = typeof usage.cacheReadTokens === "number" ? usage.cacheReadTokens : 0;
-      const cacheWrite = typeof usage.cacheCreationTokens === "number" ? usage.cacheCreationTokens : 0;
-      const parts = [];
-      const total = input + output;
-      if (total) parts.push(total.toLocaleString("en-US") + " tok");
-      const cache = cacheRead + cacheWrite;
-      if (cache) parts.push(cache.toLocaleString("en-US") + " cache");
-      if (typeof usage.costUsd === "number") parts.push(costOf(usage.costUsd));
-      return parts.join(" · ");
-    }
-
-    function metaLine(session) {
-      const parts = [session.live ? "live" : "ended"];
-      if (session.model) parts.push(String(session.model));
-      if (session.effort) parts.push(session.effort);
-      const usage = usageLine(session.usage);
-      if (usage) parts.push(usage);
-      parts.push(session.eventCount + " events");
-      return parts.join(" · ");
-    }
-
-    function chip(label, pressed, onClick) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "chip";
-      button.setAttribute("aria-pressed", pressed ? "true" : "false");
-      button.textContent = label;
-      button.addEventListener("click", onClick);
-      return button;
-    }
-
-    function renderChips() {
-      statusFilters.replaceChildren(
-        chip("All", filter.status === "all", () => { filter.status = "all"; draw(); }),
-        chip("Live", filter.status === "live", () => { filter.status = "live"; draw(); }),
-        chip("Ended", filter.status === "ended", () => { filter.status = "ended"; draw(); }),
-      );
-      const models = unique(allSessions.map((session) => session.model));
-      modelFilters.replaceChildren(
-        ...models.map((model) => chip(
-          String(model),
-          filter.model === model,
-          () => { filter.model = filter.model === model ? "" : model; draw(); },
-        )),
-      );
-      const efforts = unique(allSessions.map((session) => session.effort));
-      effortFilters.replaceChildren(
-        ...efforts.map((effort) => chip(
-          effort,
-          filter.effort === effort,
-          () => { filter.effort = filter.effort === effort ? "" : effort; draw(); },
-        )),
-      );
-    }
-
-    function selectSession(id, fromUser) {
-      if (fromUser) userPicked = true;
-      selected = id;
-      map.setAttribute("events-url", "/sse?session=" + encodeURIComponent(id));
-      history.replaceState(null, "", "?session=" + encodeURIComponent(id));
-    }
-
-    function draw() {
-      renderChips();
-      const sessions = filterSessions(allSessions);
-      if (!allSessions.length) {
-        list.className = "empty";
-        list.textContent = "Waiting for Codex…";
-        return;
-      }
-      if (!sessions.length) {
-        list.className = "empty";
-        list.textContent = "No sessions match these filters.";
-        return;
-      }
-      const next = pickStudioSession(sessions, selected, userPicked);
-      if (next && (next !== selected || !map.getAttribute("events-url"))) {
-        selectSession(next);
-      }
-      list.className = "";
-      list.replaceChildren();
-      for (const session of sessions) {
-        const row = document.createElement("div");
-        row.className = "session-row";
-        const button = document.createElement("button");
-        button.className = "session";
-        button.type = "button";
-        if (session.id === selected) button.setAttribute("aria-current", "true");
-        button.innerHTML = "<strong></strong><span></span>";
-        button.querySelector("strong").textContent = titleOf(session);
-        button.querySelector("span").textContent = metaLine(session);
-        button.addEventListener("click", () => {
-          selectSession(session.id, true);
-          draw();
-        });
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "remove";
-        remove.setAttribute("aria-label", "Remove session");
-        remove.textContent = "×";
-        remove.addEventListener("click", async (event) => {
-          event.stopPropagation();
-          await fetch("/sessions/" + encodeURIComponent(session.id), { method: "DELETE" });
-          if (selected === session.id) {
-            selected = null;
-            userPicked = false;
-          }
-          refresh();
-        });
-        row.append(button, remove);
-        list.append(row);
-      }
-    }
-
-    async function refresh() {
-      allSessions = await (await fetch("/sessions")).json();
-      draw();
-    }
-
-    queryInput.addEventListener("input", () => {
-      filter.query = queryInput.value;
-      draw();
-    });
-    refresh();
-    setInterval(refresh, 1000);
-  </script>
-</body>
-</html>`;
-}
+export function studioPage(): string { return studioHistoryPage("Codex"); }
 
 export function createCodexStudio(options: CodexStudioOptions): Server {
   const hub = options.hub ?? new CodexTraceHub({ path: options.dbPath });
@@ -316,13 +67,11 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
     const address = server.address();
     const origin = options.origin ?? `http://127.0.0.1:${address && typeof address !== "string" ? address.port : 80}`;
     if (req.headers.host !== new URL(origin).host) {
-      res.writeHead(403, { "Content-Type": "text/plain" });
-      res.end("Forbidden host");
+      apiError(res,403,"forbidden_host","Forbidden host");
       return;
     }
     if (req.headers.origin !== undefined && req.headers.origin !== origin) {
-      res.writeHead(403, { "Content-Type": "text/plain" });
-      res.end("Forbidden origin");
+      apiError(res,403,"forbidden_origin","Forbidden origin");
       return;
     }
     if (req.headers.origin === origin) {
@@ -333,7 +82,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
     if (req.method === "OPTIONS") {
       res.writeHead(204, {
         "Access-Control-Allow-Headers": "content-type",
-        "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+        "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
       });
       res.end();
       return;
@@ -348,6 +97,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
       try {
         const body = JSON.parse(await readBody(req) || "{}") as unknown;
         const events = await hub.ingest(body);
+        if (body && typeof body === "object" && "session_id" in body && typeof body.session_id === "string") await refreshSessionMetadata(hub,body.session_id);
         const name =
           body && typeof body === "object" && "hook_event_name" in body
             ? String((body as { hook_event_name?: unknown }).hook_event_name)
@@ -364,22 +114,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
       return;
     }
 
-    if (req.method === "DELETE" && url.pathname.startsWith("/sessions/")) {
-      const id = decodeURIComponent(url.pathname.slice("/sessions/".length));
-      await hub.drop(id);
-      res.writeHead(204);
-      res.end();
-      return;
-    }
-
-    if (url.pathname === "/sessions") {
-      await refreshSessionMetadata(hub);
-      res.writeHead(200, {
-        "Content-Type": "application/json",
-      });
-      res.end(JSON.stringify(await hub.list()));
-      return;
-    }
+    if (await routeStudioApi(req, res, url, hub)) return;
 
     if (url.pathname === "/hooks.json") {
       res.setHeader("Cache-Control", "no-store");

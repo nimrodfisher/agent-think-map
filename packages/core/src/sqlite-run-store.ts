@@ -3,7 +3,8 @@ import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 import { parseTraceEnvelope, type Provider, type TraceEnvelopeV1 } from "../../protocol/src/index.js";
-import type { AppendDraft, AppendResult, Listener, Page, RetentionPolicy, RunFilter, RunRecord, RunStore, RunSummary, Unsubscribe } from "./run-store.js";
+import type { AppendDraft, AppendResult, Listener, Page, RetentionPolicy, RunFilter, RunPatch, RunRecord, RunStore, RunSummary, Unsubscribe } from "./run-store.js";
+import { buildSearchDocument, normalizeSearch } from "./run-search.js";
 
 export const DEFAULT_MAX_EVENT_BYTES = 1024 * 1024;
 export const DEFAULT_MAX_DB_BYTES = 512 * 1024 * 1024;
@@ -57,10 +58,16 @@ export class SqliteRunStore implements RunStore {
       this.transaction(() => {
         this.db.exec("CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL)");
         const versions = this.db.prepare("SELECT version FROM schema_migrations ORDER BY version").all();
-        if (versions.some(row => row.version !== 1)) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
+        if (versions.some(row => row.version !== 1 && row.version !== 2)) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
         if (!versions.length) {
           this.db.exec(SCHEMA_V1);
           this.db.prepare("INSERT INTO schema_migrations VALUES(1, ?)").run(Date.now());
+        }
+        if (!versions.some(row => row.version === 2)) {
+          this.db.exec(`CREATE TABLE run_search(run_id TEXT PRIMARY KEY REFERENCES runs(run_id) ON DELETE CASCADE, document TEXT NOT NULL);
+            CREATE INDEX runs_history_cursor ON runs(updated_at DESC,run_id ASC);`);
+          for (const row of this.db.prepare("SELECT run_id FROM runs").iterate()) this.indexRun(String(row.run_id));
+          this.db.prepare("INSERT INTO schema_migrations VALUES(2, ?)").run(Date.now());
         }
       });
     } catch (error) { this.db.close(); throw error; }
@@ -107,6 +114,7 @@ export class SqliteRunStore implements RunStore {
       if (event.type === "run.completed") this.db.prepare("UPDATE runs SET status='completed',ended_at=? WHERE run_id=?").run(event.ts, envelope.sessionId);
       if (event.type === "run.meta") this.db.prepare("UPDATE runs SET model=coalesce(?,model),effort=coalesce(?,effort) WHERE run_id=?").run(event.model ?? null,event.effort ?? null,envelope.sessionId);
       if ((event.type === "run.meta" || event.type === "run.completed") && event.usage) this.db.prepare("UPDATE runs SET usage_json=? WHERE run_id=?").run(JSON.stringify(event.usage),envelope.sessionId);
+      if (sequence === 1 || !["node.delta", "tool.input", "run.completed"].includes(event.type)) this.indexRun(envelope.sessionId);
       return { envelope, inserted: true };
     };
     return insert();
@@ -122,11 +130,25 @@ export class SqliteRunStore implements RunStore {
     return row ? record(row) : undefined;
   }
   async listRuns(filter: RunFilter = {}): Promise<Page<RunSummary>> {
-    const limit = filter.limit ?? 100;
+    const limit = filter.pageSize ?? filter.limit ?? 100;
     if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("limit must be 1..1000");
     const where: string[] = []; const args: (string | number)[] = [];
-    for (const key of ["provider", "status", "bookmarked"] as const) if (filter[key] !== undefined) { where.push(`${key}=?`); args.push(key === "bookmarked" ? Number(filter[key]) : filter[key] as string); }
+    for (const key of ["provider", "model", "status", "bookmarked", "outcome"] as const) if (filter[key] !== undefined) {
+      if (filter[key] === null) where.push(`${key} IS NULL`);
+      else { where.push(`${key}=?`); args.push(key === "bookmarked" ? Number(filter[key]) : filter[key] as string); }
+    }
+    for (const key of ["from", "to"] as const) if (filter[key] !== undefined) {
+      if (!Number.isFinite(filter[key])) throw new Error("Invalid date bound");
+      where.push(`updated_at ${key === "from" ? ">=" : "<="} ?`); args.push(filter[key]!);
+    }
+    if (filter.q !== undefined) {
+      if (filter.q.length > 256) throw new Error("Query must be at most 256 characters");
+      for (const term of normalizeSearch(filter.q).split(" ").filter(Boolean)) {
+        where.push("EXISTS (SELECT 1 FROM run_search WHERE run_search.run_id=runs.run_id AND instr(document,?)>0)"); args.push(term);
+      }
+    }
     if (filter.cursor) {
+      if (filter.cursor.length > 2048) throw new Error("Invalid run cursor");
       const cursor = JSON.parse(filter.cursor);
       if (!Array.isArray(cursor) || cursor.length !== 2 || !Number.isFinite(cursor[0]) || typeof cursor[1] !== "string") throw new Error("Invalid run cursor");
       where.push("(updated_at < ? OR (updated_at = ? AND run_id > ?))"); args.push(cursor[0],cursor[0],cursor[1]);
@@ -139,8 +161,30 @@ export class SqliteRunStore implements RunStore {
     return this.db.prepare("SELECT payload_json FROM events WHERE run_id=? AND sequence>? ORDER BY sequence").all(id,after).map(row => JSON.parse(String(row.payload_json)));
   }
   async readRun(id: string, after = 0) { return this.read(id,after); }
+  private indexRun(id: string) {
+    const run = this.db.prepare("SELECT prompt,model,label FROM runs WHERE run_id=?").get(id);
+    if (!run) return;
+    const events = this.db.prepare("SELECT payload_json FROM events WHERE run_id=? AND event_type IN ('node.started','node.completed','node.failed') ORDER BY sequence").iterate(id);
+    function* payloads() { for (const row of events) yield (JSON.parse(String(row.payload_json)) as TraceEnvelopeV1).payload; }
+    const document = buildSearchDocument({prompt:String(run.prompt),model:run.model as string | undefined,label:run.label as string | undefined}, payloads());
+    this.db.prepare("INSERT INTO run_search VALUES(?,?) ON CONFLICT(run_id) DO UPDATE SET document=excluded.document").run(id,document);
+  }
+  async rebuildSearchIndex() {
+    this.transaction(() => {
+      this.db.exec("DELETE FROM run_search");
+      for (const row of this.db.prepare("SELECT run_id FROM runs").iterate()) this.indexRun(String(row.run_id));
+    });
+  }
+  async patchRun(id: string, patch: RunPatch) {
+    this.transaction(() => {
+      if (patch.outcome !== undefined) this.db.prepare("UPDATE runs SET outcome=? WHERE run_id=?").run(patch.outcome,id);
+      if (patch.bookmarked !== undefined) this.db.prepare("UPDATE runs SET bookmarked=? WHERE run_id=?").run(Number(patch.bookmarked),id);
+      if (patch.label !== undefined) { this.db.prepare("UPDATE runs SET label=? WHERE run_id=?").run(patch.label,id); this.indexRun(id); }
+    });
+    return this.getRun(id);
+  }
   async setOutcome(id: string, outcome: "worked" | "failed" | null) { this.db.prepare("UPDATE runs SET outcome=? WHERE run_id=?").run(outcome,id); }
-  async setBookmark(id: string, bookmark: boolean, label?: string) { this.db.prepare("UPDATE runs SET bookmarked=?,label=? WHERE run_id=?").run(Number(bookmark),label ?? null,id); }
+  async setBookmark(id: string, bookmark: boolean, label?: string) { await this.patchRun(id,{bookmarked:bookmark,...(label === undefined ? {} : {label})}); }
   async markInterrupted(before: number, provider?: Provider) {
     return Number(this.db.prepare("UPDATE runs SET status='interrupted',ended_at=? WHERE status='running' AND updated_at<?" + (provider ? " AND provider=?" : ""))
       .run(before,before,...(provider ? [provider] : [])).changes);

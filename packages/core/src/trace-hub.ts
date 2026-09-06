@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { parseTraceEnvelope, type AgentTraceEvent, type Provider, type TraceUsage } from "../../protocol/src/index.js";
-import type { Listener, RunStore } from "./run-store.js";
+import type { Listener, RunFilter, RunPatch, RunStore } from "./run-store.js";
 import { SqliteRunStore, type SqliteRunStoreOptions } from "./sqlite-run-store.js";
 
 export interface TraceHubOptions extends SqliteRunStoreOptions { store?: RunStore; now?: () => number; recover?: boolean }
@@ -28,6 +28,9 @@ export class TraceHub {
   append(input: unknown, sessionId: string) {
     return this.serial(() => this.store.append(parseTraceEnvelope(input,{ provider: this.provider, sessionId })));
   }
+  async listRuns(filter: RunFilter = {}) { await this.tail; await this.ready; return this.store.listRuns(filter); }
+  patchRun(id: string, patch: RunPatch) { return this.serial(() => this.store.patchRun(id,patch)); }
+  rebuildSearchIndex() { return this.serial(() => this.store.rebuildSearchIndex()); }
   async list(): Promise<SessionSummary[]> {
     await this.tail; await this.ready;
     const { items } = await this.store.listRuns({ provider: this.provider, limit: 1000 });
@@ -56,6 +59,8 @@ export async function ingestHook(hub: TraceHub, hook: unknown, adapters: Map<str
   const msg = hook as Record<string, unknown>;
   const id = typeof msg.session_id === "string" && msg.session_id || "session";
   const history = await hub.store.readRun(id);
+  // History can be deleted from the other provider's Studio/connection.
+  if (!history.length) adapters.delete(id);
   const source = msg.event_id ?? msg.hook_id ?? (typeof msg.tool_use_id === "string" ? `${msg.hook_event_name}:${msg.tool_use_id}` : undefined);
   const delivery = typeof source === "string" && source ? createHash("sha256").update(JSON.stringify([hub.provider,id,source])).digest("hex") : randomUUID();
   if (history.some(event => event.hookDelivery === delivery && event.hookDeliveryComplete)) return [];

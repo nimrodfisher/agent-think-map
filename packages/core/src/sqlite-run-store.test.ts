@@ -33,8 +33,8 @@ describe("SQLite lifecycle", () => {
     expect(await store.markInterrupted(2)).toBe(1);expect(await store.getRun("s")).toMatchObject({status:"interrupted"});
     const db=new DatabaseSync(file);
     expect(db.prepare("PRAGMA journal_mode").get()?.journal_mode).toBe("wal");
-    expect(db.prepare("SELECT * FROM schema_migrations").all()).toHaveLength(1);
-    expect(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").all()).toHaveLength(4);
+    expect(db.prepare("SELECT * FROM schema_migrations").all()).toHaveLength(2);
+    expect(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").all()).toHaveLength(5);
     await store.deleteRun("s");expect(db.prepare("SELECT * FROM events").all()).toHaveLength(0);
     db.close();await store.close();
   });
@@ -52,7 +52,7 @@ describe("SQLite lifecycle", () => {
     const file=path();const store=new SqliteRunStore({path:file,maxEventBytes:300});
     await expect(store.appendBatch([event(),{...event("b"),huge:"x".repeat(400)}])).rejects.toThrow();
     expect(await store.readRun("s")).toEqual([]);await store.close();
-    const db=new DatabaseSync(file);db.exec("INSERT INTO schema_migrations VALUES(2,1)");db.close();
+    const db=new DatabaseSync(file);db.exec("INSERT INTO schema_migrations VALUES(99,1)");db.close();
     expect(()=>new SqliteRunStore({path:file})).toThrow(/Unsupported/);
   });
   it("observes another connection and preserves per-run order", async () => {
