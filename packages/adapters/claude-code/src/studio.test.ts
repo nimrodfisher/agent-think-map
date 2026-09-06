@@ -173,11 +173,11 @@ describe("studioPage", () => {
     const html = studioPage();
     expect(html).toContain('layout="split"');
     expect(html).toContain('replay="false"');
-    expect(html).toContain("grid-template-rows: minmax(0, 1fr)");
-    expect(html).toContain("overflow: hidden");
+    expect(html).toContain('class="history-scroll"');
+    expect(html).toContain("overflow:hidden");
     expect(html).toContain("Delete run");
-    expect(html).toContain('placeholder="Prompt, tool, model, answer, error"');
-    expect(html).toContain("Excalifont");
+    expect(html).toContain('placeholder="Search runs…"');
+    expect(html).toContain("system-ui,sans-serif");
     expect(html).not.toContain("Figtree");
     expect(html).not.toContain("Syne");
   });

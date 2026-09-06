@@ -4,12 +4,20 @@ const comparison = document.getElementById('comparison');
 const picker = document.getElementById('baseline-picker');
 let comparingBad, pickerCursor, pickerGeneration = 0, comparisonGeneration = 0;
 let currentDiff;
-function closeComparison() { ++comparisonGeneration; comparison.hidden = true; map.hidden = false; }
+let pickerReturnFocus;
+function dismissPicker() {
+  ++pickerGeneration; picker.hidden = true;
+  document.querySelector('.rail').inert = false; document.querySelector('.workspace').inert = false;
+  if (pickerReturnFocus?.isConnected) pickerReturnFocus.focus();
+}
+function closeComparison() { ++comparisonGeneration; comparison.hidden = true; map.hidden = false; document.getElementById('investigation').hidden = true; for (const tab of document.querySelectorAll('[data-view]')) tab.setAttribute('aria-pressed',String(tab.dataset.view === 'trace')); }
 async function openPicker(id) {
+  pickerReturnFocus = document.activeElement;
   comparingBad = id; picker.hidden = false; pickerCursor = undefined;
+  document.querySelector('.rail').inert = true; document.querySelector('.workspace').inert = true;
   document.getElementById('picker-other').checked = false;
   document.getElementById('picker-query').value = '';
-  await loadBaselines(); document.getElementById('picker-query').focus();
+  document.getElementById('picker-query').focus(); await loadBaselines();
 }
 async function loadBaselines() {
   const ticket = ++pickerGeneration;
@@ -35,6 +43,8 @@ async function loadBaselines() {
 }
 async function compareSelected() {
   if (!selected || !baseline) return;
+  if (!picker.hidden) dismissPicker();
+  ++viewGeneration; investigation.hidden = true;
   const ticket = ++comparisonGeneration;
   comparison.hidden = false; map.hidden = true;
   comparison.replaceChildren(); comparison.append(button('Back to trace',closeComparison));
@@ -42,7 +52,7 @@ async function compareSelected() {
   try {
     const diff = await request('/api/diffs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({badRunId:selected,goodRunId:baseline})});
     if (ticket !== comparisonGeneration) return;
-    picker.hidden = true; currentDiff = diff; renderDiff(diff);
+    dismissPicker(); currentDiff = diff; renderDiff(diff);
   } catch (error) { if (ticket === comparisonGeneration) { status.textContent = error.message + '. Refresh history or choose another baseline.'; comparison.append(button('Retry comparison',compareSelected)); } }
 }
 function renderDiff(diff) {
@@ -94,8 +104,16 @@ function renderDiff(diff) {
 document.getElementById('picker-search').addEventListener('submit',event => { event.preventDefault(); pickerCursor = undefined; loadBaselines(); });
 document.getElementById('picker-other').addEventListener('change',() => { pickerCursor = undefined; loadBaselines(); });
 document.getElementById('picker-next').addEventListener('click',loadBaselines);
-document.getElementById('picker-close').addEventListener('click',() => { ++pickerGeneration; picker.hidden = true; });
+document.getElementById('picker-close').addEventListener('click',dismissPicker);
+picker.addEventListener('keydown',event => {
+  if (event.key === 'Escape') { event.preventDefault(); dismissPicker(); }
+  if (event.key === 'Tab') {
+    const controls = [...picker.querySelectorAll('button:not(:disabled),input:not(:disabled)')], first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
+});
 document.getElementById('compare-selected').addEventListener('click',() => { if (selected && baseline) compareSelected(); else if (selected) openPicker(selected); });
 `;
-export const diffMarkup = `<section id="baseline-picker" hidden aria-label="Choose Worked baseline">
+export const diffMarkup = `<section id="baseline-picker" hidden role="dialog" aria-modal="true" aria-label="Choose Worked baseline">
 <h2>Choose a Worked baseline</h2><form id="picker-search"><label>Search baselines<input id="picker-query" type="search" maxlength="256"></label><label><input id="picker-other" type="checkbox">Include other outcomes (intentional comparison)</label><button>Search baselines</button></form><div id="baseline-choices"></div><button id="picker-next" disabled>More baselines</button><button id="picker-close">Close picker</button></section>`;

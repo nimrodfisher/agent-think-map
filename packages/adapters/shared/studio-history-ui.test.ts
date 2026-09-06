@@ -28,29 +28,27 @@ for(const [provider,page] of [["Claude",claudePage],["Codex",codexPage]] as cons
   it("loads one page, pages forward/back, and sends search and every filter to the API",async()=>{
     const ui=setup(page);expect(ui.doc.getElementById('notice')!.textContent).toContain('Loading');
     await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(20));
-    expect(ui.fetcher.mock.calls[0][0]).toBe('/api/runs?limit=20');ui.click('Next');
-    await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(1));
-    expect(ui.fetcher.mock.calls.at(-1)![0]).toContain('cursor=cursor-20');ui.click('Previous');
+    expect(ui.fetcher.mock.calls[0][0]).toBe('/api/runs?limit=20');ui.click('Load more');
+    await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(21));
+    expect(ui.fetcher.mock.calls.at(-1)![0]).toContain('cursor=cursor-20');ui.click('↻');
     await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(20));
     for(const [name,value] of Object.entries({q:'read file',provider:'codex',model:'model-x',status:'completed',outcome:'worked',bookmarked:'true',from:'2026-01-01',to:'2026-01-02'})) (ui.doc.querySelector(`[name="${name}"]`) as HTMLInputElement).value=value;
-    ui.click('Search / refresh');await vi.waitFor(()=>expect(ui.fetcher.mock.calls.at(-1)![0]).toContain('q=read+file'));
+    ui.click('↻');await vi.waitFor(()=>expect(ui.fetcher.mock.calls.at(-1)![0]).toContain('q=read+file'));
     const params=new URL(ui.fetcher.mock.calls.at(-1)![0],'http://localhost').searchParams;
     for(const key of ['provider','model','status','outcome','bookmarked','from','to'])expect(params.has(key)).toBe(true);
     expect(params.has('cursor')).toBe(false);expect(ui.fetcher.mock.calls.every(([path])=>path.startsWith('/api/runs?'))).toBe(true);
   });
-  it("marks outcomes, bookmarks, edits and clears labels, chooses a Worked baseline and deletes",async()=>{
+  it("marks outcomes, bookmarks, edits and clears labels, and deletes",async()=>{
     const ui=setup(page,[run('one')]);await vi.waitFor(()=>expect(ui.buttons('Worked')).toHaveLength(1));
-    expect(ui.buttons('Choose baseline')[0].disabled).toBe(true);
     ui.click('Worked');await vi.waitFor(()=>expect(ui.buttons('Worked')[0].getAttribute('aria-pressed')).toBe('true'));
-    ui.click('Choose baseline');expect(ui.dom.window.location.search).toContain('baseline=one');
     ui.click('Bookmark');await vi.waitFor(()=>expect(ui.buttons('Unbookmark')).toHaveLength(1));
     const label=ui.doc.querySelector('.actions input') as HTMLInputElement;label.value='Good baseline';ui.click('Save label');
-    await vi.waitFor(()=>expect(ui.doc.querySelector('.session')!.textContent).toBe('Good baseline'));
-    ui.click('Failed');await vi.waitFor(()=>expect(ui.buttons('Failed')[0].getAttribute('aria-pressed')).toBe('true'));
+    await vi.waitFor(()=>expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Good baseline'));
+    ui.click('Needs work');await vi.waitFor(()=>expect(ui.buttons('Needs work')[0].getAttribute('aria-pressed')).toBe('true'));
     expect(ui.dom.window.location.search).not.toContain('baseline=');
-    ui.click('Clear outcome');await vi.waitFor(()=>expect(ui.buttons('Failed')[0].getAttribute('aria-pressed')).toBe('false'));
+    ui.click('Clear outcome');await vi.waitFor(()=>expect(ui.buttons('Needs work')[0].getAttribute('aria-pressed')).toBe('false'));
     (ui.doc.querySelector('.actions input') as HTMLInputElement).value='';ui.click('Save label');
-    await vi.waitFor(()=>expect(ui.doc.querySelector('.session')!.textContent).toBe('Task one'));
+    await vi.waitFor(()=>expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Task one'));
     ui.click('Unbookmark');await vi.waitFor(()=>expect(ui.buttons('Bookmark')).toHaveLength(1));
     ui.click('Delete run');await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(0));
     expect(ui.doc.getElementById('map')!.hasAttribute('events-url')).toBe(false);
@@ -58,29 +56,29 @@ for(const [provider,page] of [["Claude",claudePage],["Codex",codexPage]] as cons
   it("preserves confirmed outcomes, bookmarks, label drafts and focus on failed writes",async()=>{
     const ui=setup(page,[run('one')]);await vi.waitFor(()=>expect(ui.buttons('Worked')).toHaveLength(1));ui.setFail(true);
     const label=ui.doc.querySelector('.actions input') as HTMLInputElement;label.value='Unsaved draft';label.focus();
-    for(const text of ['Worked','Failed','Bookmark','Save label','Delete run']) {
+    for(const text of ['Worked','Needs work','Bookmark','Save label','Delete run']) {
       ui.click(text);await vi.waitFor(()=>expect(ui.doc.getElementById('notice')!.textContent).toContain('Save unavailable'));
       expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(1);expect(ui.buttons('Worked')[0].getAttribute('aria-pressed')).toBe('false');expect(ui.buttons('Bookmark')).toHaveLength(1);expect(label.value).toBe('Unsaved draft');
     }
-    expect(ui.doc.activeElement).toBe(label);ui.setFail(false);ui.click('Save label');await vi.waitFor(()=>expect(ui.doc.querySelector('.session')!.textContent).toBe('Unsaved draft'));
+    expect(ui.doc.activeElement).toBe(label);ui.setFail(false);ui.click('Save label');await vi.waitFor(()=>expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Unsaved draft'));
   });
   it("shows loading errors and retries while safely rendering untrusted text",async()=>{
     const ui=setup(page,[{...run('one'),prompt:'<img src=x onerror=alert(1)>'}]);await vi.waitFor(()=>expect(ui.buttons('Worked')).toHaveLength(1));
-    expect(ui.doc.querySelector('img')).toBeNull();ui.setFail(true);ui.click('Search / refresh');
+    expect(ui.doc.querySelector('img')).toBeNull();ui.setFail(true);ui.click('↻');
     await vi.waitFor(()=>expect(ui.doc.getElementById('notice')!.textContent).toContain('retry'));
     expect(ui.doc.getElementById('sessions')!.getAttribute('aria-busy')).toBe('false');
-    ui.setFail(false);ui.click('Search / refresh');await vi.waitFor(()=>expect(ui.doc.getElementById('notice')!.textContent).toContain('Page 1'));
+    ui.setFail(false);ui.click('↻');await vi.waitFor(()=>expect(ui.doc.getElementById('notice')!.textContent).toContain('1 runs loaded'));
   });
   it("ignores late search responses and keeps keyboard focus after a saved outcome",async()=>{
     const ui=setup(page,[run('one')]);await vi.waitFor(()=>expect(ui.buttons('Worked')).toHaveLength(1));
     let resolveOld!:(value:Response)=>void;
     ui.fetcher.mockImplementationOnce(()=>new Promise(resolve=>{resolveOld=resolve;}));
-    ui.click('Search / refresh');
-    ui.fetcher.mockResolvedValueOnce(Response.json({items:[run('new')]}));ui.click('Search / refresh');
-    await vi.waitFor(()=>expect(ui.doc.querySelector('.session')!.textContent).toBe('Task new'));
+    ui.click('↻');
+    ui.fetcher.mockResolvedValueOnce(Response.json({items:[run('new')]}));ui.click('↻');
+    await vi.waitFor(()=>expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Task new'));
     resolveOld(Response.json({items:[run('stale')]}));await new Promise(resolve=>setTimeout(resolve,10));
-    expect(ui.doc.querySelector('.session')!.textContent).toBe('Task new');
-    ui.click('Search / refresh');await vi.waitFor(()=>expect(ui.doc.querySelector('.session')!.textContent).toBe('Task one'));
+    expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Task new');
+    ui.click('↻');await vi.waitFor(()=>expect(ui.doc.querySelector('.session-title')!.textContent).toBe('Task one'));
     ui.buttons('Worked')[0].focus();ui.click('Worked');
     await vi.waitFor(()=>expect(ui.buttons('Worked')[0].getAttribute('aria-pressed')).toBe('true'));
     expect(ui.doc.activeElement).toBe(ui.buttons('Worked')[0]);

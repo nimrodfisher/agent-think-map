@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { githubIssueFixture } from "@agent-think-map/core";
 import { cleanup, render, screen } from "@testing-library/react";
 import { AgentSimulator } from "./AgentSimulator.js";
@@ -14,6 +14,15 @@ globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserv
 afterEach(() => cleanup());
 
 describe("AgentSimulator", () => {
+  it('selects a requested node after its replayed events arrive',() => {
+    const onNodeSelect = vi.fn();
+    render(<AgentSimulator events={[
+      {type:'run.started',runId:'run',prompt:'Task',ts:1},
+      {type:'node.started',id:'target',kind:'tool',title:'Target tool',ts:2},
+      {type:'node.started',id:'other',kind:'tool',title:'Other tool',ts:3},
+    ]} replay={false} selectedNodeId="target" onNodeSelect={onNodeSelect} />);
+    expect(onNodeSelect.mock.calls.at(-1)?.[0]?.id).toBe('target');
+  });
   it("omits the upper run clock and keeps totals on the timeline", () => {
     render(<AgentSimulator events={githubIssueFixture} replay={false} layout="split" />);
 

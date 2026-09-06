@@ -19,6 +19,7 @@ export interface AgentSimulatorProps {
   layout?: SimulatorLayout;
   children?: ReactNode;
   onNodeSelect?: (node: TraceNode | undefined) => void;
+  selectedNodeId?: string;
 }
 
 function isAsyncIterable(
@@ -90,9 +91,14 @@ function Playback({
 
 function SelectionBridge({
   onNodeSelect,
+  selectedNodeId,
 }: {
   onNodeSelect?: (node: TraceNode | undefined) => void;
+  selectedNodeId?: string;
 }) {
+  const select = useTraceStore(state => state.select);
+  const targetExists = useTraceStore(state => selectedNodeId !== undefined && state.nodes.some(node => node.id === selectedNodeId));
+  useEffect(() => { if (targetExists) select(selectedNodeId); }, [targetExists,selectedNodeId,select]);
   const selected = useTraceStore((state) =>
     state.nodes.find((node) => node.id === state.selectedNodeId),
   );
@@ -110,6 +116,7 @@ export function AgentSimulator({
   layout = "split",
   children,
   onNodeSelect,
+  selectedNodeId,
 }: AgentSimulatorProps) {
   const storeRef = useRef<TraceStore | null>(null);
   if (!storeRef.current) {
@@ -128,7 +135,7 @@ export function AgentSimulator({
           replay={replay}
           intervalMs={intervalMs}
         />
-        <SelectionBridge onNodeSelect={onNodeSelect} />
+        <SelectionBridge onNodeSelect={onNodeSelect} selectedNodeId={selectedNodeId} />
         {layout === "split" ? (
           <SplitStage
             chat={showChat ? <ChatPane>{children}</ChatPane> : undefined}

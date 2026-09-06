@@ -1,31 +1,32 @@
-import { diffClient, diffMarkup } from "./studio-diff.js";
+import { sidebarClient } from "./studio-sidebar.js";
+import { studioStyles } from "./studio-shell.js";
+import { investigationClient } from "./studio-investigation.js";
 /** One client for both providers. Only the current API page is retained in memory. */
 export const historyClient = String.raw`
 const list = document.getElementById('sessions');
 const map = document.getElementById('map');
 const form = document.getElementById('history-filters');
 const notice = document.getElementById('notice');
-const baselineText = document.getElementById('baseline');
 const next = document.getElementById('next');
-const previous = document.getElementById('previous');
-let selected = new URLSearchParams(location.search).get('session');
-let baseline = new URLSearchParams(location.search).get('baseline');
+const initialParams = new URLSearchParams(location.search); initialParams.delete('baseline'); history.replaceState(history.state,'','?' + initialParams);
+let selected = initialParams.get('session');
 let items = [], cursor, nextCursor, stack = [], generation = 0, busy = false, loading = false;
-function showBaseline() {
-  baselineText.textContent = baseline ? 'Baseline selected: ' + baseline + '. Ready for comparison; labels are revalidated on compare.' : 'No baseline selected. Mark a successful run Worked, then choose it as baseline.';
-  document.getElementById('clear-baseline').disabled = !baseline;
-}
 function saveUrl() {
   const params = new URLSearchParams(location.search);
-  for (const [key,value] of [['session',selected],['baseline',baseline]]) { if (value) params.set(key,value); else params.delete(key); }
+  for (const [key,value] of [['session',selected]]) { if (value) params.set(key,value); else params.delete(key); }
   history.replaceState(null,'','?' + params);
-  showBaseline();
 }
-function selectRun(id) {
+function selectRun(id, openOnMobile = false) {
+  if (id !== selected) {
+    if (selected) { history.replaceState({scroll:document.querySelector('.history-scroll').scrollTop},'',location.href); history.pushState(null,'',location.href); }
+    map.removeAttribute('selected-node'); const params = new URLSearchParams(location.search); params.delete('node'); history.replaceState(null,'','?' + params);
+  }
   selected = id;
-  if (typeof closeComparison === 'function') closeComparison();
   map.setAttribute('events-url','/sse?session=' + encodeURIComponent(id));
   saveUrl();
+  updateRunHeader();
+  if (typeof showView === 'function') showView('trace');
+  if (openOnMobile && innerWidth <= 640 && !sidebarCollapsed) collapseSidebar.click();
 }
 async function request(path, options) {
   const response = await fetch(path,options);
@@ -43,34 +44,74 @@ function button(text, action) {
 function draw() {
   const active = document.activeElement;
   const focusId = active && active.dataset.focus;
+  const openMenus = new Set([...list.querySelectorAll('.row-menu[open]')].map(el => el.dataset.run));
   list.replaceChildren();
-  if (!items.length) list.textContent = 'No runs match. Change the filters or record a run.';
+  if (!items.length) { const empty = document.createElement('p'); empty.className = 'empty'; empty.textContent = 'No runs match. Clear filters or record a run to get started.'; list.append(empty); }
+  let lastDate;
   for (const run of items) {
+    const date = new Date(run.updatedAt).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    if (date !== lastDate) { const group = document.createElement('h2'); group.className = 'date-group'; group.textContent = date; list.append(group); lastDate = date; }
     const row = document.createElement('article'); row.className = 'session-row';
-    const title = button(run.label || run.prompt || run.runId,() => { selectRun(run.runId); draw(); });
+    const title = button(run.label || run.prompt || run.runId,() => { selectRun(run.runId,true); draw(); });
+    const titleText = document.createElement('span'); titleText.className = 'session-title'; titleText.textContent = title.textContent; title.replaceChildren(titleText);
     title.className = 'session'; title.dataset.focus = run.runId + ':open';
     if (run.runId === selected) title.setAttribute('aria-current','true');
     row.append(title);
-    const meta = document.createElement('p');
-    meta.textContent = [run.provider,run.model,run.status,run.outcome ? 'Outcome: ' + run.outcome : 'Outcome: unlabeled',run.bookmarked ? 'Bookmarked' : '',new Date(run.updatedAt).toLocaleString(),run.eventCount + ' events'].filter(Boolean).join(' · ');
-    row.append(meta);
+    title.title = run.prompt || run.label || run.runId;
+    const meta = document.createElement('span'); meta.className = 'session-meta';
+    const status = document.createElement('span'); status.className = 'status-dot status-' + run.status; status.textContent = ({running:'●',completed:'✓',failed:'×',interrupted:'◷'})[run.status] || '○'; status.setAttribute('aria-label',run.status || 'Unknown status');
+    const stamp = document.createElement('span'); stamp.textContent = [run.provider,relativeTime(run.updatedAt),run.bookmarked ? '★' : ''].filter(Boolean).join(' · ');
+    meta.append(status,stamp); title.append(meta);
+    const menu = document.createElement('details'); menu.className = 'row-menu';
+    menu.dataset.run = run.runId; menu.open = openMenus.has(run.runId);
+    const trigger = document.createElement('summary'); trigger.textContent = '⋯'; trigger.setAttribute('aria-label','Actions for ' + (run.label || run.prompt || run.runId)); menu.append(trigger);
+    menu.addEventListener('toggle',() => { if (menu.open) { for (const other of list.querySelectorAll('details[open]')) if (other !== menu) other.open = false; const rect = trigger.getBoundingClientRect(); actions.style.position = 'fixed'; actions.style.right = 'auto'; actions.style.left = Math.max(8,Math.min(rect.right-235,innerWidth-243)) + 'px'; actions.style.top = Math.max(8,Math.min(rect.bottom+4,innerHeight-actions.offsetHeight-8)) + 'px'; } });
+    menu.addEventListener('keydown',event => { if (event.key === 'Escape') { menu.open = false; trigger.focus(); } });
     const actions = document.createElement('div'); actions.className = 'actions';
     const add = (text,fn) => { const el = button(text,fn); el.dataset.focus = run.runId + ':' + text; el.disabled = busy; actions.append(el); return el; };
     add('Worked',() => mutate(run,{outcome:'worked'})).setAttribute('aria-pressed',String(run.outcome === 'worked'));
-    add('Failed',() => mutate(run,{outcome:'failed'})).setAttribute('aria-pressed',String(run.outcome === 'failed'));
+    add('Needs work',() => mutate(run,{outcome:'failed'})).setAttribute('aria-pressed',String(run.outcome === 'failed'));
     add('Clear outcome',() => mutate(run,{outcome:null}));
     add(run.bookmarked ? 'Unbookmark' : 'Bookmark',() => mutate(run,{bookmarked:!run.bookmarked}));
     const label = document.createElement('input'); label.type = 'text'; label.maxLength = 120;
     label.value = run.label || ''; label.setAttribute('aria-label','Short label for ' + (run.prompt || run.runId)); label.dataset.focus = run.runId + ':label';
     label.disabled = busy; actions.append(label);
     add('Save label',() => mutate(run,{label:label.value.trim() || null}));
-    add('Choose baseline',() => { baseline = run.runId; closeComparison(); saveUrl(); }).disabled = busy || run.outcome !== 'worked';
-    add('Compare with Worked',() => { selectRun(run.runId); openPicker(run.runId); }).disabled = busy || run.outcome !== 'failed';
-    add('Delete run',() => { if (confirm('Delete this run and its trace permanently?')) mutate(run,null); });
-    row.append(actions); list.append(row);
+    add('Delete run',() => { if (confirm('Delete this run and its trace permanently?')) mutate(run,null); }).className = 'danger';
+    menu.append(actions); row.append(menu); list.append(row);
   }
-  previous.disabled = busy || loading || !stack.length; next.disabled = busy || loading || !nextCursor;
+  next.disabled = busy || loading || !nextCursor;
   if (focusId) for (const el of list.querySelectorAll('[data-focus]')) if (el.dataset.focus === focusId) { el.focus(); break; }
+  updateRunHeader(); updateChips();
+}
+function relativeTime(time) {
+  const minutes = Math.max(0,Math.floor((Date.now()-time)/60000));
+  return minutes < 1 ? 'Just now' : minutes < 60 ? minutes + 'm ago' : minutes < 1440 ? Math.floor(minutes/60) + 'h ago' : new Date(time).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+let selectedSummary, summaryRequest;
+function updateRunHeader() {
+  selectedSummary = items.find(run => run.runId === selected) || (selectedSummary?.runId === selected ? selectedSummary : undefined);
+  const run = selectedSummary;
+  if (document.getElementById('nav-problems').getAttribute('aria-pressed') === 'true') return;
+  if (!run && selected && summaryRequest !== selected) {
+    const id = selected; summaryRequest = id;
+    request('/api/runs/' + encodeURIComponent(id)).then(record => { if (selected === id && record?.runId === id) { selectedSummary = record; updateRunHeader(); } }).catch(() => { if (selected === id) document.getElementById('run-meta').textContent = 'Run details unavailable. Refresh history to retry.'; });
+  }
+  document.getElementById('run-title').textContent = run ? run.label || run.prompt || run.runId : selected ? 'Selected run' : 'Select a run';
+  document.getElementById('run-meta').textContent = run ? [run.provider,run.model,run.status,'Outcome: ' + (run.outcome === 'worked' ? 'Worked' : run.outcome === 'failed' ? 'Needs work' : 'Unreviewed'),!items.includes(run) ? 'Outside current filters' : ''].filter(Boolean).join(' · ') : 'Follow your agents and inspect recorded evidence.';
+}
+function updateChips() {
+  const chips = document.getElementById('filter-chips'); chips.replaceChildren();
+  for (const [key,value] of new FormData(form)) if (value) chips.append(button(key + ': ' + value + ' ×',() => { form.elements.namedItem(key).value = ''; cursor = undefined; stack = []; persistFilters(); load(); }));
+  for (const el of document.querySelectorAll('[data-quick]')) {
+    const quick = el.dataset.quick;
+    el.setAttribute('aria-pressed',String(quick === 'all' ? !form.elements.status.value && !form.elements.bookmarked.value : quick === 'bookmarked' ? form.elements.bookmarked.value === 'true' : form.elements.status.value === quick));
+  }
+}
+function persistFilters() {
+  const params = new URLSearchParams(location.search);
+  for (const [key,value] of new FormData(form)) { if (value) params.set(key,value); else params.delete(key); }
+  history.replaceState(null,'','?' + params); updateChips();
 }
 function query() {
   const params = new URLSearchParams({limit:'20'});
@@ -83,23 +124,22 @@ function query() {
   if (cursor) params.set('cursor',cursor);
   return params;
 }
-async function load() {
+async function load(append = false) {
   const ticket = ++generation;
-  loading = true; list.inert = true; previous.disabled = true; next.disabled = true;
+  loading = true; list.inert = true; next.disabled = true;
   notice.textContent = 'Loading history…'; list.setAttribute('aria-busy','true');
   try {
     const page = await request('/api/runs?' + query());
     if (ticket !== generation) return false;
-    items = page.items; nextCursor = page.nextCursor;
+    items = append ? [...new Map([...items,...page.items].map(run => [run.runId,run])).values()].slice(-200) : page.items; nextCursor = page.nextCursor;
     if (!selected && items.length) selectRun(items[0].runId);
     loading = false;
-    notice.textContent = 'Page ' + (stack.length + 1) + ' · ' + items.length + ' runs'; draw(); return true;
-  } catch (error) { if (ticket === generation) notice.textContent = error.message + '. Use Search / refresh to retry.'; return false; }
-  finally { if (ticket === generation) { loading = false; list.inert = false; list.setAttribute('aria-busy','false'); previous.disabled = busy || !stack.length; next.disabled = busy || !nextCursor; } }
+    notice.textContent = items.length + ' runs loaded' + (items.length === 200 ? ' · Showing latest loaded 200' : ''); draw(); return true;
+  } catch (error) { if (ticket === generation) notice.textContent = error.message + '. Use Refresh history to retry.'; return false; }
+  finally { if (ticket === generation) { loading = false; list.inert = false; list.setAttribute('aria-busy','false'); next.disabled = busy || !nextCursor; } }
 }
 async function mutate(run, patch) {
   if (busy || loading) return;
-  closeComparison();
   const active = document.activeElement;
   const focusKey = active && active.dataset.focus;
   busy = true; ++generation;
@@ -109,7 +149,6 @@ async function mutate(run, patch) {
   notice.textContent = 'Saving…';
   try {
     const updated = await request('/api/runs/' + encodeURIComponent(run.runId),patch === null ? {method:'DELETE'} : {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});
-    if (baseline === run.runId && (!updated || updated.outcome !== 'worked')) baseline = null;
     if (!updated && selected === run.runId) { selected = null; map.removeAttribute('events-url'); }
     saveUrl(); busy = false;
     // Restart at page one after mutation so rows removed by filters cannot strand an empty page.
@@ -123,46 +162,49 @@ async function mutate(run, patch) {
     }
   } catch (error) { busy = false; controls.forEach((el,i) => el.disabled = disabled[i]); if (active && active.isConnected) active.focus(); notice.textContent = error.message + '. Request not confirmed. Retry the action or refresh history.'; }
 }
-form.addEventListener('submit',event => { event.preventDefault(); if (busy) return; cursor = undefined; stack = []; load(); });
-form.addEventListener('change',() => { if (busy) return; cursor = undefined; stack = []; load(); });
+form.addEventListener('submit',event => { event.preventDefault(); if (busy) return; cursor = undefined; stack = []; persistFilters(); load(); });
+form.addEventListener('change',() => { if (busy) return; cursor = undefined; stack = []; persistFilters(); load(); });
 let searchTimer;
-document.getElementById('filter-query').addEventListener('input',() => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { if (!busy) { cursor = undefined; stack = []; load(); } },250); });
-next.addEventListener('click',async () => { if (busy || loading || !nextCursor) return; const old = cursor; stack.push(cursor); cursor = nextCursor; const ticket = generation + 1; if (!await load() && ticket === generation) { cursor = old; stack.pop(); previous.disabled = !stack.length; next.disabled = !nextCursor; } });
-previous.addEventListener('click',async () => { if (busy || loading || !stack.length) return; const old = cursor; cursor = stack.pop(); const ticket = generation + 1; if (!await load() && ticket === generation) { stack.push(cursor); cursor = old; previous.disabled = !stack.length; next.disabled = !nextCursor; } });
-document.getElementById('clear-baseline').addEventListener('click',() => { baseline = null; closeComparison(); saveUrl(); });
-showBaseline(); if (selected) { map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); } load();
+document.getElementById('filter-query').addEventListener('input',() => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { if (!busy) { cursor = undefined; stack = []; persistFilters(); load(); } },250); });
+next.addEventListener('click',async () => { if (busy || loading || !nextCursor) return; const old = cursor; stack.push(cursor); cursor = nextCursor; const ticket = generation + 1; if (!await load(true) && ticket === generation) { cursor = old; stack.pop(); next.disabled = !nextCursor; } });
+for (const [key,value] of new URLSearchParams(location.search)) { const input = form.elements.namedItem(key); if (input && 'value' in input) input.value = value; }
+for (const el of document.querySelectorAll('[data-quick]')) el.addEventListener('click',() => { if (busy) return; form.elements.status.value = ['running','failed'].includes(el.dataset.quick) ? el.dataset.quick : ''; form.elements.bookmarked.value = el.dataset.quick === 'bookmarked' ? 'true' : ''; cursor = undefined; stack = []; persistFilters(); load(); });
+document.getElementById('clear-filters').addEventListener('click',() => { if (busy) return; form.reset(); cursor = undefined; stack = []; persistFilters(); load(); });
+window.addEventListener('popstate',event => {
+  ++generation; loading = false; list.inert = false; list.setAttribute('aria-busy','false');
+  const before = new URLSearchParams(new FormData(form)).toString(), params = new URLSearchParams(location.search);
+  selected = params.get('session'); form.reset();
+  for (const [key,value] of params) { const input = form.elements.namedItem(key); if (input && 'value' in input) input.value = value; }
+  if (selected) map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); else map.removeAttribute('events-url');
+  if (params.has('node')) map.setAttribute('selected-node',params.get('node')); else map.removeAttribute('selected-node');
+  switchHistory(false); draw();
+  if (before !== new URLSearchParams(new FormData(form)).toString()) { cursor = undefined; stack = []; load(); }
+  document.querySelector('.history-scroll').scrollTop = event.state?.scroll || 0;
+});
+if (selected) { map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); } load();
 `;
 
 export function studioHistoryPage(provider: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${provider} · Run history</title><link rel="stylesheet" href="/styles.css">
-  <style>
-  html, body { margin:0; height:100%; overflow: hidden; background:#e4d9c5; font-family:Excalifont,"Segoe UI",sans-serif; }
-  .studio { display:grid; grid-template-columns:minmax(300px, 360px) minmax(0,1fr); grid-template-rows: minmax(0, 1fr); height:100%; }
-  .rail { overflow:auto; padding:16px; background:#f6f0e4; } h1 {font-size:1.2rem} p {font-size:.85rem}
-  form {display:grid;gap:8px} .filter-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:8px} summary {cursor:pointer} label {display:grid;gap:3px} input,select,button {font:inherit;padding:6px;min-width:0}
-  button {cursor:pointer} button:disabled {cursor:default} button:focus-visible,input:focus-visible,select:focus-visible {outline:3px solid #1f6f5b;outline-offset:2px}
-  .session-row {border-top:1px solid #c9bba3;padding:12px 0}.session {width:100%;text-align:left;overflow-wrap:anywhere}
-  .session[aria-current=true],button[aria-pressed=true] {background:#e8f0ec;border:2px solid #1f6f5b}
-  .actions {display:flex;flex-wrap:wrap;gap:5px}.actions input {width:100%} #notice {min-height:2em}
-  agent-think-map {display:flex;flex-direction:column;min-width:0;min-height:0;height:100%}
-  </style></head><body><div class="studio"><aside class="rail">
-  <h1>Run history</h1><p>${provider} Studio · Local traces from all providers.</p>
-  <p>Mark the run that worked. Find the first meaningful divergence in the run that failed. Everything stays local.</p>
+  <style>${studioStyles}</style></head><body><div class="studio"><aside id="history-sidebar" class="rail" aria-label="Run history">
+  <div class="rail-head"><div class="brand"><strong>Agent Think Map</strong><span class="local">● Local</span><button id="collapse-sidebar" type="button" aria-label="Collapse sidebar" title="Collapse sidebar" aria-controls="history-sidebar" aria-expanded="true">‹</button></div>
+  <nav class="nav-tabs" aria-label="History views"><button id="nav-runs" aria-pressed="true">Runs</button><button id="nav-problems" aria-pressed="false">Problems</button></nav>
   <form id="history-filters">
-  <label>Search history<input id="filter-query" name="q" type="search" maxlength="256" placeholder="Prompt, tool, model, answer, error"></label>
-  <details><summary>Filters: provider, model, status, outcome, date</summary><div class="filter-grid">
+  <div class="search-line"><label class="sr-only" for="filter-query">Search history</label><input id="filter-query" name="q" type="search" maxlength="256" placeholder="Search runs…"><button type="submit" title="Refresh history" aria-label="Refresh history">↻</button></div><div class="quick-views" aria-label="Quick filters"><button type="button" data-quick="all" aria-pressed="true">All</button><button type="button" data-quick="running">Active</button><button type="button" data-quick="failed">Failed</button><button type="button" data-quick="bookmarked">Bookmarked</button></div>
+  <details class="filters"><summary>Filters</summary><div class="filter-grid">
   <label>Provider<select name="provider"><option value="">All providers</option>${["claude-code","codex","claude-sdk","openai","custom"].map(x=>`<option>${x}</option>`).join("")}</select></label>
   <label>Model (exact)<input name="model" maxlength="256"></label>
   <label>Status<select name="status"><option value="">All statuses</option>${["running","completed","failed","interrupted"].map(x=>`<option>${x}</option>`).join("")}</select></label>
-  <label>Outcome<select name="outcome"><option value="">All outcomes</option><option value="worked">Worked</option><option value="failed">Failed</option><option value="null">Unlabeled</option></select></label>
+  <label>Outcome<select name="outcome"><option value="">All outcomes</option><option value="worked">Worked</option><option value="failed">Needs work</option><option value="null">Unreviewed</option></select></label>
   <label>Bookmarks<select name="bookmarked"><option value="">All runs</option><option value="true">Bookmarked only</option><option value="false">Not bookmarked</option></select></label>
   <label>Updated from<input name="from" type="date"></label><label>Updated through<input name="to" type="date"></label>
-  </div></details><button type="submit">Search / refresh</button></form>
-  <p id="baseline"></p><button id="clear-baseline" type="button">Clear baseline</button>
-  <button id="compare-selected" type="button">Compare selected runs</button>${diffMarkup}
-  <p id="notice" role="status" aria-live="polite"></p>
-  <nav aria-label="History pages"><button id="previous" type="button" disabled>Previous</button> <button id="next" type="button" disabled>Next</button></nav><div id="sessions" aria-busy="true">Loading history…</div>
-  </aside><section id="comparison" hidden aria-label="Run comparison"></section><agent-think-map id="map" layout="split" replay="false"></agent-think-map></div>
-  <script type="module" src="/element.js"></script><script>${historyClient}${diffClient}</script></body></html>`;
+  </div><button type="button" id="clear-filters">Clear all filters</button></details><div id="filter-chips" class="chips"></div></form>
+  <p id="problem-scope" class="muted" hidden>Observed errors across local runs. Run filters do not apply.</p></div>
+  <div class="history-scroll"><div id="sessions" aria-busy="true">Loading history…</div><div id="problem-list" hidden></div></div>
+  <footer class="rail-footer"><p id="notice" role="status" aria-live="polite"></p><nav class="paging" aria-label="More history"><button id="next" type="button" disabled>Load more</button></nav></footer>
+  </aside><div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="Resize history sidebar" aria-orientation="vertical" aria-controls="history-sidebar" tabindex="0"></div><main class="workspace"><header class="run-header"><div class="run-heading"><button id="expand-sidebar" type="button" aria-label="Expand sidebar" aria-controls="history-sidebar" aria-expanded="false" hidden>☰ History</button><div><h1 id="run-title">Select a run</h1><p id="run-meta">Follow your agents and inspect recorded evidence.</p></div></div>
+  <nav class="workspace-tabs" aria-label="Run views"><button data-view="trace" aria-pressed="true">Trace</button><button data-view="overview" aria-pressed="false">Overview</button><button data-view="agents" aria-pressed="false">Agents</button></nav></header>
+  <div class="workspace-body"><section id="investigation" class="investigation" hidden aria-live="polite"></section><agent-think-map id="map" layout="split" replay="false"></agent-think-map></div></main></div>
+  <script type="module" src="/element.js"></script><script>${sidebarClient}${historyClient}${investigationClient}</script></body></html>`;
 }

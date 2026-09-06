@@ -26,6 +26,7 @@ export interface RetentionPolicy {
 export type Listener = (envelope: TraceEnvelopeV1) => void;
 export type Unsubscribe = () => void;
 export interface RunStore {
+  listProblems?(): Promise<import("./problems.js").ProblemPage>;
   /** Optional derived comparison support; durable Studio defaults implement it. */
   compareRuns?(badRunId: string, goodRunId: string, analyzerVersion?: number): Promise<import("./diff.js").RunDiff | undefined>;
   getDiff?(diffId: string, analyzerVersion?: number): Promise<import("./diff.js").RunDiff | undefined>;

@@ -203,8 +203,8 @@ describe("studioPage", () => {
     expect(html).toContain('replay="false"');
     expect(html).toContain("Run history");
     expect(html).toContain("Delete run");
-    expect(html).toContain("Excalifont");
-    expect(html).toContain('Choose baseline');
+    expect(html).toContain("system-ui,sans-serif");
+    expect(html).not.toContain('Choose baseline');
     expect(html).toContain("/api/runs?");
     expect(html).toContain("All providers");
   });

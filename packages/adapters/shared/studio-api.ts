@@ -41,6 +41,16 @@ export function apiError(res: ServerResponse, status: number, code: string, mess
 export async function routeStudioApi(req: IncomingMessage, res: ServerResponse, url: URL, hub: TraceHub): Promise<boolean> {
   const legacy = url.pathname === "/sessions" || url.pathname.startsWith("/sessions/");
   if (!legacy && !url.pathname.startsWith("/api/")) return false;
+  if (url.pathname === "/api/problems") {
+    if (req.method !== "GET") { apiError(res,405,"method_not_allowed","Use GET"); return true; }
+    if ([...url.searchParams].length) { apiError(res,400,"invalid_request","Problem scope is all local runs; query parameters are not supported"); return true; }
+    try {
+      await hub.ready;
+      if (!hub.store.listProblems) apiError(res,501,"unsupported","This store does not support problem discovery");
+      else apiJson(res,200,await hub.store.listProblems());
+    } catch { apiError(res,500,"store_error","Problem discovery failed"); }
+    return true;
+  }
   if (url.pathname === "/api/diffs" || url.pathname.startsWith("/api/diffs/")) {
     let pair: {badRunId:string;goodRunId:string} | undefined; let diffId: string | undefined;
     try {
@@ -79,7 +89,7 @@ export async function routeStudioApi(req: IncomingMessage, res: ServerResponse, 
       const match = url.pathname.match(legacy ? /^\/sessions\/([^/]+)$/ : /^\/api\/runs\/([^/]+)(\/events)?$/);
       if (!match) { apiError(res,404,"not_found","Route not found"); return true; }
       id = idSchema.parse(decodeURIComponent(match[1])); events = Boolean(match[2]);
-      if (events ? req.method !== "GET" : !["PATCH","DELETE"].includes(req.method ?? "")) { apiError(res,405,"method_not_allowed","Unsupported method"); return true; }
+      if (events ? req.method !== "GET" : !["GET","PATCH","DELETE"].includes(req.method ?? "")) { apiError(res,405,"method_not_allowed","Unsupported method"); return true; }
       if (events) {
         for (const [key,value] of url.searchParams) if (key !== "after" || url.searchParams.getAll(key).length !== 1 || !integer(value)) throw new Error("Invalid event sequence");
       } else if ([...url.searchParams].length) throw new Error("Unexpected query parameters");
@@ -102,6 +112,7 @@ export async function routeStudioApi(req: IncomingMessage, res: ServerResponse, 
       await hub.ready;
       if (!await hub.store.getRun(id!)) { apiError(res,404,"not_found","Run not found"); return true; }
       if (events) apiJson(res,200,{items:await hub.store.readRun(id!,Number(url.searchParams.get("after") ?? 0))});
+      else if (req.method === "GET") apiJson(res,200,await hub.store.getRun(id!));
       else if (patch) {
         const run = await hub.patchRun(id!,patch);
         if (!run) apiError(res,404,"not_found","Run not found"); else apiJson(res,200,run);

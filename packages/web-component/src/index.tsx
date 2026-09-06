@@ -10,7 +10,7 @@ export class AgentSimulatorElement extends HTMLElement {
   #mount: HTMLDivElement | undefined;
 
   static get observedAttributes(): string[] {
-    return ["events-url", "layout", "replay"];
+    return ["events-url", "layout", "replay", "selected-node"];
   }
 
   connectedCallback(): void {
@@ -50,6 +50,7 @@ export class AgentSimulatorElement extends HTMLElement {
         eventsUrl={this.getAttribute("events-url") ?? undefined}
         layout={layout}
         replay={this.getAttribute("replay") !== "false"}
+        selectedNodeId={this.getAttribute("selected-node") ?? undefined}
       />,
     );
   }

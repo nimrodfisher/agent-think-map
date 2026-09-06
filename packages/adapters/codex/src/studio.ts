@@ -168,7 +168,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
       return;
     }
 
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     res.end(studioPage());
   });
   server.on("close", () => { void hub.close(); });

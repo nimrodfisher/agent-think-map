@@ -7,6 +7,7 @@ import type { AppendDraft, AppendResult, Listener, Page, RetentionPolicy, RunFil
 import { buildSearchDocument, normalizeSearch } from "./run-search.js";
 import { ANALYZER_VERSION } from "./analysis.js";
 import { compareRuns, type RunDiff } from "./diff.js";
+import { groupProblems } from "./problems.js";
 
 export const DEFAULT_MAX_EVENT_BYTES = 1024 * 1024;
 export const DEFAULT_MAX_DB_BYTES = 512 * 1024 * 1024;
@@ -179,6 +180,25 @@ export class SqliteRunStore implements RunStore {
     return this.db.prepare("SELECT payload_json FROM events WHERE run_id=? AND sequence>? ORDER BY sequence").all(id,after).map(row => JSON.parse(String(row.payload_json)));
   }
   async readRun(id: string, after = 0) { return this.read(id,after); }
+  async listProblems() {
+    // Use the event_type index and cap work explicitly; never transfer raw history to the browser.
+    const rows = this.db.prepare(`SELECT e.run_id,e.sequence,e.timestamp,e.payload_json,r.provider,r.prompt,r.label,
+      (SELECT s.payload_json FROM events s WHERE s.run_id=e.run_id AND s.sequence<e.sequence
+        AND s.event_type='node.started'
+        AND json_extract(s.payload_json,'$.payload.id')=json_extract(e.payload_json,'$.payload.id')
+        AND s.sequence>coalesce((SELECT max(t.sequence) FROM events t WHERE t.run_id=e.run_id AND t.sequence<e.sequence AND t.event_type='run.started'),0)
+        ORDER BY s.sequence DESC LIMIT 1) AS started
+      FROM events e JOIN runs r ON r.run_id=e.run_id WHERE e.event_type='node.failed'
+      ORDER BY e.timestamp DESC,e.run_id,e.sequence DESC LIMIT 10001`).all();
+    return groupProblems(rows.slice(0,10000).map(row => {
+      const failure = (JSON.parse(String(row.payload_json)) as TraceEnvelopeV1).payload;
+      const start = row.started ? (JSON.parse(String(row.started)) as TraceEnvelopeV1).payload : undefined;
+      const captured = start?.type === 'node.started' ? start.operation : undefined;
+      const operation = captured ? [captured.server,captured.name].filter(Boolean).join(' · ') : undefined;
+      const operationIdentity = captured ? JSON.stringify([captured.server ?? '',captured.name]) : undefined;
+      return {runId:String(row.run_id),title:String(row.label || row.prompt || row.run_id),provider:String(row.provider),timestamp:Number(row.timestamp),sequence:Number(row.sequence),operation,operationIdentity,message:failure.type === 'node.failed' ? failure.error : ''};
+    }),rows.length>10000);
+  }
   private indexRun(id: string) {
     const run = this.db.prepare("SELECT prompt,model,label FROM runs WHERE run_id=?").get(id);
     if (!run) return;

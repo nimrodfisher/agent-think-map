@@ -20,6 +20,11 @@ for(const [provider,Hub,create] of [["codex",CodexTraceHub,createCodexStudio],["
     const patch=(id:string,body:unknown)=>request('/api/runs/'+id,{method:"PATCH",headers:{"Content-Type":"application/json",Origin:base},body:JSON.stringify(body)});
     try {
       const calls=vi.spyOn(hub.store,"listRuns");
+      expect((await (await request('/api/runs/run-23')).json()).runId).toBe('run-23');
+      const problems=await (await request('/api/problems')).json();
+      expect(problems.partial).toBe(false); expect(problems.items.reduce((sum:number,item:any)=>sum+item.count,0)).toBe(24);
+      expect((await request('/api/problems?provider=codex')).status).toBe(400);
+      expect((await request('/api/problems',{method:'POST'})).status).toBe(405);
       const page=await (await request("/api/runs")).json();expect(page.items).toHaveLength(20);expect(page.nextCursor).toBeTruthy();
       const page2=await (await request("/api/runs?cursor="+encodeURIComponent(page.nextCursor))).json();
       expect(new Set([...page.items,...page2.items].map(x=>x.runId)).size).toBe(24);
@@ -50,7 +55,7 @@ for(const [provider,Hub,create] of [["codex",CodexTraceHub,createCodexStudio],["
     const server=create({hub:hub as any,root:process.cwd()});const base=await listen(server);
     try {
       const access=vi.spyOn(hub.store,"getRun");const list=vi.spyOn(hub,"listRuns");
-      for(const [path,method] of [["/api/runs","GET"],["/api/runs/run-00/events","GET"],["/api/runs/run-00","PATCH"],["/api/runs/run-00","DELETE"],["/api/runs","OPTIONS"]]) {
+      for(const [path,method] of [["/api/problems","GET"],["/api/runs","GET"],["/api/runs/run-00","GET"],["/api/runs/run-00/events","GET"],["/api/runs/run-00","PATCH"],["/api/runs/run-00","DELETE"],["/api/runs","OPTIONS"]]) {
         for(const Origin of ["https://evil.example","null",base+".evil.example"]) {
           const res=await fetch(base+path,{method,headers:{Origin}});expect(res.status).toBe(403);expect(await res.json()).toMatchObject({error:{code:"forbidden_origin"}});
         }
