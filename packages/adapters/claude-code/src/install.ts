@@ -3,6 +3,19 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { mergeClaudeCodeSettings } from "./hub.js";
 
+/** Only refresh a project that already opted into this exact Studio endpoint. */
+export function hasClaudeCodeHooks(cwd: string, origin: string): boolean {
+  const settings = parseConfig(readConfig(join(cwd, ".claude", "settings.local.json")));
+  return Object.values(settings.hooks ?? {}).some((groups) => Array.isArray(groups) && groups.some(group =>
+    Array.isArray(group?.hooks) && group.hooks.some((hook: { type?: string; url?: string }) => {
+      if (hook.type !== "http" || typeof hook.url !== "string") return false;
+      try {
+        const url = new URL(hook.url);
+        return url.origin === origin && url.pathname === "/hook";
+      } catch { return false; }
+    })));
+}
+
 export function installClaudeCodeHooks(cwd: string, hookUrl: string): string {
   const dir = join(cwd, ".claude");
   const file = join(dir, "settings.local.json");

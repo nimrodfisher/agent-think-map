@@ -31,6 +31,14 @@ for (const adapter of ["claude", "codex"] as const) {
       expect(await run("--rollback", backup)).toContain("Restored hooks");
       expect(JSON.parse(readFileSync(file, "utf8"))).toEqual({ theme: "dark", hooks: {} });
       await expect(run("--doctor")).rejects.toThrow(/--install/);
+      if (adapter === "claude") {
+        await run("--install");
+        const stale = readFileSync(file, "utf8").replace(/token=[^"\s]+/g, "token=stale");
+        writeFileSync(file, stale);
+        await expect(run("--doctor")).rejects.toThrow(/HTTP 403/);
+        expect(await run()).toContain("Wrote Claude Code hooks");
+        expect(await run("--doctor")).toContain("Doctor OK");
+      }
     } finally {
       server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
       rmSync(home, { recursive: true, force: true }); rmSync(cwd, { recursive: true, force: true });

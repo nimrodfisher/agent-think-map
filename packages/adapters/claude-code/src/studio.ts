@@ -83,7 +83,7 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
     if (req.method === "POST" && url.pathname === "/hook") {
       if (url.searchParams.get("token") !== hookToken) {
         res.writeHead(403, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: false }));
+        res.end(JSON.stringify({ ok: false, error: { code: "invalid_hook_token", message: "Hook token is missing or stale. Run agent-think-map claude --install in your Claude project, then restart Claude Code to reload hooks." } }));
         return;
       }
       try {

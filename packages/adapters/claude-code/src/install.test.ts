@@ -2,9 +2,16 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { installClaudeCodeHooks } from "./install.js";
+import { hasClaudeCodeHooks, installClaudeCodeHooks } from "./install.js";
 
 describe("installClaudeCodeHooks", () => {
+  it("refreshes only projects already attached to the same Studio", () => {
+    const cwd = mkdtempSync(join(tmpdir(), "atm-claude-detect-"));
+    expect(hasClaudeCodeHooks(cwd, "http://127.0.0.1:3334")).toBe(false);
+    installClaudeCodeHooks(cwd, "http://127.0.0.1:3334/hook?token=old");
+    expect(hasClaudeCodeHooks(cwd, "http://127.0.0.1:3334")).toBe(true);
+    expect(hasClaudeCodeHooks(cwd, "http://127.0.0.1:3335")).toBe(false);
+  });
   it("writes local Claude Code HTTP hooks for the studio URL", () => {
     const cwd = mkdtempSync(join(tmpdir(), "atm-claude-"));
     const file = installClaudeCodeHooks(cwd, "http://127.0.0.1:3334/hook?token=install-test");

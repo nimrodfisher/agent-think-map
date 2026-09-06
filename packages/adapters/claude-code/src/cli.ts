@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exec, spawn } from "node:child_process";
 import { ClaudeCodeTraceHub, claudeCodeHookSettings } from "./hub.js";
-import { installClaudeCodeHooks } from "./install.js";
+import { hasClaudeCodeHooks, installClaudeCodeHooks } from "./install.js";
 import { createClaudeCodeStudio } from "./studio.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -23,6 +23,8 @@ agent-think-map claude — live think-map for Claude Code CLI
      to use a tool (e.g. "Read README.md"). The graph builds in the browser.
 
   Maintenance: --doctor   --rollback [full-backup-path] (latest valid by default)
+  Startup refreshes existing hooks in this project. After restarting Studio,
+  restart Claude Code to load the new token. Other projects need --install again.
   Flags: --port 3334   --install   --print-hooks   --smoke   --no-open
 `;
 
@@ -140,6 +142,7 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
   await ensureCdn();
 
   const installDir = process.env.ATM_CWD || process.cwd();
+  const refreshHooks = args.install || hasClaudeCodeHooks(installDir, origin);
   async function installHooks() {
     const hookUrl = await activeHookUrl();
     const file = installClaudeCodeHooks(installDir, hookUrl);
@@ -165,7 +168,7 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
     if (busy) {
       console.log(`Port ${args.port} is already in use. Studio is probably already at ${origin}`);
       console.log(`Open ${origin} — do not start a second server.`);
-      if (args.install) {
+      if (refreshHooks) {
         await installHooks();
         return;
       }
@@ -182,12 +185,12 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
   process.once("SIGINT", shutdown);
   process.once("SIGTERM", shutdown);
 
-  if (args.install) await installHooks();
+  if (refreshHooks) await installHooks();
 
   console.log(HELP);
   console.log(`Studio → ${origin}`);
   console.log(`Hooks  → POST ${origin}/hook (token required)\n`);
-  if (!args.install) {
+  if (!refreshHooks) {
     console.log("To attach the current folder's Claude Code CLI:\n");
     console.log(`  npx agent-think-map claude --install --port ${args.port}\n`);
   }
