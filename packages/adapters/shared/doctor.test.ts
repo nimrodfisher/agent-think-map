@@ -1,5 +1,5 @@
-import { afterEach, expect, it } from "vitest";
-import { createServer, type Server } from "node:http";
+import { afterEach, expect, it, vi } from "vitest";
+import type { Server } from "node:http";
 import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -32,9 +32,24 @@ for (const adapter of ["claude", "codex"] as const) {
   }, 20000);
 }
 it("does not accept HTTP success as proof that its event arrived", async () => {
-  const origin = await listen(createServer((req, res) => { res.setHeader("content-type", "application/json"); res.end(req.url === "/sessions" ? "[]" : "{}"); }));
+  const origin = "http://127.0.0.1:3334";
   const file = installClaudeCodeHooks(temp(), `${origin}/hook?token=test`);
-  await expect(doctor(file, origin, "claude", 200)).rejects.toThrow(/not observed/);
+  // Exercise the observation deadline deterministically. A real 200ms network
+  // deadline races CPU contention on Windows before observation even begins.
+  vi.useFakeTimers();
+  const request = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+    new Response(String(url).endsWith("/sessions") ? "[]" : "{}", {
+      headers: { "content-type": "application/json" },
+    }));
+  try {
+    const result = expect(doctor(file, origin, "claude", 200)).rejects.toThrow(/not observed/);
+    await vi.advanceTimersByTimeAsync(300);
+    await result;
+    expect(request).toHaveBeenCalledWith(`${origin}/sessions`, expect.anything());
+  } finally {
+    request.mockRestore();
+    vi.useRealTimers();
+  }
 });
 it("gives actionable instructions when no hook is installed", async () => {
   await expect(doctor(join(temp(), "absent.json"), "http://127.0.0.1:3334", "claude")).rejects.toThrow(/--install/);

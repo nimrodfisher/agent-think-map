@@ -24,6 +24,8 @@ describe("history storage",()=>{
       expect((await store.listRuns({q:"orchard"})).items).toHaveLength(1);
     }finally{await store.close();}
   });
+  // Real SQLite writes, two index rebuilds and a reopen can exceed Vitest's
+  // five-second unit-test default on shared Windows runners.
   it("migrates a populated Brief 1 fixture and rebuilds idempotently across restart",async()=>{
     const path=file();const db=new DatabaseSync(path);db.exec(SCHEMA_V1);
     db.exec("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,applied_at INTEGER NOT NULL); INSERT INTO schema_migrations VALUES(1,1)");
@@ -38,7 +40,7 @@ describe("history storage",()=>{
       await store.close();store=new SqliteRunStore({path});
       expect((await store.listRuns({q:"legacy model"})).items[0].runId).toBe("old");
     }finally{await store.close();}
-  });
+  }, 30_000);
   it("combines filters and pages tied timestamps without gaps; annotations preserve the cursor key",async()=>{
     const store=new SqliteRunStore({path:":memory:"});
     try {
