@@ -113,9 +113,11 @@ export function mergeCodexHookSettings(
     const prior = Array.isArray(current[event])
       ? (current[event] as HookMatcherGroup[])
       : [];
-    const kept = prior.filter(
-      (group) => !group.hooks?.some((hook) => isThinkMapForwarder(hook.command)),
-    );
+    const kept = prior.flatMap((group) => {
+      if (!Array.isArray(group.hooks)) return [group];
+      const hooks = group.hooks.filter((hook) => !isThinkMapForwarder(hook.command));
+      return hooks.length ? [{ ...group, hooks }] : [];
+    });
     const already = kept.some((group) =>
       group.hooks?.some((hook) => hook.type === "command" && hook.command === command),
     );

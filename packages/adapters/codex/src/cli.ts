@@ -1,3 +1,6 @@
+import { rollbackConfig } from "../../shared/config.js";
+import { doctor } from "../../shared/doctor.js";
+import { homedir } from "node:os";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +27,7 @@ agent-think-map codex — live think-map for Codex
   Codex hooks do not stream chain-of-thought. The map is prompt → tools / MCP → answer.
   For reasoning items, ingest app-server notifications via TraceAdapter / agent-think-map/codex.
 
+  Maintenance: --doctor   --rollback [full-backup-path] (latest valid by default)
   Flags: --port 3335   --install   --project   --print-hooks   --smoke   --no-open
   --smoke loads a fake demo session. Omit it when mapping a live Codex run.
 `;
@@ -82,6 +86,18 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
   const args = parseArgs(argv);
   const host = "127.0.0.1";
   const origin = `http://${host}:${args.port}`;
+  const configFile = join(args.project ? join(codexProjectRoot(process.env.ATM_CWD || process.cwd()), ".codex") : join(homedir(), ".codex"), "hooks.json");
+  if (argv.includes("--rollback")) {
+    const value = argv[argv.indexOf("--rollback") + 1];
+    const backup = rollbackConfig(configFile, value && !value.startsWith("--") ? value : undefined);
+    console.log(`Restored hooks from ${backup}. Unrelated user edits were preserved.`);
+    return;
+  }
+  if (argv.includes("--doctor")) {
+    const id = await doctor(configFile, origin, "codex");
+    console.log(`Doctor OK: observed synthetic event ${id} at ${origin}.`);
+    return;
+  }
   async function activeHookUrl(): Promise<string> {
     const response = await fetch(`${origin}/hooks.json`, { signal: AbortSignal.timeout(3000) });
     if (!response.ok) throw new Error("Could not read running Studio hook configuration");

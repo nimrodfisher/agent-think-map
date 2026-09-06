@@ -21,6 +21,8 @@ agent-think-map — see the agent think
   npx agent-think-map claude --install
   npx agent-think-map codex           live map for Codex CLI
   npx agent-think-map codex --install
+  npx agent-think-map <claude|codex> --doctor
+  npx agent-think-map <claude|codex> --rollback [full-backup-path]
   npm i agent-think-map               React / Node
   CDN (any chat UI)                   one script tag, see README
 

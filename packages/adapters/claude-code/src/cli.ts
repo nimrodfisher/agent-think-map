@@ -1,3 +1,6 @@
+import { rollbackConfig } from "../../shared/config.js";
+import { doctor } from "../../shared/doctor.js";
+import { homedir } from "node:os";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,6 +22,7 @@ agent-think-map claude — live think-map for Claude Code CLI
   3. In another terminal, in that same folder, run \`claude\` and ask it
      to use a tool (e.g. "Read README.md"). The graph builds in the browser.
 
+  Maintenance: --doctor   --rollback [full-backup-path] (latest valid by default)
   Flags: --port 3334   --install   --print-hooks   --smoke   --no-open
 `;
 
@@ -101,6 +105,18 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
   const args = parseArgs(argv);
   const host = "127.0.0.1";
   const origin = `http://${host}:${args.port}`;
+  const configFile = join(process.env.ATM_CWD || process.cwd(), ".claude", "settings.local.json");
+  if (argv.includes("--rollback")) {
+    const value = argv[argv.indexOf("--rollback") + 1];
+    const backup = rollbackConfig(configFile, value && !value.startsWith("--") ? value : undefined);
+    console.log(`Restored hooks from ${backup}. Unrelated user edits were preserved.`);
+    return;
+  }
+  if (argv.includes("--doctor")) {
+    const id = await doctor(configFile, origin, "claude");
+    console.log(`Doctor OK: observed synthetic event ${id} at ${origin}.`);
+    return;
+  }
   async function activeHookUrl(): Promise<string> {
     const response = await fetch(`${origin}/hooks.json`, { signal: AbortSignal.timeout(3000) });
     if (!response.ok) throw new Error("Could not read running Studio hook configuration");
@@ -175,4 +191,3 @@ startClaudeCodeStudio().catch((error: unknown) => {
   console.error(error);
   process.exit(1);
 });
-
