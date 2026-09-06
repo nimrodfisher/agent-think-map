@@ -152,7 +152,7 @@ Repeat imports add only new transcript events. Sessions already containing live-
 - **Inspect recurring errors.** Problem groups match captured operation/error identity. They scan up to the newest 10,000 errors and show up to 20 recent occurrences per group, with a notice when coverage is partial.
 - **Keep evidence close.** Suggested troubleshooting checks are starting points, not verified root causes or automatic fixes.
 
-The comparison popup has been removed while the investigation experience is refined. The provisional backend diff API remains; run comparison is not currently a Studio UI feature.
+Mark a run Worked, then use Compare… on a candidate to choose it as a baseline and jump to the first detected difference. Everything stays local. Alignment is provisional: divergence is a lead to investigate, not proven causation.
 
 Backend analyzer V2 reports `match` (`exact` or `inferred`) and `matchBasis` on every alignment row. Exact correspondence requires captured operation identities, equal fingerprints unique within each turn, and finished steps. Only exact pairs with equal status/output class are matched; structural user/answer nodes can therefore be inferred differences even when identical. Warnings count inferred paired steps, excluding missing/inserted steps. The first divergence is an investigative lead, not proof of a cause. Fingerprint V1 remains provisional.
 

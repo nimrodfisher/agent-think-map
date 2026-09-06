@@ -1,6 +1,7 @@
 import { sidebarClient } from "./studio-sidebar.js";
 import { studioStyles } from "./studio-shell.js";
 import { investigationClient } from "./studio-investigation.js";
+import { diffClient, diffMarkup } from "./studio-diff.js";
 /** One client for both providers. Only the current API page is retained in memory. */
 export const historyClient = String.raw`
 const list = document.getElementById('sessions');
@@ -8,7 +9,7 @@ const map = document.getElementById('map');
 const form = document.getElementById('history-filters');
 const notice = document.getElementById('notice');
 const next = document.getElementById('next');
-const initialParams = new URLSearchParams(location.search); initialParams.delete('baseline'); history.replaceState(history.state,'','?' + initialParams);
+const initialParams = new URLSearchParams(location.search);
 let selected = initialParams.get('session');
 let items = [], cursor, nextCursor, stack = [], generation = 0, busy = false, loading = false;
 function saveUrl() {
@@ -19,6 +20,7 @@ function saveUrl() {
 function selectRun(id, openOnMobile = false) {
   if (id !== selected) {
     if (selected) { history.replaceState({scroll:document.querySelector('.history-scroll').scrollTop},'',location.href); history.pushState(null,'',location.href); }
+    invalidateComparison();
     map.removeAttribute('selected-node'); const params = new URLSearchParams(location.search); params.delete('node'); history.replaceState(null,'','?' + params);
   }
   selected = id;
@@ -90,6 +92,8 @@ function relativeTime(time) {
 }
 let selectedSummary, summaryRequest;
 function updateRunHeader() {
+  document.getElementById('compare-selected').disabled = !selected;
+  document.querySelector('[data-view="compare"]').disabled = !selected;
   selectedSummary = items.find(run => run.runId === selected) || (selectedSummary?.runId === selected ? selectedSummary : undefined);
   const run = selectedSummary;
   if (document.getElementById('nav-problems').getAttribute('aria-pressed') === 'true') return;
@@ -149,11 +153,13 @@ async function mutate(run, patch) {
   notice.textContent = 'Saving…';
   try {
     const updated = await request('/api/runs/' + encodeURIComponent(run.runId),patch === null ? {method:'DELETE'} : {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});
+    if (!updated && (selected === run.runId || baseline === run.runId)) { invalidateComparison(); showView('trace'); }
     if (!updated && selected === run.runId) { selected = null; map.removeAttribute('events-url'); }
     saveUrl(); busy = false;
     // Restart at page one after mutation so rows removed by filters cannot strand an empty page.
     cursor = undefined; stack = [];
     items = updated ? items.map(item => item.runId === run.runId ? updated : item) : items.filter(item => item.runId !== run.runId);
+    if (updated) { comparisonRuns.set(updated.runId,updated); if (selectedSummary?.runId === updated.runId) selectedSummary = updated; refreshComparisonHeadings(); }
     draw(); await load();
     if (focusKey) {
       const targets = [...list.querySelectorAll('[data-focus]')];
@@ -171,6 +177,7 @@ for (const [key,value] of new URLSearchParams(location.search)) { const input = 
 for (const el of document.querySelectorAll('[data-quick]')) el.addEventListener('click',() => { if (busy) return; form.elements.status.value = ['running','failed'].includes(el.dataset.quick) ? el.dataset.quick : ''; form.elements.bookmarked.value = el.dataset.quick === 'bookmarked' ? 'true' : ''; cursor = undefined; stack = []; persistFilters(); load(); });
 document.getElementById('clear-filters').addEventListener('click',() => { if (busy) return; form.reset(); cursor = undefined; stack = []; persistFilters(); load(); });
 window.addEventListener('popstate',event => {
+  invalidateComparison(false);
   ++generation; loading = false; list.inert = false; list.setAttribute('aria-busy','false');
   const before = new URLSearchParams(new FormData(form)).toString(), params = new URLSearchParams(location.search);
   selected = params.get('session'); form.reset();
@@ -180,8 +187,9 @@ window.addEventListener('popstate',event => {
   switchHistory(false); draw();
   if (before !== new URLSearchParams(new FormData(form)).toString()) { cursor = undefined; stack = []; load(); }
   document.querySelector('.history-scroll').scrollTop = event.state?.scroll || 0;
+  restoreComparisonUrl();
 });
-if (selected) { map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); } load();
+if (selected) { map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); } const historyReady = load();
 `;
 
 export function studioHistoryPage(provider: string): string {
@@ -205,7 +213,7 @@ export function studioHistoryPage(provider: string): string {
   <div class="history-scroll"><div id="sessions" aria-busy="true">Loading history…</div><div id="problem-list" hidden></div></div>
   <footer class="rail-footer"><p id="notice" role="status" aria-live="polite"></p><nav class="paging" aria-label="More history"><button id="next" type="button" disabled>Load more</button></nav></footer>
   </aside><div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="Resize history sidebar" aria-orientation="vertical" aria-controls="history-sidebar" tabindex="0"></div><main class="workspace"><header class="run-header"><div class="run-heading"><button id="expand-sidebar" type="button" aria-label="Expand sidebar" aria-controls="history-sidebar" aria-expanded="false" hidden>☰ History</button><div><h1 id="run-title">Select a run</h1><p id="run-meta">Follow your agents and inspect recorded evidence.</p></div></div>
-  <nav class="workspace-tabs" aria-label="Run views"><button data-view="trace" aria-pressed="true">Trace</button><button data-view="overview" aria-pressed="false">Overview</button><button data-view="agents" aria-pressed="false">Agents</button></nav></header>
+  <button id="compare-selected" type="button" disabled>Compare…</button><nav class="workspace-tabs" aria-label="Run views"><button data-view="trace" aria-pressed="true">Trace</button><button data-view="overview" aria-pressed="false">Overview</button><button data-view="agents" aria-pressed="false">Agents</button><button data-view="compare" aria-pressed="false" disabled>Compare</button></nav></header>
   <div class="workspace-body"><section id="investigation" class="investigation" hidden aria-live="polite"></section><agent-think-map id="map" layout="split" replay="false"></agent-think-map></div></main></div>
-  <script type="module" src="/element.js"></script><script>${sidebarClient}${historyClient}${investigationClient}</script></body></html>`;
+  ${diffMarkup}<script type="module" src="/element.js"></script><script>${sidebarClient}${historyClient}${investigationClient}${diffClient}</script></body></html>`;
 }

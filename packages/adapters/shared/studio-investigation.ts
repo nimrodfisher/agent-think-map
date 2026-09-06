@@ -48,10 +48,14 @@ function evidence(step,steps) {
   return card;
 }
 async function showView(view) {
+  if (view === 'compare' && !baseline) { if (selected) openPicker(selected); return; }
+  dismissPicker();
   workspaceView = view; const ticket = ++viewGeneration;
-  map.hidden = view !== 'trace'; investigation.hidden = view === 'trace';
+  map.hidden = view !== 'trace'; investigation.hidden = view === 'trace' || view === 'compare';
+  document.getElementById('comparison').hidden = view !== 'compare';
   for (const tab of document.querySelectorAll('[data-view]')) tab.setAttribute('aria-pressed',String(tab.dataset.view === view));
   if (view === 'trace') return;
+  if (view === 'compare') { if (innerWidth <= 640 && !sidebarCollapsed) collapseSidebar.click(); return; }
   investigation.scrollTop = 0;
   map.removeAttribute('selected-node');
   investigation.replaceChildren(element('p',selected ? 'Loading recorded evidence…' : 'Select a run to inspect its evidence.'));
@@ -95,6 +99,7 @@ function switchHistory(problems) {
   form.hidden = problems; list.hidden = problems; document.querySelector('.paging').hidden = problems; document.getElementById('problem-scope').hidden = !problems; document.getElementById('problem-list').hidden = !problems;
   document.querySelector('.workspace-tabs').hidden = problems;
   if (problems) {
+    invalidateComparison(); document.getElementById('compare-selected').disabled = true;
     ++viewGeneration; map.hidden = true; investigation.hidden = false; investigation.scrollTop = 0;
     document.getElementById('run-title').textContent = 'Recurring problems'; document.getElementById('run-meta').textContent = 'Find repeated errors, inspect evidence, and choose the next check.';
     investigation.replaceChildren(element('h2','Find patterns across runs'),element('p','Select a problem to see affected runs and troubleshooting checks.')); loadProblems();
