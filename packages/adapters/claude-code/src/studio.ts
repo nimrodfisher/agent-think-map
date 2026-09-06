@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import {
   createServer,
   type IncomingMessage,
@@ -13,6 +14,7 @@ export interface ClaudeCodeStudioOptions {
   hub?: ClaudeCodeTraceHub;
   root: string;
   origin?: string;
+  hookToken?: string;
 }
 
 function formatSse(event: AgentTraceEvent): string {
@@ -250,17 +252,36 @@ export function studioPage(): string {
 
 export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server {
   const hub = options.hub ?? new ClaudeCodeTraceHub();
+  const hookToken = options.hookToken ?? randomBytes(32).toString("hex");
+  if (!hookToken) throw new Error("hookToken must not be empty");
   const cdnJs = join(options.root, "dist", "element.cdn.js");
   const css = existsSync(join(options.root, "dist", "styles.css"))
     ? join(options.root, "dist", "styles.css")
     : join(options.root, "packages", "react", "src", "styles.css");
 
-  return createServer(async (req: IncomingMessage, res: ServerResponse) => {
+  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
+
+    // Use the configured/bound address, never the untrusted Host header.
+    const address = server.address();
+    const origin = options.origin ?? `http://127.0.0.1:${address && typeof address !== "string" ? address.port : 80}`;
+    if (req.headers.host !== new URL(origin).host) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("Forbidden host");
+      return;
+    }
+    if (req.headers.origin !== undefined && req.headers.origin !== origin) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("Forbidden origin");
+      return;
+    }
+    if (req.headers.origin === origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+    }
 
     if (req.method === "OPTIONS") {
       res.writeHead(204, {
-        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "content-type",
         "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
       });
@@ -269,6 +290,11 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
     }
 
     if (req.method === "POST" && url.pathname === "/hook") {
+      if (url.searchParams.get("token") !== hookToken) {
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false }));
+        return;
+      }
       try {
         const body = JSON.parse(await readBody(req) || "{}") as unknown;
         const events = hub.ingest(body);
@@ -279,7 +305,6 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
         console.log(`hook ${name} → ${events.length} event(s)`);
         res.writeHead(200, {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
         });
         res.end("{}");
       } catch {
@@ -292,7 +317,7 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
     if (req.method === "DELETE" && url.pathname.startsWith("/sessions/")) {
       const id = decodeURIComponent(url.pathname.slice("/sessions/".length));
       hub.drop(id);
-      res.writeHead(204, { "Access-Control-Allow-Origin": "*" });
+      res.writeHead(204);
       res.end();
       return;
     }
@@ -300,16 +325,15 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
     if (url.pathname === "/sessions") {
       res.writeHead(200, {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
       });
       res.end(JSON.stringify(hub.list()));
       return;
     }
 
     if (url.pathname === "/hooks.json") {
-      const origin = options.origin ?? `http://127.0.0.1`;
+      res.setHeader("Cache-Control", "no-store");
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(claudeCodeHookSettings(`${origin}/hook`), null, 2));
+      res.end(JSON.stringify(claudeCodeHookSettings(`${origin}/hook?token=${encodeURIComponent(hookToken)}`), null, 2));
       return;
     }
 
@@ -324,8 +348,8 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
-        "Access-Control-Allow-Origin": "*",
       });
+      res.flushHeaders();
       const stop = hub.subscribe(session, (event) => {
         res.write(formatSse(event));
       });
@@ -353,4 +377,5 @@ export function createClaudeCodeStudio(options: ClaudeCodeStudioOptions): Server
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(studioPage());
   });
+  return server;
 }

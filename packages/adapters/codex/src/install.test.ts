@@ -23,13 +23,13 @@ describe("codexProjectRoot", () => {
 describe("installCodexHooks", () => {
   it("writes .codex/hooks.json command hooks for the studio URL", () => {
     const cwd = mkdtempSync(join(tmpdir(), "atm-codex-"));
-    const file = installCodexHooks(cwd, "http://127.0.0.1:3335/hook", join(cwd, "cli.mjs"));
+    const file = installCodexHooks(cwd, "http://127.0.0.1:3335/hook?token=install-test", join(cwd, "cli.mjs"));
     const raw = readFileSync(file, "utf8");
     expect(file.replaceAll("\\", "/")).toMatch(/\.codex\/hooks\.json$/);
     expect(raw).toContain("hook-forward");
     expect(raw).toContain("cli.mjs");
     expect(raw).not.toContain("npx agent-think-map");
-    expect(raw).toContain("http://127.0.0.1:3335/hook");
+    expect(raw).toContain("http://127.0.0.1:3335/hook?token=install-test");
     expect(raw).not.toContain('"type": "http"');
   });
 
@@ -45,7 +45,7 @@ describe("installCodexHooks", () => {
         },
       }),
     );
-    const file = installCodexHooks(cwd, "http://127.0.0.1:3335/hook", join(cwd, "cli.mjs"));
+    const file = installCodexHooks(cwd, "http://127.0.0.1:3335/hook?token=install-test", join(cwd, "cli.mjs"));
     const raw = readFileSync(file, "utf8");
     expect(raw).toContain("echo keep-me");
     expect(raw).toContain("hook-forward");
@@ -57,7 +57,7 @@ describe("installCodexHooks", () => {
     const home = mkdtempSync(join(tmpdir(), "atm-codex-home-"));
     const file = installCodexHooks(
       cwd,
-      "http://127.0.0.1:3335/hook",
+      "http://127.0.0.1:3335/hook?token=install-test",
       join(cwd, "cli.mjs"),
       "user",
       home,

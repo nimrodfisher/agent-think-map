@@ -82,17 +82,31 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
   const args = parseArgs(argv);
   const host = "127.0.0.1";
   const origin = `http://${host}:${args.port}`;
-  const hookUrl = `${origin}/hook`;
+  async function activeHookUrl(): Promise<string> {
+    const response = await fetch(`${origin}/hooks.json`, { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) throw new Error("Could not read running Studio hook configuration");
+    const settings = await response.json();
+    const hook = settings.hooks?.UserPromptSubmit?.[0]?.hooks?.[0];
+    const value = hook?.command?.match(/--url (\S+)/)?.[1];
+    if (typeof value !== "string") throw new Error("Running Studio has no hook endpoint");
+    const endpoint = new URL(value);
+    if (endpoint.origin !== origin || endpoint.pathname !== "/hook" || !endpoint.searchParams.get("token")) {
+      throw new Error("Running Studio needs the localhost security update; restart it first");
+    }
+    return value;
+  }
   const cliJs = join(root, "bin", "cli.mjs");
 
   if (args.printHooks) {
+    const hookUrl = await activeHookUrl();
     console.log(JSON.stringify(codexHookSettings(hookForwardCommand(hookUrl, cliJs)), null, 2));
     return;
   }
 
   await ensureCdn();
 
-  if (args.install) {
+  async function installHooks() {
+    const hookUrl = await activeHookUrl();
     const installDir = codexProjectRoot(process.env.ATM_CWD || process.cwd());
     const scope = args.project ? "project" : "user";
     const file = installCodexHooks(installDir, hookUrl, cliJs, scope);
@@ -127,14 +141,19 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
       console.log(`Port ${args.port} is already in use. Studio is probably already at ${origin}`);
       console.log(`Open ${origin} — do not start a second server.`);
       console.log("If the tab still shows ?session=smoke, stop that old process and restart without --smoke.");
-      if (args.install) return;
+      if (args.install) {
+        await installHooks();
+        return;
+      }
     }
     throw error;
   }
 
+  if (args.install) await installHooks();
+
   console.log(HELP);
   console.log(`Studio → ${origin}`);
-  console.log(`Hooks  → POST ${hookUrl}\n`);
+  console.log(`Hooks  → POST ${origin}/hook (token required)\n`);
   if (!args.install) {
     console.log("To install the user-level Codex hooks:\n");
     console.log(`  npx agent-think-map codex --install --port ${args.port}\n`);
