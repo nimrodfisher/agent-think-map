@@ -134,6 +134,18 @@ The map reflects **recorded events**. Reasons, usage, and cost depend on what th
 
 Studio stores versioned events in `~/.agent-think-map/runs.db` using SQLite. Claude and Codex use the shared local storage implementation. History survives restarts; unfinished sessions become interrupted.
 
+Import existing Claude Code history without setting up hooks (available in this source checkout):
+
+```bash
+npx agent-think-map claude --import-history --dry-run
+npx agent-think-map claude --import-history
+# Optional: --history-root /path/to/claude/projects
+```
+
+Use `node /path/to/agent-think-map/bin/cli.mjs` in place of `npx agent-think-map` until this source version is published. The command reads main-session transcripts under `~/.claude/projects`, prints import/skip counts, and exits. Open Studio normally afterward to search, label, and bookmark the imported runs. They show an **Imported** marker and can be selected using **Filters → Origin**. Everything stays local; dry-run simulates against an in-memory snapshot without creating or migrating the history database.
+
+Repeat imports add only new transcript events. Sessions already containing live-captured evidence are skipped. If live capture later continues an imported session, its origin becomes Live and further imports skip it; historical overlap is not reconciled. Separate subagent transcript files are excluded, while Task and sidechain relationships recorded in the main transcript are retained. An assistant finishing a turn does not prove the session ended: without explicit session-end evidence, an imported run is shown as interrupted. This indicates incomplete capture, not a failed outcome.
+
 - **No hosted account required.** The Studio integrations send trace events to the local server.
 - **Search recorded context.** Search covers indexed prompts, labels, models, operations, previews, and errors; it is not a full-text search of every raw payload.
 - **Separate execution from outcome.** A completed run can still need work. Outcome labels are your judgment.

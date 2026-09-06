@@ -25,6 +25,17 @@ function setup(page:()=>string, initial=Array.from({length:21},(_,i)=>run(String
   return {dom,doc,fetcher,buttons,click,setFail:(value:boolean)=>fail=value,rows:()=>rows};
 }
 for(const [provider,page] of [["Claude",claudePage],["Codex",codexPage]] as const) describe(`${provider} shared history client`,()=>{
+  it("shows imported provenance and submits the Origin filter",async()=>{
+    const ui=setup(page,[{...run('imported'),origin:'imported'} as any,run('live')]);
+    await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(2));
+    expect(ui.doc.querySelectorAll('.session-meta')[0].textContent).toContain('Imported');
+    expect(ui.doc.querySelectorAll('.session-meta')[1].textContent).not.toContain('Imported');
+    const select=ui.doc.querySelector('select[name="origin"]') as HTMLSelectElement;
+    expect([...select.options].map(option=>option.textContent)).toEqual(['All','Live','Imported']);
+    select.value='imported'; ui.click('↻');
+    await vi.waitFor(()=>expect(ui.fetcher.mock.calls.at(-1)![0]).toContain('origin=imported'));
+    expect(ui.dom.window.location.search).toContain('origin=imported');
+  });
   it("loads one page, pages forward/back, and sends search and every filter to the API",async()=>{
     const ui=setup(page);expect(ui.doc.getElementById('notice')!.textContent).toContain('Loading');
     await vi.waitFor(()=>expect(ui.doc.querySelectorAll('.session-row')).toHaveLength(20));

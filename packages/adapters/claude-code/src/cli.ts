@@ -8,6 +8,9 @@ import { exec, spawn } from "node:child_process";
 import { ClaudeCodeTraceHub, claudeCodeHookSettings } from "./hub.js";
 import { hasClaudeCodeHooks, installClaudeCodeHooks } from "./install.js";
 import { createClaudeCodeStudio } from "./studio.js";
+import { SqliteRunStore } from "../../../core/src/sqlite-run-store.js";
+import { importLocalHistory } from "../../../core/src/history-import.js";
+import { ClaudeCodeHistoryImporter, defaultClaudeHistoryRoot } from "./import-history.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
@@ -26,6 +29,10 @@ agent-think-map claude — live think-map for Claude Code CLI
   Startup refreshes existing hooks in this project. After restarting Studio,
   restart Claude Code to load the new token. Other projects need --install again.
   Flags: --port 3334   --install   --print-hooks   --smoke   --no-open
+
+  Import existing local sessions without hooks:
+    npx agent-think-map claude --import-history [--history-root <path>] [--dry-run]
+  Live-captured sessions are skipped. Dry-run simulates without writing history.
 `;
 
 function openBrowser(url: string) {
@@ -104,6 +111,23 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
     console.log(HELP);
     return;
   }
+  if (argv.includes("--import-history")) {
+    if (["--install","--print-hooks","--smoke","--doctor","--rollback"].some(flag => argv.includes(flag))) {
+      throw new Error("--import-history cannot be combined with hook or Studio maintenance actions");
+    }
+    const index = argv.indexOf("--history-root");
+    const historyRoot = index < 0 ? defaultClaudeHistoryRoot() : argv[index + 1];
+    if (!historyRoot || historyRoot.startsWith("--")) throw new Error("--history-root requires a path");
+    const dryRun = argv.includes("--dry-run");
+    const store = dryRun ? SqliteRunStore.importPreview() : new SqliteRunStore();
+    try {
+      const report = await importLocalHistory(store, new ClaudeCodeHistoryImporter(), { root: historyRoot });
+      console.log(dryRun ? "History import dry-run (no history written)" : "History import complete");
+      console.log(JSON.stringify(report, null, 2));
+    } finally { await store.close(); }
+    return;
+  }
+  if (argv.includes("--history-root") || argv.includes("--dry-run")) throw new Error("--history-root and --dry-run require --import-history");
   const args = parseArgs(argv);
   const host = "127.0.0.1";
   const origin = `http://${host}:${args.port}`;

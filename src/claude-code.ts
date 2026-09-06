@@ -1,4 +1,5 @@
 export { ClaudeCodeHookAdapter } from "../packages/adapters/claude-code/src/index.js";
+export { ClaudeCodeHistoryImporter, defaultClaudeHistoryRoot } from "../packages/adapters/claude-code/src/import-history.js";
 export {
   ClaudeCodeTraceHub,
   claudeCodeHookSettings,

@@ -9,11 +9,12 @@ const patchSchema = z.object({outcome:z.enum(["worked","failed"]).nullable().opt
 const integer = (s: string) => /^\d+$/.test(s) && Number.isSafeInteger(Number(s));
 export function parseRunQuery(params: URLSearchParams): RunFilter {
   const result: RunFilter = {};
-  const allowed = ["q","provider","model","status","outcome","bookmarked","from","to","cursor","limit"];
+  const allowed = ["q","provider","model","status","outcome","bookmarked","from","to","cursor","limit","origin"];
   for (const [key,value] of params) {
     if (!allowed.includes(key) || params.getAll(key).length !== 1) throw new Error("Unknown or repeated query parameter");
     if (key === "q" || key === "model") result[key] = z.string().max(256).parse(value);
     if (key === "provider") result.provider = providerSchema.parse(value);
+    if (key === "origin") result.origin = z.enum(["live","imported"]).parse(value);
     if (key === "status") result.status = z.enum(["running","completed","failed","interrupted"]).parse(value);
     if (key === "outcome") result.outcome = value === "null" ? null : z.enum(["worked","failed"]).parse(value);
     if (key === "bookmarked") result.bookmarked = z.enum(["true","false"]).parse(value) === "true";

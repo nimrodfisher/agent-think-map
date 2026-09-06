@@ -33,7 +33,7 @@ describe("SQLite lifecycle", () => {
     expect(await store.markInterrupted(2)).toBe(1);expect(await store.getRun("s")).toMatchObject({status:"interrupted"});
     const db=new DatabaseSync(file);
     expect(db.prepare("PRAGMA journal_mode").get()?.journal_mode).toBe("wal");
-    expect(db.prepare("SELECT * FROM schema_migrations").all()).toHaveLength(3);
+    expect(db.prepare("SELECT * FROM schema_migrations").all()).toHaveLength(4);
     expect(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").all()).toHaveLength(7);
     await store.deleteRun("s");expect(db.prepare("SELECT * FROM events").all()).toHaveLength(0);
     db.close();await store.close();

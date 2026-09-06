@@ -1,9 +1,10 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { parseTraceEnvelope, type Provider, type TraceEnvelopeV1 } from "../../protocol/src/index.js";
 import type { AppendDraft, AppendResult, Listener, Page, RetentionPolicy, RunFilter, RunPatch, RunRecord, RunStore, RunSummary, Unsubscribe } from "./run-store.js";
+import { ImportLiveRunError, type RunOrigin } from "./run-store.js";
 import { buildSearchDocument, normalizeSearch } from "./run-search.js";
 import { ANALYZER_VERSION } from "./analysis.js";
 import { compareRuns, type RunDiff } from "./diff.js";
@@ -36,7 +37,7 @@ const summarySelect = `SELECT runs.*, (SELECT count(*) FROM events WHERE run_id=
  (SELECT coalesce(sum(byte_size),0) FROM events WHERE run_id=runs.run_id) AS byte_size FROM runs`;
 function record(row: Row): RunRecord {
   return { runId: row.run_id, provider: row.provider, sessionId: row.session_id, schemaVersion: row.schema_version,
-    prompt: row.prompt, status: row.status, startedAt: row.started_at ?? undefined, endedAt: row.ended_at ?? undefined,
+    prompt: row.prompt, status: row.status, origin: row.origin, startedAt: row.started_at ?? undefined, endedAt: row.ended_at ?? undefined,
     updatedAt: row.updated_at, model: row.model ?? undefined, effort: row.effort ?? undefined,
     usage: row.usage_json ? JSON.parse(row.usage_json) : undefined, outcome: row.outcome,
     bookmarked: Boolean(row.bookmarked), label: row.label ?? undefined, eventCount: row.event_count, byteSize: row.byte_size };
@@ -61,7 +62,7 @@ export class SqliteRunStore implements RunStore {
       this.transaction(() => {
         this.db.exec("CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL)");
         const versions = this.db.prepare("SELECT version FROM schema_migrations ORDER BY version").all();
-        if (versions.some(row => ![1,2,3].includes(Number(row.version)))) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
+        if (versions.some(row => ![1,2,3,4].includes(Number(row.version)))) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
         if (!versions.length) {
           this.db.exec(SCHEMA_V1);
           this.db.prepare("INSERT INTO schema_migrations VALUES(1, ?)").run(Date.now());
@@ -87,8 +88,60 @@ export class SqliteRunStore implements RunStore {
             CREATE UNIQUE INDEX run_diffs_pair ON run_diffs(left_run_id,right_run_id,analyzer_version);`);
           this.db.prepare("INSERT INTO schema_migrations VALUES(3, ?)").run(Date.now());
         }
+        if (!versions.some(row => row.version === 4)) {
+          this.db.exec("ALTER TABLE runs ADD COLUMN origin TEXT NOT NULL DEFAULT 'live' CHECK(origin IN ('live','imported'))");
+          this.db.prepare("INSERT INTO schema_migrations VALUES(4, ?)").run(Date.now());
+        }
       });
     } catch (error) { this.db.close(); throw error; }
+  }
+  /** Read an existing database without migrating it; all simulation writes stay in memory. */
+  static importPreview(path = defaultRunStorePath()): SqliteRunStore {
+    const preview = new SqliteRunStore({ path: ":memory:" });
+    if (!existsSync(path)) return preview;
+    let source: DatabaseSync | undefined;
+    let scratch: string | undefined;
+    try {
+      // Even a read-only SQLite connection creates WAL/SHM files. Open a disposable
+      // filesystem snapshot instead; never open the user's database with SQLite.
+      scratch = mkdtempSync(join(tmpdir(), "atm-import-preview-"));
+      const snapshot = join(scratch, "runs.db");
+      const stamp = (file: string) => {
+        try { const s = statSync(file, { bigint: true }); return [s.ino,s.size,s.mtimeNs,s.ctimeNs].join(":"); }
+        catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined; throw error; }
+      };
+      let stable = false;
+      for (let attempt = 0; attempt < 3 && !stable; attempt++) {
+        if (existsSync(path + "-journal")) throw new Error("History database has a rollback journal; retry dry-run after its writer closes");
+        const before = [stamp(path), stamp(path + "-wal")];
+        try {
+          copyFileSync(path, snapshot); chmodSync(snapshot, 0o600);
+          if (before[1]) { copyFileSync(path + "-wal", snapshot + "-wal"); chmodSync(snapshot + "-wal", 0o600); }
+          else rmSync(snapshot + "-wal", { force: true });
+        } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") continue; throw error; }
+        stable = before[0] === stamp(path) && before[1] === stamp(path + "-wal") && !existsSync(path + "-journal");
+      }
+      if (!stable) throw new Error("History changed while taking the dry-run snapshot; retry when capture is quiet");
+      // SQLite recovers only committed WAL frames in the private copy.
+      source = new DatabaseSync(snapshot);
+      source.exec("PRAGMA busy_timeout=5000; BEGIN");
+      if (source.prepare("PRAGMA quick_check").get()?.quick_check !== "ok") throw new Error("Invalid history snapshot; retry after capture is quiet");
+      const versions = source.prepare("SELECT version FROM schema_migrations").all();
+      if (!versions.length || versions.some(row => ![1,2,3,4].includes(Number(row.version)))) throw new Error("Unsupported runs.db schema");
+      preview.transaction(() => {
+        const columns = ["run_id","provider","session_id","schema_version","prompt","status","started_at","ended_at","updated_at","model","effort","usage_json","outcome","bookmarked","label"];
+        if (versions.some(row => row.version === 4)) columns.push("origin");
+        const insertRun = preview.db.prepare(`INSERT INTO runs(${columns.join(',')}) VALUES(${columns.map(() => '?').join(',')})`);
+        for (const row of source!.prepare("SELECT * FROM runs").iterate()) insertRun.run(...columns.map(column => row[column]));
+        const insertEvent = preview.db.prepare("INSERT INTO events VALUES(?,?,?,?,?,?,?)");
+        for (const row of source!.prepare("SELECT * FROM events ORDER BY run_id,sequence").iterate()) {
+          insertEvent.run(row.run_id,row.sequence,row.event_id,row.timestamp,row.event_type,row.payload_json,row.byte_size);
+        }
+        for (const row of preview.db.prepare("SELECT run_id FROM runs").iterate()) preview.indexRun(String(row.run_id));
+      });
+      return preview;
+    } catch (error) { preview.db.close(); throw error; }
+    finally { source?.close(); if (scratch) rmSync(scratch, { recursive: true, force: true }); }
   }
   private transaction<T>(work: () => T): T {
     this.db.exec("BEGIN IMMEDIATE");
@@ -105,14 +158,16 @@ export class SqliteRunStore implements RunStore {
   private insert(draft: AppendDraft): AppendResult {
     const parsed = parseTraceEnvelope({ ...draft, sequence: 0 }, { provider: draft.provider, sessionId: draft.sessionId });
     const insert = (): AppendResult => {
+      if (draft.origin !== undefined && draft.origin !== "imported") throw new Error("Invalid append origin");
+      const existing = this.db.prepare("SELECT provider,origin FROM runs WHERE run_id=?").get(parsed.sessionId);
+      if (existing && existing.provider !== parsed.provider) throw new Error("Session ID belongs to another provider");
+      if (draft.origin === "imported" && existing?.origin === "live") throw new ImportLiveRunError(parsed.sessionId);
       const prior = this.db.prepare("SELECT run_id, payload_json FROM events WHERE event_id=?").get(parsed.eventId);
       if (prior) {
         const envelope = JSON.parse(String(prior.payload_json)) as TraceEnvelopeV1;
         if (prior.run_id !== parsed.sessionId || envelope.provider !== parsed.provider) throw new Error("eventId already belongs to another run/provider");
         return { envelope, inserted: false };
       }
-      const existing = this.db.prepare("SELECT provider FROM runs WHERE run_id=?").get(parsed.sessionId);
-      if (existing && existing.provider !== parsed.provider) throw new Error("Session ID belongs to another provider");
       if ("runId" in parsed.payload && parsed.payload.runId !== parsed.sessionId) throw new Error("Payload runId must equal sessionId");
       const sequence = Number(this.db.prepare("SELECT coalesce(max(sequence),0)+1 AS seq FROM events WHERE run_id=?").get(parsed.sessionId)!.seq);
       const envelope = { ...parsed, sequence };
@@ -121,8 +176,9 @@ export class SqliteRunStore implements RunStore {
       if (bytes > this.maxEventBytes) throw new Error(`Event exceeds ${this.maxEventBytes} byte limit; shorten the payload`);
       const total = Number(this.db.prepare("SELECT coalesce(sum(byte_size),0) AS size FROM events").get()!.size);
       if (total + bytes > this.maxDbBytes) throw new Error("Run store capacity exceeded; prune unprotected runs or increase maxDbBytes");
-      this.db.prepare("INSERT OR IGNORE INTO runs(run_id,provider,session_id,schema_version,status,updated_at) VALUES(?,?,?,?,?,?)")
-        .run(envelope.sessionId, envelope.provider, envelope.sessionId, 1, "running", envelope.timestamp);
+      this.db.prepare("INSERT OR IGNORE INTO runs(run_id,provider,session_id,schema_version,status,updated_at,origin) VALUES(?,?,?,?,?,?,?)")
+        .run(envelope.sessionId, envelope.provider, envelope.sessionId, 1, "running", envelope.timestamp, draft.origin ?? "live");
+      if (draft.origin === undefined) this.db.prepare("UPDATE runs SET origin='live' WHERE run_id=?").run(envelope.sessionId);
       this.db.prepare("INSERT INTO events VALUES(?,?,?,?,?,?,?)")
         .run(envelope.sessionId, sequence, envelope.eventId, envelope.timestamp, envelope.payload.type, json, bytes);
       const event = envelope.payload;
@@ -152,7 +208,8 @@ export class SqliteRunStore implements RunStore {
     const limit = filter.pageSize ?? filter.limit ?? 100;
     if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new Error("limit must be 1..1000");
     const where: string[] = []; const args: (string | number)[] = [];
-    for (const key of ["provider", "model", "status", "bookmarked", "outcome"] as const) if (filter[key] !== undefined) {
+    if (filter.origin !== undefined && !["live","imported"].includes(filter.origin)) throw new Error("Invalid origin filter");
+    for (const key of ["provider", "model", "status", "bookmarked", "outcome", "origin"] as const) if (filter[key] !== undefined) {
       if (filter[key] === null) where.push(`${key} IS NULL`);
       else { where.push(`${key}=?`); args.push(key === "bookmarked" ? Number(filter[key]) : filter[key] as string); }
     }
@@ -224,9 +281,12 @@ export class SqliteRunStore implements RunStore {
   }
   async setOutcome(id: string, outcome: "worked" | "failed" | null) { await this.patchRun(id,{outcome}); }
   async setBookmark(id: string, bookmark: boolean, label?: string) { await this.patchRun(id,{bookmarked:bookmark,...(label === undefined ? {} : {label})}); }
-  async markInterrupted(before: number, provider?: Provider) {
-    return Number(this.db.prepare("UPDATE runs SET status='interrupted',ended_at=? WHERE status='running' AND updated_at<?" + (provider ? " AND provider=?" : ""))
-      .run(before,before,...(provider ? [provider] : [])).changes);
+  async markInterrupted(before: number, provider?: Provider, runIds?: readonly string[], origin?: RunOrigin) {
+    if (runIds?.length === 0) return 0;
+    // One statement, including the origin guard: a concurrent live append is never interrupted.
+    return Number(this.db.prepare("UPDATE runs SET status='interrupted',ended_at=? WHERE status='running' AND updated_at<?" + (provider ? " AND provider=?" : "")
+      + (runIds ? " AND run_id IN (SELECT value FROM json_each(?))" : "") + (origin ? " AND origin=?" : ""))
+      .run(before,before,...(provider ? [provider] : []),...(runIds ? [JSON.stringify(runIds)] : []),...(origin ? [origin] : [])).changes);
   }
   async deleteRun(id: string) { return Number(this.db.prepare("DELETE FROM runs WHERE run_id=?").run(id).changes) > 0; }
   async prune(policy: RetentionPolicy): Promise<number> {

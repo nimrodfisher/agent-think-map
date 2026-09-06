@@ -1,18 +1,24 @@
 import type { Provider, TraceEnvelopeV1, TraceUsage } from "../../protocol/src/index.js";
 
 export type RunStatus = "running" | "completed" | "failed" | "interrupted";
-export type AppendDraft = Pick<TraceEnvelopeV1, "schemaVersion" | "eventId" | "provider" | "sessionId" | "timestamp" | "payload"> & { sequence?: number; [key: string]: unknown };
+export type RunOrigin = "live" | "imported";
+/** Imported appends must never merge into a run with live evidence. */
+export class ImportLiveRunError extends Error {
+  constructor(readonly runId: string) { super("Import skipped: run already has live evidence"); this.name = "ImportLiveRunError"; }
+}
+export type AppendDraft = Pick<TraceEnvelopeV1, "schemaVersion" | "eventId" | "provider" | "sessionId" | "timestamp" | "payload"> & { sequence?: number; origin?: "imported"; [key: string]: unknown };
 export type AppendResult = { envelope: TraceEnvelopeV1; inserted: boolean };
 export interface RunSummary {
   runId: string; provider: Provider; sessionId: string; schemaVersion: number;
   prompt: string; status: RunStatus; startedAt?: number; endedAt?: number;
   updatedAt: number; model?: string; effort?: string; usage?: TraceUsage;
   outcome: "worked" | "failed" | null; bookmarked: boolean; label?: string;
-  eventCount: number;
+  eventCount: number; origin: RunOrigin;
 }
 export interface RunRecord extends RunSummary { byteSize: number }
 export interface RunFilter {
   q?: string; provider?: Provider; model?: string; status?: RunStatus;
+  origin?: RunOrigin;
   outcome?: "worked" | "failed" | null; bookmarked?: boolean;
   from?: number; to?: number; pageSize?: number;
   limit?: number; cursor?: string;
@@ -40,7 +46,7 @@ export interface RunStore {
   setBookmark(runId: string, bookmark: boolean, label?: string): Promise<void>;
   patchRun(runId: string, patch: RunPatch): Promise<RunRecord | undefined>;
   rebuildSearchIndex(): Promise<void>;
-  markInterrupted(before: number, provider?: Provider): Promise<number>;
+  markInterrupted(before: number, provider?: Provider, runIds?: readonly string[], origin?: RunOrigin): Promise<number>;
   deleteRun(runId: string): Promise<boolean>;
   prune(policy: RetentionPolicy): Promise<number>;
   /** Ordered replay followed by live delivery. Unsubscribe cancels both. */

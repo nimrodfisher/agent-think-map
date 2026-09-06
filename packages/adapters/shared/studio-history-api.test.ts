@@ -12,6 +12,19 @@ import { seedHistory } from "../../core/test/history-fixture.js";
 const listen=async(server:Server)=>{await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));return `http://127.0.0.1:${(server.address() as {port:number}).port}`;};
 const close=async(server:Server)=>{server.closeAllConnections();await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));};
 for(const [provider,Hub,create] of [["codex",CodexTraceHub,createCodexStudio],["claude-code",ClaudeCodeTraceHub,createClaudeCodeStudio]] as const) describe(`${provider} shared history API`,()=>{
+  it("serves and validates imported-origin filters",async()=>{
+    const hub=new Hub({path:":memory:",recover:false});
+    for(const origin of ['live','imported'] as const) await hub.store.append({schemaVersion:1,eventId:origin,sessionId:origin,provider:'claude-code',timestamp:1,payload:{type:'run.started',runId:origin,prompt:'History',ts:1},...(origin==='imported'?{origin}:{})});
+    const server=create({hub:hub as any,root:process.cwd()}),base=await listen(server);
+    try {
+      for(const origin of ['live','imported']) {
+        const page=await (await fetch(base+'/api/runs?origin='+origin)).json();
+        expect(page.items).toHaveLength(1); expect(page.items[0]).toMatchObject({runId:origin,origin});
+      }
+      expect((await fetch(base+'/api/runs?origin=unknown')).status).toBe(400);
+      expect((await fetch(base+'/api/runs?origin=live&origin=imported')).status).toBe(400);
+    }finally{await close(server);await hub.close();}
+  });
   it("finds and labels a good/bad pair in 24 mixed runs across Studio restart",async()=>{
     const dir=mkdtempSync(join(tmpdir(),"atm-history-api-"));const path=join(dir,"runs.db");
     let hub=new Hub({path,recover:false});await seedHistory(hub.store as SqliteRunStore);

@@ -60,7 +60,7 @@ function draw() {
     title.title = run.prompt || run.label || run.runId;
     const meta = document.createElement('span'); meta.className = 'session-meta';
     const status = document.createElement('span'); status.className = 'status-dot status-' + run.status; status.textContent = ({running:'●',completed:'✓',failed:'×',interrupted:'◷'})[run.status] || '○'; status.setAttribute('aria-label',run.status || 'Unknown status');
-    const stamp = document.createElement('span'); stamp.textContent = [run.provider,relativeTime(run.updatedAt),run.bookmarked ? '★' : ''].filter(Boolean).join(' · ');
+    const stamp = document.createElement('span'); stamp.textContent = [run.provider,run.origin === 'imported' ? 'Imported' : '',relativeTime(run.updatedAt),run.bookmarked ? '★' : ''].filter(Boolean).join(' · ');
     meta.append(status,stamp); title.append(meta);
     const menu = document.createElement('details'); menu.className = 'row-menu';
     menu.dataset.run = run.runId; menu.open = openMenus.has(run.runId);
@@ -195,6 +195,7 @@ export function studioHistoryPage(provider: string): string {
   <details class="filters"><summary>Filters</summary><div class="filter-grid">
   <label>Provider<select name="provider"><option value="">All providers</option>${["claude-code","codex","claude-sdk","openai","custom"].map(x=>`<option>${x}</option>`).join("")}</select></label>
   <label>Model (exact)<input name="model" maxlength="256"></label>
+  <label>Origin<select name="origin"><option value="">All</option><option value="live">Live</option><option value="imported">Imported</option></select></label>
   <label>Status<select name="status"><option value="">All statuses</option>${["running","completed","failed","interrupted"].map(x=>`<option>${x}</option>`).join("")}</select></label>
   <label>Outcome<select name="outcome"><option value="">All outcomes</option><option value="worked">Worked</option><option value="failed">Needs work</option><option value="null">Unreviewed</option></select></label>
   <label>Bookmarks<select name="bookmarked"><option value="">All runs</option><option value="true">Bookmarked only</option><option value="false">Not bookmarked</option></select></label>
