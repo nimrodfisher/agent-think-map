@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { codexProjectRoot, installCodexHooks } from "./install.js";
@@ -11,7 +11,8 @@ describe("codexProjectRoot", () => {
     const nested = join(cwd, "src", "nested");
     mkdirSync(nested, { recursive: true });
     execFileSync("git", ["init", "--quiet", cwd]);
-    expect(codexProjectRoot(nested)).toBe(cwd);
+    // Windows temp paths can use an 8.3 alias while Git returns the long path.
+    expect(realpathSync.native(codexProjectRoot(nested))).toBe(realpathSync.native(cwd));
   });
 
   it("keeps non-repository directories unchanged", () => {
