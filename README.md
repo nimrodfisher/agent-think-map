@@ -30,7 +30,7 @@ Run Studio beside Claude Code or Codex, or embed the canvas in your own applicat
 
 ## From “what happened?” to the original evidence
 
-Studio brings live traces, imported history, run comparison, agent handoffs, and recurring problems into one local workspace. The current source checkout is version **0.2.0**.
+Studio brings live traces, imported history, run comparison, agent handoffs, and recurring problems into one local workspace. Version **0.2.1** includes Claude Code history import, evidence-aware comparison, and the corrected Codex live-capture path.
 
 | Start here | What you can do |
 | --- | --- |
@@ -46,7 +46,7 @@ Studio brings live traces, imported history, run comparison, agent handoffs, and
 
 For example: open **Problems**, select a repeated permissions error, inspect its captured input, then open the affected run and follow the agent that made the call. Suggested checks help you investigate; the original trace is there to verify them.
 
-> The redesigned Studio is on `main`. The npm package and hosted canvas demo may lag behind the source. Use the source preview below to try these changes now.
+> Use `npx agent-think-map@latest codex --install` or `npx agent-think-map@latest claude --install` for the latest Studio. The hosted canvas demo is a separate preview of the embeddable viewer.
 
 ## Try the new Studio
 
@@ -136,15 +136,15 @@ The map reflects **recorded events**. Reasons, usage, and cost depend on what th
 
 Studio stores versioned events in `~/.agent-think-map/runs.db` using SQLite. Claude and Codex use the shared local storage implementation. History survives restarts; unfinished sessions become interrupted.
 
-Import existing Claude Code history without setting up hooks (available in this source checkout):
+Import existing Claude Code history without setting up hooks:
 
 ```bash
-node bin/cli.mjs claude --import-history --dry-run
-node bin/cli.mjs claude --import-history
+npx agent-think-map@latest claude --import-history --dry-run
+npx agent-think-map@latest claude --import-history
 # Optional: --history-root /path/to/claude/projects
 ```
 
-Run these commands from the built source checkout, or use an absolute path to `bin/cli.mjs`. The command reads main-session transcripts under `~/.claude/projects`, reports created and updated runs, appended and duplicate events, skipped live sessions, and malformed or unreadable input, then exits without starting Studio or changing hooks. Open Studio normally afterward to search, label, bookmark, and compare imported runs. They show an **Imported** marker and can be selected using **Filters → Origin**. Dry-run simulates ingestion in memory using a temporary snapshot of existing history; it leaves the target database unchanged, including when no database exists.
+For a built source checkout, use an absolute path to `bin/cli.mjs` in place of `npx agent-think-map@latest`. The command reads main-session transcripts under `~/.claude/projects`, reports created and updated runs, appended and duplicate events, skipped live sessions, and malformed or unreadable input, then exits without starting Studio or changing hooks. Open Studio normally afterward to search, label, bookmark, and compare imported runs. They show an **Imported** marker and can be selected using **Filters → Origin**. Dry-run simulates ingestion in memory using a temporary snapshot of existing history; it leaves the target database unchanged, including when no database exists.
 
 Repeat imports add only new transcript events. Sessions already containing live-captured evidence are skipped. If live capture later continues an imported session, its origin becomes Live and further imports skip it; historical overlap is not reconciled. Separate subagent transcript files are excluded, while Task and sidechain relationships recorded in the main transcript are retained. An assistant finishing a turn does not prove the session ended: without explicit session-end evidence, an imported run is shown as interrupted. This indicates incomplete capture, not a failed outcome.
 
@@ -182,8 +182,8 @@ For the analyzer V2 API fields and evidence vocabulary, see the [diff evidence h
 Point `events-url` at your agent's SSE endpoint:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.2/dist/styles.css" />
-<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.1.2/dist/element.cdn.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/agent-think-map@0.2.1/dist/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/agent-think-map@0.2.1/dist/element.cdn.js"></script>
 <agent-think-map events-url="/sse" layout="split"></agent-think-map>
 ```
 
