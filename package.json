@@ -30,23 +30,44 @@
     "agent-think-map": "./bin/cli.mjs"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./react": "./src/react.ts",
-    "./element": "./src/element.ts",
-    "./claude": "./src/claude.ts",
-    "./claude-code": "./src/claude-code.ts",
-    "./openai": "./src/openai.ts",
-    "./codex": "./src/openai.ts",
-    "./styles.css": "./packages/react/src/styles.css"
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js"
+    },
+    "./react": {
+      "types": "./dist/lib/react.d.ts",
+      "import": "./dist/lib/react.js"
+    },
+    "./element": {
+      "types": "./dist/lib/element.d.ts",
+      "import": "./dist/lib/element.js"
+    },
+    "./claude": {
+      "types": "./dist/lib/claude.d.ts",
+      "import": "./dist/lib/claude.js"
+    },
+    "./claude-code": {
+      "types": "./dist/lib/claude-code.d.ts",
+      "import": "./dist/lib/claude-code.js"
+    },
+    "./openai": {
+      "types": "./dist/lib/openai.d.ts",
+      "import": "./dist/lib/openai.js"
+    },
+    "./codex": {
+      "types": "./dist/lib/openai.d.ts",
+      "import": "./dist/lib/openai.js"
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "bin",
     "dist",
     "fixtures",
     "packages",
-    "src",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "tsconfig.base.json"
   ],
   "jsdelivr": "dist/element.cdn.js",
   "unpkg": "dist/element.cdn.js",
@@ -59,9 +80,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "npm run dev -w @agent-think-map/demo",
-    "build": "npm run build:cdn",
+    "build": "npm run build:lib && npm run build:cdn",
     "build:cdn": "vite build --config vite.cdn.ts",
-    "prepublishOnly": "npm test && npm run build:cdn"
+    "prepublishOnly": "npm test && npm run test:package",
+    "build:lib": "tsup",
+    "test:package": "node scripts/test-package.mjs",
+    "prepack": "npm run build"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -91,11 +115,13 @@
     "jsdom": "^26.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.2",
     "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "types": "./dist/lib/index.d.ts"
 }

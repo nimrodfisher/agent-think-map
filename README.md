@@ -368,3 +368,19 @@ Studio. Codex doctor simulates an opted-in session in a temporary home; it does
 not change your consent. This verifies transport, not the real agent's hook
 permissions or consent. Restarting Studio rotates tokens, so reinstall hooks
 before diagnosing the new process. Synthetic doctor sessions remain visible.
+
+### Compiled npm library
+
+The packed package exports built ESM JavaScript and TypeScript declarations.
+Use `import { TraceAdapter } from "agent-think-map"` in plain Node without a
+TypeScript loader. The package is ESM-only: CommonJS `require()` is intentionally
+not exported. The `/element` entry is for browsers and requires DOM APIs. React
+and element styles remain available to Vite consumers; `/styles.css` is also an
+explicit stylesheet export.
+
+`npm run build` builds the library with tsup and the existing CDN bundle with
+Vite. `npm pack` runs that build automatically. `npm run test:package` packs the
+package, installs it outside the monorepo, and checks Node imports, declarations,
+Vite execution and styles, and both CLI install/doctor/rollback flows. The CLI
+still uses its existing vite-node runner. Claude CLI, Codex CLI, and Vite consumers
+already worked on 0.1.2; this maintenance change fixes plain Node library imports.

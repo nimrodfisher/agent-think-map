@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
   dependencies?: Record<string, string>;
-  exports?: Record<string, string>;
+  exports?: Record<string, string | { types: string; import: string }>;
   description?: string;
 };
 const cli = readFileSync(join(root, "bin", "cli.mjs"), "utf8");
@@ -30,7 +30,8 @@ describe("codex CLI entry for npx install", () => {
   });
 
   it("keeps the stream adapter on agent-think-map/codex", () => {
-    expect(pkg.exports?.["./codex"]).toBe("./src/openai.ts");
+    expect(pkg.exports?.["./codex"]).toEqual(pkg.exports?.["./openai"]);
+    expect(pkg.exports?.["./codex"]).toEqual({ types: "./dist/lib/openai.d.ts", import: "./dist/lib/openai.js" });
   });
 });
 
