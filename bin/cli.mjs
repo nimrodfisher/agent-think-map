@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { createServer } from "node:http";
 import { exec } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+// Vite must receive canonical paths: Windows temp/npx installs may use 8.3 aliases.
+const root = realpathSync.native(join(dirname(fileURLToPath(import.meta.url)), ".."));
 const cdnJs = join(root, "dist", "element.cdn.js");
 const css = existsSync(join(root, "dist", "styles.css"))
   ? join(root, "dist", "styles.css")
@@ -53,7 +54,7 @@ if (arg === "help" || arg === "--help" || arg === "-h") {
 }
 
 if (arg === "claude" || arg === "claude-code") {
-  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
+  const viteNode = realpathSync.native(fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs")));
   const script = join(root, "packages", "adapters", "claude-code", "src", "cli.ts");
   const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
     cwd: root,
@@ -64,7 +65,7 @@ if (arg === "claude" || arg === "claude-code") {
   process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (arg === "codex") {
-  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
+  const viteNode = realpathSync.native(fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs")));
   const script = join(root, "packages", "adapters", "codex", "src", "cli.ts");
   const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
     cwd: root,
@@ -75,7 +76,7 @@ if (arg === "claude" || arg === "claude-code") {
   process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (arg === "hook-forward") {
-  const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
+  const viteNode = realpathSync.native(fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs")));
   const script = join(root, "packages", "adapters", "codex", "src", "forward-cli.ts");
   const child = spawn(process.execPath, [viteNode, script, ...process.argv.slice(3)], {
     cwd: root,

@@ -12,6 +12,8 @@ import { createServer } from "node:net";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const npmCli = process.env.npm_execpath;
 assert(npmCli, "Run this test with npm run test:package");
+// Keep the supplied temp spelling (including Windows 8.3 aliases) to exercise
+// the installed CLI's path handling, rather than hiding it in the test harness.
 const room = mkdtempSync(join(tmpdir(), "atm-package-"));
 const home = join(room, "home"); mkdirSync(home);
 const env = { ...process.env, HOME: home, USERPROFILE: home, NODE_PATH: "", NODE_OPTIONS: "" };
