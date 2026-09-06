@@ -450,3 +450,7 @@ describe("chronologicalNumbers", () => {
     expect([...numbers.values()]).toEqual([1, 2, 1, 2]);
   });
 });
+it('retains captured semantic identity through reduction',()=>{
+ const state=reduceTraceAll([{type:'run.started',runId:'r',prompt:'x',ts:1},{type:'node.started',id:'n',kind:'tool',title:'Short',operation:{name:'read',providerName:'Read'},ts:2}]);
+ expect(state.nodes[1].operation).toEqual({name:'read',providerName:'Read'});
+});

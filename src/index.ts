@@ -31,3 +31,5 @@ export type { TraceAdapterOptions, TraceSource } from "../packages/adapters/auto
 
 export { parseTraceEnvelope, providerSchema } from "../packages/protocol/src/index.js";
 export type { Provider, TraceEnvelopeV1, TraceEnvelopeContext } from "../packages/protocol/src/index.js";
+export { operationFromName, operationSchema } from "../packages/protocol/src/index.js";
+export type { CanonicalOperation } from "../packages/protocol/src/index.js";

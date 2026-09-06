@@ -41,6 +41,31 @@ export function apiError(res: ServerResponse, status: number, code: string, mess
 export async function routeStudioApi(req: IncomingMessage, res: ServerResponse, url: URL, hub: TraceHub): Promise<boolean> {
   const legacy = url.pathname === "/sessions" || url.pathname.startsWith("/sessions/");
   if (!legacy && !url.pathname.startsWith("/api/")) return false;
+  if (url.pathname === "/api/diffs" || url.pathname.startsWith("/api/diffs/")) {
+    let pair: {badRunId:string;goodRunId:string} | undefined; let diffId: string | undefined;
+    try {
+      if ([...url.searchParams].length) throw new Error("Unexpected query");
+      if (url.pathname === "/api/diffs") {
+        if (req.method !== "POST") { apiError(res,405,"method_not_allowed","Use POST"); return true; }
+        if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] ?? "")) { apiError(res,415,"unsupported_media_type","Use application/json"); return true; }
+        const chunks: Buffer[] = []; let size = 0;
+        for await (const chunk of req) { size += Buffer.byteLength(chunk); if (size > 4096) throw new Error("Body too large"); chunks.push(Buffer.from(chunk)); }
+        pair = z.object({badRunId:idSchema,goodRunId:idSchema}).strict().refine(p=>p.badRunId!==p.goodRunId).parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } else {
+        if (req.method !== "GET") { apiError(res,405,"method_not_allowed","Use GET"); return true; }
+        diffId = z.string().regex(/^[a-f0-9]{64}$/).parse(url.pathname.slice("/api/diffs/".length));
+      }
+    } catch { apiError(res,400,"invalid_request","Choose two distinct valid run IDs or a valid diff ID"); return true; }
+    try {
+      const result = pair ? await hub.compareRuns(pair.badRunId,pair.goodRunId) : await hub.getDiff(diffId!);
+      if (!result) apiError(res,404,"not_found","Run or current comparison not found; compare again to rebuild");
+      else apiJson(res,200,result);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("alignment cells")) apiError(res,422,"comparison_too_large","A turn exceeds the comparison limit; split into smaller turns");
+      else apiError(res,500,"store_error","Comparison request failed");
+    }
+    return true;
+  }
   let id: string | undefined;
   let events = false;
   let filter: RunFilter | undefined;

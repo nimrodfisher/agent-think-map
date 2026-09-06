@@ -1,3 +1,4 @@
+import { diffClient, diffMarkup } from "./studio-diff.js";
 /** One client for both providers. Only the current API page is retained in memory. */
 export const historyClient = String.raw`
 const list = document.getElementById('sessions');
@@ -11,7 +12,7 @@ let selected = new URLSearchParams(location.search).get('session');
 let baseline = new URLSearchParams(location.search).get('baseline');
 let items = [], cursor, nextCursor, stack = [], generation = 0, busy = false, loading = false;
 function showBaseline() {
-  baselineText.textContent = baseline ? 'Baseline selected: ' + baseline + '. Saved in this page URL for later comparison.' : 'No baseline selected. Mark a successful run Worked, then choose it as baseline.';
+  baselineText.textContent = baseline ? 'Baseline selected: ' + baseline + '. Ready for comparison; labels are revalidated on compare.' : 'No baseline selected. Mark a successful run Worked, then choose it as baseline.';
   document.getElementById('clear-baseline').disabled = !baseline;
 }
 function saveUrl() {
@@ -22,6 +23,7 @@ function saveUrl() {
 }
 function selectRun(id) {
   selected = id;
+  if (typeof closeComparison === 'function') closeComparison();
   map.setAttribute('events-url','/sse?session=' + encodeURIComponent(id));
   saveUrl();
 }
@@ -62,7 +64,8 @@ function draw() {
     label.value = run.label || ''; label.setAttribute('aria-label','Short label for ' + (run.prompt || run.runId)); label.dataset.focus = run.runId + ':label';
     label.disabled = busy; actions.append(label);
     add('Save label',() => mutate(run,{label:label.value.trim() || null}));
-    add('Choose baseline',() => { baseline = run.runId; saveUrl(); }).disabled = busy || run.outcome !== 'worked';
+    add('Choose baseline',() => { baseline = run.runId; closeComparison(); saveUrl(); }).disabled = busy || run.outcome !== 'worked';
+    add('Compare with Worked',() => { selectRun(run.runId); openPicker(run.runId); }).disabled = busy || run.outcome !== 'failed';
     add('Delete run',() => { if (confirm('Delete this run and its trace permanently?')) mutate(run,null); });
     row.append(actions); list.append(row);
   }
@@ -96,6 +99,7 @@ async function load() {
 }
 async function mutate(run, patch) {
   if (busy || loading) return;
+  closeComparison();
   const active = document.activeElement;
   const focusKey = active && active.dataset.focus;
   busy = true; ++generation;
@@ -125,8 +129,8 @@ let searchTimer;
 document.getElementById('filter-query').addEventListener('input',() => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { if (!busy) { cursor = undefined; stack = []; load(); } },250); });
 next.addEventListener('click',async () => { if (busy || loading || !nextCursor) return; const old = cursor; stack.push(cursor); cursor = nextCursor; const ticket = generation + 1; if (!await load() && ticket === generation) { cursor = old; stack.pop(); previous.disabled = !stack.length; next.disabled = !nextCursor; } });
 previous.addEventListener('click',async () => { if (busy || loading || !stack.length) return; const old = cursor; cursor = stack.pop(); const ticket = generation + 1; if (!await load() && ticket === generation) { stack.push(cursor); cursor = old; previous.disabled = !stack.length; next.disabled = !nextCursor; } });
-document.getElementById('clear-baseline').addEventListener('click',() => { baseline = null; saveUrl(); });
-showBaseline(); if (selected) selectRun(selected); load();
+document.getElementById('clear-baseline').addEventListener('click',() => { baseline = null; closeComparison(); saveUrl(); });
+showBaseline(); if (selected) { map.setAttribute('events-url','/sse?session=' + encodeURIComponent(selected)); } load();
 `;
 
 export function studioHistoryPage(provider: string): string {
@@ -144,7 +148,7 @@ export function studioHistoryPage(provider: string): string {
   agent-think-map {display:flex;flex-direction:column;min-width:0;min-height:0;height:100%}
   </style></head><body><div class="studio"><aside class="rail">
   <h1>Run history</h1><p>${provider} Studio · Local traces from all providers.</p>
-  <p>Find a run → mark Worked or Failed → choose a Worked baseline. Outcomes are your judgment. Comparison is coming later.</p>
+  <p>Mark the run that worked. Find the first meaningful divergence in the run that failed. Everything stays local.</p>
   <form id="history-filters">
   <label>Search history<input id="filter-query" name="q" type="search" maxlength="256" placeholder="Prompt, tool, model, answer, error"></label>
   <details><summary>Filters: provider, model, status, outcome, date</summary><div class="filter-grid">
@@ -156,8 +160,9 @@ export function studioHistoryPage(provider: string): string {
   <label>Updated from<input name="from" type="date"></label><label>Updated through<input name="to" type="date"></label>
   </div></details><button type="submit">Search / refresh</button></form>
   <p id="baseline"></p><button id="clear-baseline" type="button">Clear baseline</button>
+  <button id="compare-selected" type="button">Compare selected runs</button>${diffMarkup}
   <p id="notice" role="status" aria-live="polite"></p>
   <nav aria-label="History pages"><button id="previous" type="button" disabled>Previous</button> <button id="next" type="button" disabled>Next</button></nav><div id="sessions" aria-busy="true">Loading history…</div>
-  </aside><agent-think-map id="map" layout="split" replay="false"></agent-think-map></div>
-  <script type="module" src="/element.js"></script><script>${historyClient}</script></body></html>`;
+  </aside><section id="comparison" hidden aria-label="Run comparison"></section><agent-think-map id="map" layout="split" replay="false"></agent-think-map></div>
+  <script type="module" src="/element.js"></script><script>${historyClient}${diffClient}</script></body></html>`;
 }

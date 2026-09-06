@@ -1,3 +1,4 @@
+import { operationFromName } from "../../../protocol/src/index.js";
 import type { AgentTraceEvent, NodeKind, TraceUsage } from "../../../protocol/src/index.js";
 import {
   classifyToolName,
@@ -258,6 +259,7 @@ export class CodexHookAdapter {
         type: "node.started",
         id,
         kind: classified.kind,
+        operation: operationFromName(name),
         title,
         parentId,
         reason,

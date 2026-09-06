@@ -30,11 +30,22 @@ export const runStartedSchema = z.object({
   ts: z.number(),
 });
 
+export const operationSchema = z.object({ name: z.string().min(1), server: z.string().optional(), providerName: z.string().optional() });
+export type CanonicalOperation = z.infer<typeof operationSchema>;
+
+/** Capture from the provider name, never from a summarized display title. */
+export function operationFromName(providerName: string): CanonicalOperation {
+  const mcp = providerName.match(/^mcp__(.+?)__(.+)$/i);
+  return mcp ? {name: `${mcp[1].toLowerCase()}.${mcp[2].toLowerCase()}`, server: mcp[1].toLowerCase(), providerName}
+    : {name: providerName.toLowerCase(), providerName};
+}
+
 export const nodeStartedSchema = z.object({
   type: z.literal("node.started"),
   id: z.string(),
   kind: nodeKindSchema,
   title: z.string(),
+  operation: operationSchema.optional(),
   parentId: z.string().optional(),
   reason: z.string().optional(),
   ts: z.number(),

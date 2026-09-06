@@ -129,3 +129,8 @@ describe('versioned envelopes', () => {
     expect(()=>parseTraceEnvelope({...raw,payload:{type:'invalid'}},context)).toThrow();
   });
 });
+it('captures optional operation and remains compatible with old producer events',()=>{
+ const old={type:'node.started',id:'n',kind:'tool',title:'Short display',ts:1};
+ expect(parseAgentTraceEvent(old)).not.toHaveProperty('operation');
+ expect(parseAgentTraceEvent({...old,operation:{name:'github.create_issue',server:'github',providerName:'raw'}})).toHaveProperty('operation.name','github.create_issue');
+});

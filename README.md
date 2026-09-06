@@ -392,3 +392,11 @@ Studio requires Node 22.13 or newer and stores versioned events in `~/.agent-thi
 Studio history now helps you **find a run, label what worked or failed, and choose a successful baseline**. Search prompt text, tool names, models, answer/output previews and errors. Expand Filters to combine provider, exact model, status, outcome, bookmarks and updated dates. History loads 20 runs per page; Search / refresh reloads the list while the selected trace continues streaming.
 
 Mark **Worked** or **Failed** using your own judgment, add a short label, and bookmark useful runs. **Choose baseline** is enabled for Worked runs and saves the run reference in the page URL. This prepares a good/bad pair for later comparison; it does not compare traces, diagnose failures or orchestrate agents. Outcomes are separate from execution status. [Brief 2 verification](docs/brief-2-verification.md) documents the shared API, migration, acceptance checks and limits.
+
+## Compare Worked and Failed runs (provisional)
+
+Mark the run that worked. Find the first meaningful divergence in the run that failed. Everything stays local.
+
+In Studio, label the outcomes, choose **Compare with Worked** on a Failed run, search for a Worked baseline, then select **First divergence**. The split route view links selection and scrolling and shows normalized input, outcome class, confidence and original step evidence. Comparisons preserve the selected sides and warn if outcome labels are absent or disagree.
+
+Fingerprint V1 is provisional. The 24 checked-in synthetic structural pairs test implementation; they are not real developer pairs or human-reviewed evidence. Real-pair usefulness and release acceptance remain pending. Follow the [blind human review workflow](docs/brief-3-human-review.md). No diagnosis, replay or orchestration claim is made by this feature.

@@ -31,6 +31,8 @@ export class TraceHub {
   async listRuns(filter: RunFilter = {}) { await this.tail; await this.ready; return this.store.listRuns(filter); }
   patchRun(id: string, patch: RunPatch) { return this.serial(() => this.store.patchRun(id,patch)); }
   rebuildSearchIndex() { return this.serial(() => this.store.rebuildSearchIndex()); }
+  compareRuns(bad: string, good: string) { return this.serial(() => { if (!this.store.compareRuns) throw new Error("Store does not support comparisons"); return this.store.compareRuns(bad,good); }); }
+  getDiff(id: string) { return this.serial(() => { if (!this.store.getDiff) throw new Error("Store does not support comparisons"); return this.store.getDiff(id); }); }
   async list(): Promise<SessionSummary[]> {
     await this.tail; await this.ready;
     const { items } = await this.store.listRuns({ provider: this.provider, limit: 1000 });

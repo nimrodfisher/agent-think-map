@@ -116,3 +116,11 @@ describe("CodexHookAdapter", () => {
     );
   });
 });
+
+it('captures canonical operation before display formatting',()=>{
+ const adapter=new CodexHookAdapter({now:()=>1});
+ for(const name of ['Read','Bash','mcp__github__create_issue']) {
+ const events=adapter.ingest({session_id:'identity',hook_event_name:'PreToolUse',tool_use_id:name,tool_name:name,tool_input:{path:'file.ts'}});
+ expect(events.find(e=>e.type==='node.started' && e.id===name)).toMatchObject({operation:{name:name==='Read'?'read':name==='Bash'?'bash':'github.create_issue',providerName:name}});
+ }
+});

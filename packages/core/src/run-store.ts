@@ -26,6 +26,9 @@ export interface RetentionPolicy {
 export type Listener = (envelope: TraceEnvelopeV1) => void;
 export type Unsubscribe = () => void;
 export interface RunStore {
+  /** Optional derived comparison support; durable Studio defaults implement it. */
+  compareRuns?(badRunId: string, goodRunId: string, analyzerVersion?: number): Promise<import("./diff.js").RunDiff | undefined>;
+  getDiff?(diffId: string, analyzerVersion?: number): Promise<import("./diff.js").RunDiff | undefined>;
   append(event: AppendDraft): Promise<AppendResult>;
   /** Optional atomic delivery group used by hook adapters. */
   appendBatch?(events: AppendDraft[]): Promise<AppendResult[]>;

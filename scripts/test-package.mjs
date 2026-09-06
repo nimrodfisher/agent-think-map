@@ -43,7 +43,8 @@ try {
     import assert from 'node:assert/strict';
     import { createRequire } from 'node:module';
     import { githubIssueFixture, reduceTraceAll, TraceAdapter } from 'agent-think-map';
-    import { SqliteRunStore } from 'agent-think-map/storage';
+    import { SqliteRunStore, compareRuns } from 'agent-think-map/storage';
+    assert.equal(compareRuns('bad','good',[],[]).provisional, true);
     const store = new SqliteRunStore();
     await store.append({schemaVersion:1,eventId:'package-driver',provider:'custom',sessionId:'package-driver',timestamp:1,payload:{type:'run.started',runId:'package-driver',prompt:'Windows SQLite',ts:1}});
     await store.close();
@@ -121,7 +122,7 @@ try {
     let db = new DatabaseSync(dbPath);
     const priorEvents = db.prepare('SELECT sequence,payload_json FROM events WHERE run_id=? ORDER BY sequence').all(session.id);
     assert(priorEvents.length > 0); assert.equal(db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal');
-    assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").get().n, 5);
+    assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").get().n, 7);
     db.close();
     // Abruptly terminate only this isolated CLI tree, then launch from its installed package.
     if (process.platform === 'win32') execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], {windowsHide:true,stdio:'ignore'});

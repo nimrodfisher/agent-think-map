@@ -5,6 +5,8 @@ import { homedir } from "node:os";
 import { parseTraceEnvelope, type Provider, type TraceEnvelopeV1 } from "../../protocol/src/index.js";
 import type { AppendDraft, AppendResult, Listener, Page, RetentionPolicy, RunFilter, RunPatch, RunRecord, RunStore, RunSummary, Unsubscribe } from "./run-store.js";
 import { buildSearchDocument, normalizeSearch } from "./run-search.js";
+import { ANALYZER_VERSION } from "./analysis.js";
+import { compareRuns, type RunDiff } from "./diff.js";
 
 export const DEFAULT_MAX_EVENT_BYTES = 1024 * 1024;
 export const DEFAULT_MAX_DB_BYTES = 512 * 1024 * 1024;
@@ -54,11 +56,11 @@ export class SqliteRunStore implements RunStore {
     this.db = new DatabaseSync(path);
     try {
       this.db.exec("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_size_limit=4194304;");
-      this.db.exec(`PRAGMA max_page_count=${Math.max(16, Math.floor(this.maxDbBytes / 4096))}`);
+      this.db.exec(`PRAGMA max_page_count=${Math.max(24, Math.floor(this.maxDbBytes / 4096))}`);
       this.transaction(() => {
         this.db.exec("CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL)");
         const versions = this.db.prepare("SELECT version FROM schema_migrations ORDER BY version").all();
-        if (versions.some(row => row.version !== 1 && row.version !== 2)) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
+        if (versions.some(row => ![1,2,3].includes(Number(row.version)))) throw new Error("Unsupported runs.db schema; upgrade agent-think-map before opening it");
         if (!versions.length) {
           this.db.exec(SCHEMA_V1);
           this.db.prepare("INSERT INTO schema_migrations VALUES(1, ?)").run(Date.now());
@@ -68,6 +70,21 @@ export class SqliteRunStore implements RunStore {
             CREATE INDEX runs_history_cursor ON runs(updated_at DESC,run_id ASC);`);
           for (const row of this.db.prepare("SELECT run_id FROM runs").iterate()) this.indexRun(String(row.run_id));
           this.db.prepare("INSERT INTO schema_migrations VALUES(2, ?)").run(Date.now());
+        }
+        if (!versions.some(row => row.version === 3)) {
+          this.db.exec(`CREATE TABLE run_steps(
+            run_id TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, analyzer_version INTEGER NOT NULL,
+            ordinal INTEGER NOT NULL, node_id TEXT NOT NULL, parent_ordinal INTEGER, kind TEXT NOT NULL,
+            operation TEXT NOT NULL, input_shape_json TEXT NOT NULL, fingerprint TEXT NOT NULL, status TEXT NOT NULL,
+            duration_ms INTEGER, cost_usd REAL, output_class TEXT, turn_ordinal INTEGER NOT NULL, fingerprint_version INTEGER NOT NULL,
+            PRIMARY KEY(run_id,analyzer_version,ordinal));
+            CREATE INDEX run_steps_fingerprint ON run_steps(analyzer_version,fingerprint);
+            CREATE TABLE run_diffs(diff_id TEXT PRIMARY KEY,
+            left_run_id TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
+            right_run_id TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
+            analyzer_version INTEGER NOT NULL, created_at INTEGER NOT NULL, result_json TEXT NOT NULL);
+            CREATE UNIQUE INDEX run_diffs_pair ON run_diffs(left_run_id,right_run_id,analyzer_version);`);
+          this.db.prepare("INSERT INTO schema_migrations VALUES(3, ?)").run(Date.now());
         }
       });
     } catch (error) { this.db.close(); throw error; }
@@ -108,6 +125,7 @@ export class SqliteRunStore implements RunStore {
       this.db.prepare("INSERT INTO events VALUES(?,?,?,?,?,?,?)")
         .run(envelope.sessionId, sequence, envelope.eventId, envelope.timestamp, envelope.payload.type, json, bytes);
       const event = envelope.payload;
+      this.invalidateDerived(envelope.sessionId);
       this.db.prepare("UPDATE runs SET updated_at=max(updated_at,?) WHERE run_id=?").run(envelope.timestamp, envelope.sessionId);
       if (event.type !== "run.meta" && event.type !== "run.completed") this.db.prepare("UPDATE runs SET status='running',ended_at=NULL WHERE run_id=?").run(envelope.sessionId);
       if (event.type === "run.started") this.db.prepare("UPDATE runs SET prompt=?, status='running', started_at=coalesce(started_at,?), ended_at=NULL WHERE run_id=?").run(event.prompt, event.ts, envelope.sessionId);
@@ -177,13 +195,14 @@ export class SqliteRunStore implements RunStore {
   }
   async patchRun(id: string, patch: RunPatch) {
     this.transaction(() => {
+      this.invalidateDerived(id);
       if (patch.outcome !== undefined) this.db.prepare("UPDATE runs SET outcome=? WHERE run_id=?").run(patch.outcome,id);
       if (patch.bookmarked !== undefined) this.db.prepare("UPDATE runs SET bookmarked=? WHERE run_id=?").run(Number(patch.bookmarked),id);
       if (patch.label !== undefined) { this.db.prepare("UPDATE runs SET label=? WHERE run_id=?").run(patch.label,id); this.indexRun(id); }
     });
     return this.getRun(id);
   }
-  async setOutcome(id: string, outcome: "worked" | "failed" | null) { this.db.prepare("UPDATE runs SET outcome=? WHERE run_id=?").run(outcome,id); }
+  async setOutcome(id: string, outcome: "worked" | "failed" | null) { await this.patchRun(id,{outcome}); }
   async setBookmark(id: string, bookmark: boolean, label?: string) { await this.patchRun(id,{bookmarked:bookmark,...(label === undefined ? {} : {label})}); }
   async markInterrupted(before: number, provider?: Provider) {
     return Number(this.db.prepare("UPDATE runs SET status='interrupted',ended_at=? WHERE status='running' AND updated_at<?" + (provider ? " AND provider=?" : ""))
@@ -222,6 +241,45 @@ export class SqliteRunStore implements RunStore {
     const timer = setInterval(pump,100); timer.unref();
     const stop = () => { stopped = true; clearInterval(timer); set.delete(pump); if (!set.size) this.listeners.delete(id); };
     pump(); return stop;
+  }
+  private invalidateDerived(id: string) {
+    this.db.prepare("DELETE FROM run_steps WHERE run_id=?").run(id);
+    this.db.prepare("DELETE FROM run_diffs WHERE left_run_id=? OR right_run_id=?").run(id,id);
+  }
+  private invalidateVersion(version: number) {
+    if (!Number.isSafeInteger(version) || version < 1) throw new Error("Invalid analyzer version");
+    this.db.prepare("DELETE FROM run_steps WHERE analyzer_version<>?").run(version);
+    this.db.prepare("DELETE FROM run_diffs WHERE analyzer_version<>?").run(version);
+  }
+  async compareRuns(badRunId: string, goodRunId: string, version = ANALYZER_VERSION): Promise<RunDiff | undefined> {
+    if (badRunId === goodRunId) throw new Error("Choose two different runs");
+    // Snapshot read, calculation and derived writes share one transaction: no stale
+    // result can be persisted over an append from another SQLite connection.
+    return this.transaction(() => {
+      this.invalidateVersion(version);
+      const bad = this.db.prepare("SELECT outcome FROM runs WHERE run_id=?").get(badRunId);
+      const good = this.db.prepare("SELECT outcome FROM runs WHERE run_id=?").get(goodRunId);
+      if (!bad || !good) return undefined;
+      const cached = this.db.prepare("SELECT result_json FROM run_diffs WHERE left_run_id=? AND right_run_id=? AND analyzer_version=?").get(badRunId,goodRunId,version);
+      if (cached) return JSON.parse(String(cached.result_json));
+      const result = compareRuns(badRunId,goodRunId,this.read(badRunId,0).map(e=>e.payload),this.read(goodRunId,0).map(e=>e.payload),version);
+      result.createdAt = Date.now();
+      if (bad.outcome !== "failed" || good.outcome !== "worked") result.warnings.push("Selected sides are not explicitly labeled Failed and Worked. Sides were kept as requested.");
+      for (const [id,analysis] of [[badRunId,result.bad],[goodRunId,result.good]] as const) {
+        this.db.prepare("DELETE FROM run_steps WHERE run_id=?").run(id);
+        const insert = this.db.prepare("INSERT INTO run_steps VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        for (const s of analysis.steps) insert.run(id,version,s.ordinal,s.nodeId,s.parentOrdinal ?? null,s.kind,JSON.stringify(s.operation),JSON.stringify(s.inputShape),s.fingerprint,s.status,s.durationMs ?? null,s.costUsd ?? null,s.outputClass ?? null,s.turnOrdinal,s.fingerprintVersion);
+      }
+      this.db.prepare("INSERT INTO run_diffs VALUES(?,?,?,?,?,?)").run(result.diffId,badRunId,goodRunId,version,result.createdAt,JSON.stringify(result));
+      return result;
+    });
+  }
+  async getDiff(id: string, version = ANALYZER_VERSION): Promise<RunDiff | undefined> {
+    return this.transaction(() => {
+      const old = this.db.prepare("SELECT left_run_id,right_run_id,analyzer_version,result_json FROM run_diffs WHERE diff_id=?").get(id);
+      this.invalidateVersion(version);
+      return old?.analyzer_version === version ? JSON.parse(String(old.result_json)) : undefined;
+    });
   }
   async close() {
     if (this.closed) return;

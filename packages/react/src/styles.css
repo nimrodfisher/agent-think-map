@@ -986,3 +986,16 @@
     bottom: 0.7rem;
   }
 }
+/* Local comparison: parallel routes and inspectable sequence evidence. */
+[hidden] { display: none !important; }
+#comparison { min-width:0; min-height:0; display:flex; flex-direction:column; background:#f6f0e4; }
+.diff-toolbar {padding:12px;border-bottom:1px solid #a99b86}.diff-toolbar h2{font-size:1.1rem;margin:8px 0}
+.diff-body {display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1fr);min-height:0;flex:1}
+.diff-pane,.change-rail {overflow:auto;padding:10px;min-width:0}.diff-pane h3{overflow-wrap:anywhere;font-size:1rem}
+.change-rail {display:flex;flex-direction:column;gap:6px}.change-rail button{flex-shrink:0;text-align:left}
+.diff-step {padding:12px;margin-bottom:10px;border:2px solid #a99b86;min-height:250px;overflow-wrap:anywhere}
+.diff-step pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto;font-size:.8rem}
+.diff-matched {border-color:#668276}.diff-changed{border-color:#9a6500}.diff-inserted{border-color:#326799}.diff-missing{border-style:dashed;border-color:#a44949}.diff-reordered{border-color:#805c9e}
+.diff-selected {outline:3px solid #174f42;background:#e6efe9;outline-offset:-3px}
+#baseline-picker {padding:10px;border:2px solid #547666}#baseline-choices{display:grid;gap:6px;margin:10px 0}#baseline-choices button{text-align:left;overflow-wrap:anywhere}
+.diff-pane h3 {position:sticky;top:-10px;background:#f6f0e4;padding:10px 0;margin-top:0;z-index:1;border-bottom:1px solid #a99b86}

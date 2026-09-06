@@ -193,6 +193,8 @@ describe("OpenAITraceAdapter", () => {
     const state = reduceTraceAll(events);
     expect(state.nodes.find((n) => n.kind === "thinking")?.text).toBe("This is a layout bug.");
     expect(state.nodes.find((n) => n.kind === "tool")?.title).toBe("cat");
+    expect(state.nodes.find((n) => n.kind === "tool")?.operation).toEqual({name:"shell",providerName:"commandExecution"});
+    expect(state.nodes.find((n) => n.kind === "mcp")?.operation).toEqual({name:"github.create_issue",server:"github",providerName:"create_issue"});
     expect(state.nodes.find((n) => n.kind === "mcp")?.title).toBe("github / create_issue");
     expect(state.usage).toEqual({
       inputTokens: 410,
@@ -226,4 +228,9 @@ describe("OpenAITraceAdapter", () => {
       /sk-ant-secret123/,
     );
   });
+});
+it('retains OpenAI function identity independently of display',()=>{
+ const adapter=new OpenAITraceAdapter({runId:'identity',prompt:'test',now:()=>1});
+ const events=adapter.ingest({type:'run_item_stream_event',name:'tool_called',item:{type:'tool_call_item',raw_item:{type:'function_call',call_id:'x',name:'mcp__github__create_issue',arguments:'{}'}}});
+ expect(events.find(e=>e.type==='node.started' && e.id==='x')).toMatchObject({operation:{name:'github.create_issue',server:'github',providerName:'mcp__github__create_issue'}});
 });

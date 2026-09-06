@@ -1,0 +1,2586 @@
+[
+  {
+    "id": "claude-code-volatile-paths",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/alice/project/a.ts",
+          "id": "abc",
+          "timestamp": 4
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "C:\\Users\\bob\\other\\b.ts",
+          "id": "xyz",
+          "timestamp": 900
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched"
+      ],
+      "firstDivergence": null
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-volatile-paths-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-volatile-paths-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-volatile-paths-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-volatile-paths-good-0",
+        "partial": "{\"file_path\":\"/home/alice/project/a.ts\",\"id\":\"abc\",\"timestamp\":4}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-volatile-paths-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-volatile-paths-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-volatile-paths-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-volatile-paths-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-volatile-paths-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-volatile-paths-bad-0",
+        "partial": "{\"file_path\":\"C:\\\\Users\\\\bob\\\\other\\\\b.ts\",\"id\":\"xyz\",\"timestamp\":900}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-volatile-paths-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-volatile-paths-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-extension",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/tmp/x.py"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-extension-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-extension-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-extension-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-extension-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-extension-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-extension-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-extension-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-extension-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-extension-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-extension-bad-0",
+        "partial": "{\"file_path\":\"/tmp/x.py\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-extension-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-extension-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-shell-verb",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "cat /tmp/a.txt"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "rm /tmp/b.txt"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-shell-verb-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-shell-verb-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-shell-verb-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-shell-verb-good-0",
+        "partial": "{\"command\":\"cat /tmp/a.txt\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-shell-verb-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-shell-verb-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-shell-verb-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-shell-verb-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-shell-verb-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-shell-verb-bad-0",
+        "partial": "{\"command\":\"rm /tmp/b.txt\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-shell-verb-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-shell-verb-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-shell-subcommand",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "git status"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "git reset"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-shell-subcommand-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-shell-subcommand-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-shell-subcommand-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-shell-subcommand-good-0",
+        "partial": "{\"command\":\"git status\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-shell-subcommand-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-shell-subcommand-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-shell-subcommand-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-shell-subcommand-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-shell-subcommand-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-shell-subcommand-bad-0",
+        "partial": "{\"command\":\"git reset\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-shell-subcommand-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-shell-subcommand-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-http-method",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "http",
+        "input": {
+          "method": "GET",
+          "url": "https://example.org/a"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "http",
+        "input": {
+          "method": "POST",
+          "url": "https://example.org/b"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-http-method-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-http-method-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-http-method-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-http-method-good-0",
+        "partial": "{\"method\":\"GET\",\"url\":\"https://example.org/a\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-http-method-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-http-method-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-http-method-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-http-method-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-http-method-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-http-method-bad-0",
+        "partial": "{\"method\":\"POST\",\"url\":\"https://example.org/b\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-http-method-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-http-method-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-url-host",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "http",
+        "input": {
+          "url": "https://example.org:321/a?token=foo"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "http",
+        "input": {
+          "url": "https://example.net:987/b?token=bar"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-url-host-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-url-host-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-url-host-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-url-host-good-0",
+        "partial": "{\"url\":\"https://example.org:321/a?token=foo\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-url-host-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-url-host-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-url-host-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-url-host-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-url-host-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-url-host-bad-0",
+        "partial": "{\"url\":\"https://example.net:987/b?token=bar\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-url-host-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-url-host-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-sql-operation",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM widgets WHERE id=1"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "DELETE FROM widgets WHERE id=9"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-sql-operation-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-sql-operation-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-sql-operation-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-sql-operation-good-0",
+        "partial": "{\"query\":\"SELECT * FROM widgets WHERE id=1\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-sql-operation-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-sql-operation-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-sql-operation-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-sql-operation-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-sql-operation-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-sql-operation-bad-0",
+        "partial": "{\"query\":\"DELETE FROM widgets WHERE id=9\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-sql-operation-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-sql-operation-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-sql-table",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM widgets"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM users"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-sql-table-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-sql-table-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-sql-table-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-sql-table-good-0",
+        "partial": "{\"query\":\"SELECT * FROM widgets\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-sql-table-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-sql-table-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-sql-table-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-sql-table-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-sql-table-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-sql-table-bad-0",
+        "partial": "{\"query\":\"SELECT * FROM users\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-sql-table-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-sql-table-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-insert",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      },
+      {
+        "name": "bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched",
+        "inserted"
+      ],
+      "firstDivergence": 2
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-insert-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-insert-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-insert-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-insert-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-insert-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-insert-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-insert-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-insert-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-insert-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-insert-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-insert-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-insert-bad-1",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-insert-bad",
+        "ts": 4
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-insert-bad-1",
+        "partial": "{\"command\":\"npm test\"}",
+        "ts": 4
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-insert-bad-1",
+        "outputPreview": "ok",
+        "ts": 5
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-insert-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-missing",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      },
+      {
+        "name": "bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched",
+        "missing"
+      ],
+      "firstDivergence": 2
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-missing-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-missing-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-missing-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-missing-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-missing-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-missing-good-1",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-missing-good",
+        "ts": 4
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-missing-good-1",
+        "partial": "{\"command\":\"npm test\"}",
+        "ts": 4
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-missing-good-1",
+        "outputPreview": "ok",
+        "ts": 5
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-missing-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-missing-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-missing-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-missing-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-missing-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-missing-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-missing-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-nested-shape",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "options": {
+            "recursive": true
+          },
+          "ids": [
+            1,
+            2
+          ]
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "options": {
+            "recursive": true,
+            "filter": "x"
+          },
+          "ids": [
+            4,
+            5
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-nested-shape-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-nested-shape-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-nested-shape-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-nested-shape-good-0",
+        "partial": "{\"options\":{\"recursive\":true},\"ids\":[1,2]}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-nested-shape-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-nested-shape-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-nested-shape-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-nested-shape-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-nested-shape-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-nested-shape-bad-0",
+        "partial": "{\"options\":{\"recursive\":true,\"filter\":\"x\"},\"ids\":[4,5]}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-nested-shape-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-nested-shape-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "claude-code-error-outcome",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "claude-code",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        },
+        "failed": true
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-error-outcome-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-error-outcome-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-error-outcome-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-error-outcome-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "claude-code-error-outcome-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-error-outcome-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "claude-code-error-outcome-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "claude-code-error-outcome-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-claude-code-error-outcome-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "claude-code-error-outcome-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.failed",
+        "id": "claude-code-error-outcome-bad-0",
+        "error": "Synthetic failure",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "claude-code-error-outcome-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-volatile-paths",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/alice/project/a.ts",
+          "id": "abc",
+          "timestamp": 4
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "C:\\Users\\bob\\other\\b.ts",
+          "id": "xyz",
+          "timestamp": 900
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched"
+      ],
+      "firstDivergence": null
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-volatile-paths-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-volatile-paths-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-volatile-paths-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-volatile-paths-good-0",
+        "partial": "{\"file_path\":\"/home/alice/project/a.ts\",\"id\":\"abc\",\"timestamp\":4}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-volatile-paths-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-volatile-paths-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-volatile-paths-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-volatile-paths-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-volatile-paths-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-volatile-paths-bad-0",
+        "partial": "{\"file_path\":\"C:\\\\Users\\\\bob\\\\other\\\\b.ts\",\"id\":\"xyz\",\"timestamp\":900}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-volatile-paths-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-volatile-paths-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-extension",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/tmp/x.py"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-extension-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-extension-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-extension-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-extension-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-extension-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-extension-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-extension-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-extension-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-extension-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-extension-bad-0",
+        "partial": "{\"file_path\":\"/tmp/x.py\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-extension-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-extension-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-shell-verb",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "cat /tmp/a.txt"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "rm /tmp/b.txt"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-shell-verb-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-shell-verb-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-shell-verb-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-shell-verb-good-0",
+        "partial": "{\"command\":\"cat /tmp/a.txt\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-shell-verb-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-shell-verb-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-shell-verb-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-shell-verb-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-shell-verb-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-shell-verb-bad-0",
+        "partial": "{\"command\":\"rm /tmp/b.txt\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-shell-verb-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-shell-verb-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-shell-subcommand",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "git status"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "bash",
+        "input": {
+          "command": "git reset"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-shell-subcommand-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-shell-subcommand-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-shell-subcommand-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-shell-subcommand-good-0",
+        "partial": "{\"command\":\"git status\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-shell-subcommand-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-shell-subcommand-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-shell-subcommand-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-shell-subcommand-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-shell-subcommand-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-shell-subcommand-bad-0",
+        "partial": "{\"command\":\"git reset\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-shell-subcommand-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-shell-subcommand-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-http-method",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "http",
+        "input": {
+          "method": "GET",
+          "url": "https://example.org/a"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "http",
+        "input": {
+          "method": "POST",
+          "url": "https://example.org/b"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-http-method-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-http-method-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-http-method-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-http-method-good-0",
+        "partial": "{\"method\":\"GET\",\"url\":\"https://example.org/a\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-http-method-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-http-method-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-http-method-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-http-method-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-http-method-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-http-method-bad-0",
+        "partial": "{\"method\":\"POST\",\"url\":\"https://example.org/b\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-http-method-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-http-method-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-url-host",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "http",
+        "input": {
+          "url": "https://example.org:321/a?token=foo"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "http",
+        "input": {
+          "url": "https://example.net:987/b?token=bar"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-url-host-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-url-host-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-url-host-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-url-host-good-0",
+        "partial": "{\"url\":\"https://example.org:321/a?token=foo\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-url-host-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-url-host-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-url-host-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-url-host-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "http"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-url-host-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-url-host-bad-0",
+        "partial": "{\"url\":\"https://example.net:987/b?token=bar\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-url-host-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-url-host-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-sql-operation",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM widgets WHERE id=1"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "DELETE FROM widgets WHERE id=9"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-sql-operation-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-sql-operation-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-sql-operation-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-sql-operation-good-0",
+        "partial": "{\"query\":\"SELECT * FROM widgets WHERE id=1\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-sql-operation-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-sql-operation-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-sql-operation-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-sql-operation-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-sql-operation-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-sql-operation-bad-0",
+        "partial": "{\"query\":\"DELETE FROM widgets WHERE id=9\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-sql-operation-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-sql-operation-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-sql-table",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM widgets"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "sql",
+        "input": {
+          "query": "SELECT * FROM users"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-sql-table-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-sql-table-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-sql-table-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-sql-table-good-0",
+        "partial": "{\"query\":\"SELECT * FROM widgets\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-sql-table-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-sql-table-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-sql-table-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-sql-table-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "sql"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-sql-table-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-sql-table-bad-0",
+        "partial": "{\"query\":\"SELECT * FROM users\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-sql-table-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-sql-table-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-insert",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      },
+      {
+        "name": "bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched",
+        "inserted"
+      ],
+      "firstDivergence": 2
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-insert-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-insert-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-insert-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-insert-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-insert-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-insert-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-insert-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-insert-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-insert-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-insert-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-insert-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "node.started",
+        "id": "codex-insert-bad-1",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-insert-bad",
+        "ts": 4
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-insert-bad-1",
+        "partial": "{\"command\":\"npm test\"}",
+        "ts": 4
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-insert-bad-1",
+        "outputPreview": "ok",
+        "ts": 5
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-insert-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-missing",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      },
+      {
+        "name": "bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "matched",
+        "missing"
+      ],
+      "firstDivergence": 2
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-missing-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-missing-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-missing-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-missing-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-missing-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "node.started",
+        "id": "codex-missing-good-1",
+        "kind": "tool",
+        "operation": {
+          "name": "bash"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-missing-good",
+        "ts": 4
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-missing-good-1",
+        "partial": "{\"command\":\"npm test\"}",
+        "ts": 4
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-missing-good-1",
+        "outputPreview": "ok",
+        "ts": 5
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-missing-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-missing-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-missing-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-missing-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-missing-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-missing-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-missing-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-nested-shape",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "options": {
+            "recursive": true
+          },
+          "ids": [
+            1,
+            2
+          ]
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "options": {
+            "recursive": true,
+            "filter": "x"
+          },
+          "ids": [
+            4,
+            5
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-nested-shape-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-nested-shape-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-nested-shape-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-nested-shape-good-0",
+        "partial": "{\"options\":{\"recursive\":true},\"ids\":[1,2]}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-nested-shape-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-nested-shape-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-nested-shape-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-nested-shape-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-nested-shape-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-nested-shape-bad-0",
+        "partial": "{\"options\":{\"recursive\":true,\"filter\":\"x\"},\"ids\":[4,5]}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-nested-shape-bad-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-nested-shape-bad",
+        "ts": 100
+      }
+    ]
+  },
+  {
+    "id": "codex-error-outcome",
+    "provenance": "synthetic_structural",
+    "humanReviewed": false,
+    "provider": "codex",
+    "good": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "name": "read",
+        "input": {
+          "file_path": "/home/example/project/file.ts"
+        },
+        "failed": true
+      }
+    ],
+    "expected": {
+      "classes": [
+        "matched",
+        "changed"
+      ],
+      "firstDivergence": 1
+    },
+    "goodTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-error-outcome-good",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-error-outcome-good-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-error-outcome-good",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-error-outcome-good-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.completed",
+        "id": "codex-error-outcome-good-0",
+        "outputPreview": "ok",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-error-outcome-good",
+        "ts": 100
+      }
+    ],
+    "badTrace": [
+      {
+        "type": "run.started",
+        "runId": "codex-error-outcome-bad",
+        "prompt": "Synthetic task",
+        "ts": 1
+      },
+      {
+        "type": "node.started",
+        "id": "codex-error-outcome-bad-0",
+        "kind": "tool",
+        "operation": {
+          "name": "read"
+        },
+        "title": "Display only",
+        "parentId": "user-codex-error-outcome-bad",
+        "ts": 3
+      },
+      {
+        "type": "tool.input",
+        "id": "codex-error-outcome-bad-0",
+        "partial": "{\"file_path\":\"/home/example/project/file.ts\"}",
+        "ts": 3
+      },
+      {
+        "type": "node.failed",
+        "id": "codex-error-outcome-bad-0",
+        "error": "Synthetic failure",
+        "ts": 4
+      },
+      {
+        "type": "run.completed",
+        "runId": "codex-error-outcome-bad",
+        "ts": 100
+      }
+    ]
+  }
+]

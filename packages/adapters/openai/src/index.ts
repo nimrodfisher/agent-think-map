@@ -1,3 +1,4 @@
+import { operationFromName } from "../../../protocol/src/index.js";
 import type { AgentTraceEvent, NodeKind, TraceUsage } from "../../../protocol/src/index.js";
 import {
   classifyToolName,
@@ -342,7 +343,7 @@ export class OpenAITraceAdapter {
       server && (normalizeType(raw.type).includes("mcp") || origin?.type === "mcp")
         ? `mcp__${server}__${toolName}`
         : toolName;
-    return this.startClassifiedTool(id, classifiedName, toolArguments(item));
+    return this.startClassifiedTool(id, classifiedName, toolArguments(item), classifiedName, toolName);
   }
 
   private emitCodexItem(
@@ -355,11 +356,11 @@ export class OpenAITraceAdapter {
     if (itemType.includes("mcp")) {
       const server = asString(item.server) ?? asString(nestedItem(item).server) ?? "mcp";
       const tool = asString(item.tool) ?? asString(item.name) ?? "tool";
-      events.push(...this.startClassifiedTool(id, `mcp__${server}__${tool}`, toolArguments(item)));
+      events.push(...this.startClassifiedTool(id, `mcp__${server}__${tool}`, toolArguments(item), `mcp__${server}__${tool}`, tool));
     } else {
       const command = asString(item.command) ?? asString(nestedItem(item).command) ?? "";
       const title = command.split(/\s+/)[0] || "command";
-      events.push(...this.startClassifiedTool(id, title, command ? JSON.stringify({ command }) : toolArguments(item)));
+      events.push(...this.startClassifiedTool(id, title, command ? JSON.stringify({ command }) : toolArguments(item), "shell", asString(item.type) ?? "shell"));
     }
     if (completed) {
       const output = asString(item.output) ?? preview(item.result ?? item.content);
@@ -374,7 +375,7 @@ export class OpenAITraceAdapter {
     return events;
   }
 
-  private startClassifiedTool(id: string, name: string, input: string): AgentTraceEvent[] {
+  private startClassifiedTool(id: string, name: string, input: string, operationName = name, providerName = operationName): AgentTraceEvent[] {
     if (this.startedIds.has(id)) return [];
     this.startedIds.add(id);
     const classified = classifyToolName(name);
@@ -396,6 +397,7 @@ export class OpenAITraceAdapter {
         type: "node.started",
         id,
         kind: classified.kind,
+        operation: {...operationFromName(operationName), providerName},
         title,
         parentId,
         reason,

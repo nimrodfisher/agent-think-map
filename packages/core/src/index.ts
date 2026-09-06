@@ -8,6 +8,7 @@ export type NodeStatus = "running" | "completed" | "failed";
 export type RunStatus = "idle" | "running" | "completed" | "failed";
 
 export interface TraceNode {
+  operation?: import("../../protocol/src/index.js").CanonicalOperation;
   id: string;
   kind: NodeKind;
   title: string;
@@ -107,6 +108,7 @@ export function reduceTrace(
         id: event.id,
         kind: event.kind,
         title: event.title,
+        operation: event.operation,
         parentId,
         reason: event.reason,
         text: "",
