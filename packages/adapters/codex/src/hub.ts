@@ -1,3 +1,5 @@
+import { TraceHub, ingestHook, type TraceHubOptions } from "../../../core/src/trace-hub.js";
+export type { SessionSummary } from "../../../core/src/trace-hub.js";
 import type { AgentTraceEvent, TraceUsage } from "../../../protocol/src/index.js";
 import { CodexHookAdapter } from "./index.js";
 
@@ -28,32 +30,6 @@ export interface HookMatcherGroup {
 
 export interface CodexHookSettings {
   hooks: Record<string, HookMatcherGroup[]>;
-}
-
-export interface SessionSummary {
-  id: string;
-  prompt: string;
-  live: boolean;
-  updatedAt: number;
-  eventCount: number;
-  model?: string;
-  effort?: string;
-  usage?: TraceUsage;
-}
-
-type Listener = (event: AgentTraceEvent) => void;
-
-interface SessionRecord {
-  id: string;
-  prompt: string;
-  live: boolean;
-  updatedAt: number;
-  events: AgentTraceEvent[];
-  adapter: CodexHookAdapter;
-  listeners: Set<Listener>;
-  model?: string;
-  effort?: string;
-  usage?: TraceUsage;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -132,130 +108,14 @@ export function mergeCodexHookSettings(
   return { hooks };
 }
 
-export class CodexTraceHub {
-  private readonly sessions = new Map<string, SessionRecord>();
-  private readonly pending = new Map<string, Set<Listener>>();
-
-  constructor(private readonly options: { now?: () => number } = {}) {}
-
-  ingest(hook: unknown): AgentTraceEvent[] {
-    const msg = asRecord(hook);
-    const sessionId =
-      (typeof msg?.session_id === "string" && msg.session_id) || "session";
-    const session = this.ensure(sessionId);
-    const events = session.adapter.ingest(hook);
-    for (const event of events) {
-      session.events.push(event);
-      session.updatedAt = event.ts;
-      if (event.type === "run.started") session.prompt = event.prompt;
-      if (event.type === "run.completed") session.live = false;
-      if (event.type === "run.meta") {
-        if (event.model) session.model = event.model;
-        if (event.effort) session.effort = event.effort;
-        if (event.usage) session.usage = event.usage;
-      }
-      for (const listener of session.listeners) listener(event);
-    }
-    return events;
+export class CodexTraceHub extends TraceHub {
+  private readonly adapters = new Map<string, CodexHookAdapter>();
+  constructor(private readonly adapterOptions: TraceHubOptions & { readTranscript?: (path: string) => string | undefined } = {}) {
+    super('codex', adapterOptions);
   }
-
-  drop(sessionId: string): boolean {
-    return this.sessions.delete(sessionId);
+  ingest(hook: unknown): Promise<AgentTraceEvent[]> {
+    return this.serial(() => ingestHook(this, hook, this.adapters, () => new CodexHookAdapter(this.adapterOptions)));
   }
-
-  list(): SessionSummary[] {
-    return [...this.sessions.values()].map((session) => ({
-      id: session.id,
-      prompt: session.prompt,
-      live: session.live,
-      updatedAt: session.updatedAt,
-      eventCount: session.events.length,
-      model: session.model,
-      effort: session.effort,
-      usage: session.usage,
-    }));
-  }
-
-  updateUsage(sessionId: string, usage: TraceUsage): boolean {
-    const session = this.sessions.get(sessionId);
-    if (!session) return false;
-    const fields: Array<keyof TraceUsage> = [
-      "inputTokens",
-      "outputTokens",
-      "cacheReadTokens",
-      "cacheCreationTokens",
-      "costUsd",
-    ];
-    if (fields.every((field) => session.usage?.[field] === usage[field])) return false;
-    session.usage = usage;
-    const event: AgentTraceEvent = {
-      type: "run.meta",
-      runId: session.id,
-      usage,
-      ts: this.options.now?.() ?? Date.now(),
-    };
-    session.events.push(event);
-    session.updatedAt = event.ts;
-    for (const listener of session.listeners) listener(event);
-    return true;
-  }
-
-  updateMetadata(sessionId: string, metadata: { model?: string; effort?: string }): boolean {
-    const session = this.sessions.get(sessionId);
-    if (!session) return false;
-    const model = metadata.model ?? session.model;
-    const effort = metadata.effort ?? session.effort;
-    if (model === session.model && effort === session.effort) return false;
-    session.model = model;
-    session.effort = effort;
-    const event: AgentTraceEvent = {
-      type: "run.meta",
-      runId: session.id,
-      model,
-      effort,
-      usage: session.usage,
-      ts: this.options.now?.() ?? Date.now(),
-    };
-    session.events.push(event);
-    session.updatedAt = event.ts;
-    for (const listener of session.listeners) listener(event);
-    return true;
-  }
-
-  subscribe(sessionId: string, listener: Listener): () => void {
-    const session = this.sessions.get(sessionId);
-    if (session) {
-      for (const event of session.events) listener(event);
-      session.listeners.add(listener);
-      return () => {
-        session.listeners.delete(listener);
-      };
-    }
-    let waiters = this.pending.get(sessionId);
-    if (!waiters) {
-      waiters = new Set();
-      this.pending.set(sessionId, waiters);
-    }
-    waiters.add(listener);
-    return () => {
-      waiters?.delete(listener);
-    };
-  }
-
-  private ensure(sessionId: string): SessionRecord {
-    const existing = this.sessions.get(sessionId);
-    if (existing) return existing;
-    const session: SessionRecord = {
-      id: sessionId,
-      prompt: "",
-      live: true,
-      updatedAt: this.options.now?.() ?? Date.now(),
-      events: [],
-      adapter: new CodexHookAdapter({ now: this.options.now }),
-      listeners: this.pending.get(sessionId) ?? new Set(),
-    };
-    this.pending.delete(sessionId);
-    this.sessions.set(sessionId, session);
-    return session;
-  }
+  override async drop(id: string) { const deleted = await super.drop(id); this.adapters.delete(id); return deleted; }
+  override async close() { await super.close(); this.adapters.clear(); }
 }

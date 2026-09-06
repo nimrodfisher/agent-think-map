@@ -4,8 +4,8 @@ import { createCodexStudio, studioPage } from "./studio.js";
 import { CodexTraceHub } from "./hub.js";
 import { SMOKE } from "./smoke.js";
 
-async function listen(hub = new CodexTraceHub({ now: () => 1 })) {
-  const server = createCodexStudio({
+async function listen(hub = new CodexTraceHub({ path: ":memory:", now: () => 1 })) {
+  const server = createCodexStudio({ dbPath: ":memory:",
     hub,
     root: process.cwd(),
     hookToken: "test-token",
@@ -51,8 +51,8 @@ describe("createCodexStudio", () => {
   });
 
   it("lists the smoke session after ingest", async () => {
-    const hub = new CodexTraceHub({ now: () => 2 });
-    for (const hook of SMOKE) hub.ingest(hook);
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 2 });
+    for (const hook of SMOKE) await hub.ingest(hook);
     const started = await listen(hub);
     server = started.server;
     const sessions = await (await fetch(`${started.url}/sessions`, { headers: { Origin: started.url } })).json();
@@ -66,8 +66,8 @@ describe("createCodexStudio", () => {
   });
 
   it("replays protocol events on the session SSE stream", async () => {
-    const hub = new CodexTraceHub({ now: () => 2 });
-    hub.ingest({
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 2 });
+    await hub.ingest({
       session_id: "cli-1",
       hook_event_name: "UserPromptSubmit",
       prompt: "Read README",
@@ -100,8 +100,8 @@ describe("createCodexStudio", () => {
   });
 
   it("removes a session from the list", async () => {
-    const hub = new CodexTraceHub({ now: () => 3 });
-    hub.ingest({
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 3 });
+    await hub.ingest({
       session_id: "cli-1",
       hook_event_name: "UserPromptSubmit",
       prompt: "Read README",
@@ -114,7 +114,7 @@ describe("createCodexStudio", () => {
   });
 
   it("rejects missing and wrong tokens before parsing or ingestion", async () => {
-    const hub = new CodexTraceHub();
+    const hub = new CodexTraceHub({ path: ":memory:" });
     const ingest = vi.spyOn(hub, "ingest");
     const started = await listen(hub);
     server = started.server;
@@ -126,7 +126,7 @@ describe("createCodexStudio", () => {
   });
 
   it("rejects foreign origins before reads, subscriptions, deletions, and preflights", async () => {
-    const hub = new CodexTraceHub();
+    const hub = new CodexTraceHub({ path: ":memory:" });
     const ingest = vi.spyOn(hub, "ingest");
     const list = vi.spyOn(hub, "list");
     const subscribe = vi.spyOn(hub, "subscribe");
@@ -178,7 +178,7 @@ describe("createCodexStudio", () => {
   it("generates distinct random tokens accepted by their own servers", async () => {
     const tokens = [];
     for (let i = 0; i < 2; i++) {
-      server = createCodexStudio({ root: process.cwd() });
+      server = createCodexStudio({ dbPath: ":memory:", root: process.cwd() });
       await new Promise<void>((resolve) => server!.listen(0, "127.0.0.1", resolve));
       const address = server.address();
       if (!address || typeof address === "string") throw new Error("no port");
@@ -197,7 +197,7 @@ describe("createCodexStudio", () => {
 });
 
 describe("studioPage", () => {
-  it("hosts the split viewer for Codex", () => {
+  it("hosts the split viewer for Codex", async () => {
     const html = studioPage();
     expect(html).toContain('layout="split"');
     expect(html).toContain('replay="false"');

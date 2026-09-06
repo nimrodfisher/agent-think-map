@@ -58,7 +58,11 @@
       "types": "./dist/lib/openai.d.ts",
       "import": "./dist/lib/openai.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./storage": {
+      "types": "./dist/lib/storage.d.ts",
+      "import": "./dist/lib/storage.js"
+    }
   },
   "files": [
     "bin",
@@ -121,7 +125,7 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
   },
   "types": "./dist/lib/index.d.ts"
 }

@@ -28,3 +28,6 @@ export type {
 } from "../packages/core/src/index.js";
 export { TraceAdapter, detectTraceSource } from "../packages/adapters/auto/src/index.js";
 export type { TraceAdapterOptions, TraceSource } from "../packages/adapters/auto/src/index.js";
+
+export { parseTraceEnvelope, providerSchema } from "../packages/protocol/src/index.js";
+export type { Provider, TraceEnvelopeV1, TraceEnvelopeContext } from "../packages/protocol/src/index.js";

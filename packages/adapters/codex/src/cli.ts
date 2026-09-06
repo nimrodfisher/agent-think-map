@@ -135,11 +135,7 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
     );
   }
 
-  const hub = new CodexTraceHub();
-  if (args.smoke) {
-    console.log("Demo session `smoke` loaded. Omit --smoke to follow a live Codex run.\n");
-    for (const hook of SMOKE) hub.ingest(hook);
-  }
+  const hub = new CodexTraceHub({ recover: false });
 
   const server = createCodexStudio({ hub, root, origin });
   try {
@@ -148,6 +144,7 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
       server.listen(args.port, host, resolve);
     });
   } catch (error) {
+    await hub.close();
     const busy =
       error &&
       typeof error === "object" &&
@@ -164,6 +161,16 @@ export async function startCodexStudio(argv = studioArgv(process.argv)): Promise
     }
     throw error;
   }
+
+  await hub.recover();
+  if (args.smoke) {
+    console.log("Demo session `smoke` loaded. Omit --smoke to follow a live Codex run.\n");
+    for (const hook of SMOKE) await hub.ingest(hook);
+  }
+
+  const shutdown = () => { server.close(); server.closeAllConnections(); void hub.close().then(() => process.exit(0)); };
+  process.once("SIGINT", shutdown);
+  process.once("SIGTERM", shutdown);
 
   if (args.install) await installHooks();
 

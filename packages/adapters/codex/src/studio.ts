@@ -7,7 +7,7 @@ import {
 } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AgentTraceEvent } from "../../../protocol/src/index.js";
+import type { TraceEnvelopeV1 } from "../../../protocol/src/index.js";
 import { CodexTraceHub, codexHookSettings, hookForwardCommand } from "./hub.js";
 import { codexSessionUsage } from "./session-usage.js";
 import { codexSessionMetadata } from "./session-metadata.js";
@@ -17,18 +17,19 @@ export interface CodexStudioOptions {
   root: string;
   origin?: string;
   hookToken?: string;
+  dbPath?: string;
 }
 
-function formatSse(event: AgentTraceEvent): string {
-  return `data: ${JSON.stringify(event)}\n\n`;
+function formatSse(event: TraceEnvelopeV1): string {
+  return `id: ${event.sequence}\ndata: ${JSON.stringify(event.payload)}\n\n`;
 }
 
-function refreshSessionMetadata(hub: CodexTraceHub): void {
-  for (const session of hub.list()) {
+async function refreshSessionMetadata(hub: CodexTraceHub): Promise<void> {
+  for (const session of await hub.list()) {
     const usage = codexSessionUsage(session.id);
-    if (usage) hub.updateUsage(session.id, usage);
+    if (usage) await hub.updateUsage(session.id, usage);
     const metadata = codexSessionMetadata(session.id);
-    if (metadata) hub.updateMetadata(session.id, metadata);
+    if (metadata) await hub.updateMetadata(session.id, metadata);
   }
 }
 
@@ -40,7 +41,10 @@ function mime(path: string): string {
 
 async function readBody(req: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
+    size += Buffer.byteLength(chunk);
+    if (size > 1024 * 1024) throw new Error("Hook body exceeds 1 MiB limit");
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks).toString("utf8");
@@ -297,7 +301,7 @@ export function studioPage(): string {
 }
 
 export function createCodexStudio(options: CodexStudioOptions): Server {
-  const hub = options.hub ?? new CodexTraceHub();
+  const hub = options.hub ?? new CodexTraceHub({ path: options.dbPath });
   const hookToken = options.hookToken ?? randomBytes(32).toString("hex");
   if (!hookToken) throw new Error("hookToken must not be empty");
   const cdnJs = join(options.root, "dist", "element.cdn.js");
@@ -343,7 +347,7 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
       }
       try {
         const body = JSON.parse(await readBody(req) || "{}") as unknown;
-        const events = hub.ingest(body);
+        const events = await hub.ingest(body);
         const name =
           body && typeof body === "object" && "hook_event_name" in body
             ? String((body as { hook_event_name?: unknown }).hook_event_name)
@@ -353,27 +357,27 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
           "Content-Type": "application/json",
         });
         res.end("{}");
-      } catch {
+      } catch (error) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: false }));
+        res.end(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Invalid hook" }));
       }
       return;
     }
 
     if (req.method === "DELETE" && url.pathname.startsWith("/sessions/")) {
       const id = decodeURIComponent(url.pathname.slice("/sessions/".length));
-      hub.drop(id);
+      await hub.drop(id);
       res.writeHead(204);
       res.end();
       return;
     }
 
     if (url.pathname === "/sessions") {
-      refreshSessionMetadata(hub);
+      await refreshSessionMetadata(hub);
       res.writeHead(200, {
         "Content-Type": "application/json",
       });
-      res.end(JSON.stringify(hub.list()));
+      res.end(JSON.stringify(await hub.list()));
       return;
     }
 
@@ -395,13 +399,17 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
         res.end("session query required");
         return;
       }
+      const cursor = Number(req.headers["last-event-id"] ?? url.searchParams.get("after") ?? 0);
+      if (!Number.isSafeInteger(cursor) || cursor < 0) { res.writeHead(400); res.end("Invalid SSE cursor"); return; }
+      await hub.ready;
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       });
       res.flushHeaders();
-      const stop = hub.subscribe(session, (event) => {
+      const stop = hub.subscribeEnvelopes(session, cursor, (event) => {
+        if (res.destroyed) return;
         res.write(formatSse(event));
       });
       req.on("close", stop);
@@ -428,5 +436,6 @@ export function createCodexStudio(options: CodexStudioOptions): Server {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(studioPage());
   });
+  server.on("close", () => { void hub.close(); });
   return server;
 }

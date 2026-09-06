@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { ClaudeCodeTraceHub, claudeCodeHookSettings, mergeClaudeCodeSettings } from "./hub.js";
 
 describe("ClaudeCodeTraceHub", () => {
-  it("keeps sessions isolated and replays events to late subscribers", () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 11 });
-    hub.ingest({
+  it("keeps sessions isolated and replays events to late subscribers", async () => {
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 11 });
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "b",
       hook_event_name: "UserPromptSubmit",
       prompt: "Open issue",
@@ -21,14 +21,14 @@ describe("ClaudeCodeTraceHub", () => {
     });
 
     expect(replayed).toEqual(["Fix overflow"]);
-    expect(hub.list()).toEqual([
+    expect((await hub.list())).toEqual([
       expect.objectContaining({ id: "a", prompt: "Fix overflow", live: true }),
       expect.objectContaining({ id: "b", prompt: "Open issue", live: true }),
     ]);
   });
 
-  it("surfaces model from the transcript when hooks omit it", () => {
-    const hub = new ClaudeCodeTraceHub({
+  it("surfaces model from the transcript when hooks omit it", async () => {
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:",
       now: () => 15,
       readTranscript: () =>
         JSON.stringify({
@@ -36,26 +36,26 @@ describe("ClaudeCodeTraceHub", () => {
           message: { model: "claude-sonnet-5" },
         }),
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
       transcript_path: "/tmp/sess.jsonl",
     });
-    expect(hub.list()[0]).toMatchObject({
+    expect((await hub.list())[0]).toMatchObject({
       id: "a",
       model: "claude-sonnet-5",
     });
   });
 
-  it("surfaces model, effort, and usage on the session list", () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 13 });
-    hub.ingest({
+  it("surfaces model, effort, and usage on the session list", async () => {
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 13 });
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "PreToolUse",
       tool_name: "Read",
@@ -64,13 +64,13 @@ describe("ClaudeCodeTraceHub", () => {
       effort: { level: "high" },
       tool_input: { file_path: "a.css", description: "Read the stylesheet" },
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "PostToolUse",
       tool_use_id: "toolu_1",
       tool_response: { usage: { input_tokens: 100, output_tokens: 20 } },
     });
-    expect(hub.list()[0]).toMatchObject({
+    expect((await hub.list())[0]).toMatchObject({
       id: "a",
       model: "claude-sonnet-5",
       effort: "high",
@@ -78,9 +78,9 @@ describe("ClaudeCodeTraceHub", () => {
     });
   });
 
-  it("forwards live events after subscribe", () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 12 });
-    hub.ingest({
+  it("forwards live events after subscribe", async () => {
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 12 });
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
@@ -89,7 +89,7 @@ describe("ClaudeCodeTraceHub", () => {
     const stop = hub.subscribe("a", (event) => {
       types.push(event.type);
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "PreToolUse",
       tool_name: "Read",
@@ -97,7 +97,7 @@ describe("ClaudeCodeTraceHub", () => {
       tool_input: { file_path: "a.css" },
     });
     stop();
-    hub.ingest({
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "PostToolUse",
       tool_use_id: "toolu_1",
@@ -107,26 +107,26 @@ describe("ClaudeCodeTraceHub", () => {
     expect(types.filter((type) => type === "node.completed")).toHaveLength(0);
   });
 
-  it("drops a session from the list", () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 14 });
-    hub.ingest({
+  it("drops a session from the list", async () => {
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 14 });
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "b",
       hook_event_name: "UserPromptSubmit",
       prompt: "Open issue",
     });
-    expect(hub.drop("a")).toBe(true);
-    expect(hub.list().map((session) => session.id)).toEqual(["b"]);
-    expect(hub.drop("missing")).toBe(false);
+    expect(await hub.drop("a")).toBe(true);
+    expect((await hub.list()).map((session) => session.id)).toEqual(["b"]);
+    expect(await hub.drop("missing")).toBe(false);
   });
 });
 
 describe("claudeCodeHookSettings", () => {
-  it("emits HTTP hooks for the studio URL without blocking Stop", () => {
+  it("emits HTTP hooks for the studio URL without blocking Stop", async () => {
     const settings = claudeCodeHookSettings("http://127.0.0.1:3334/hook");
     expect(settings.hooks.UserPromptSubmit[0].hooks[0]).toMatchObject({
       type: "http",
@@ -137,7 +137,7 @@ describe("claudeCodeHookSettings", () => {
     expect(settings.hooks.PreToolUse).toBeDefined();
   });
 
-  it("merges into existing local settings without dropping other hooks", () => {
+  it("merges into existing local settings without dropping other hooks", async () => {
     const merged = mergeClaudeCodeSettings(
       {
         hooks: {

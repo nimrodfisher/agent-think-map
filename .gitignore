@@ -24,3 +24,5 @@ docs/seed-post.md
 docs/studio.mp4
 docs/linkedin-followup.txt
 .codex/
+
+.npm-cache/

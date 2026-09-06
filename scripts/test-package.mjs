@@ -1,6 +1,7 @@
 // This is intentionally outside Vitest: it packs, installs and tests in a new
 // directory outside the monorepo, with no workspace aliases or TS runtime loader.
 import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -42,6 +43,13 @@ try {
     import assert from 'node:assert/strict';
     import { createRequire } from 'node:module';
     import { githubIssueFixture, reduceTraceAll, TraceAdapter } from 'agent-think-map';
+    import { SqliteRunStore } from 'agent-think-map/storage';
+    const store = new SqliteRunStore();
+    await store.append({schemaVersion:1,eventId:'package-driver',provider:'custom',sessionId:'package-driver',timestamp:1,payload:{type:'run.started',runId:'package-driver',prompt:'Windows SQLite',ts:1}});
+    await store.close();
+    const reopened = new SqliteRunStore();
+    assert.equal((await reopened.readRun('package-driver'))[0].sequence, 1);
+    await reopened.deleteRun('package-driver'); await reopened.close();
     import { ClaudeTraceAdapter } from 'agent-think-map/claude';
     import { ClaudeCodeHookAdapter, createClaudeCodeStudio } from 'agent-think-map/claude-code';
     import * as openai from 'agent-think-map/openai';
@@ -105,6 +113,40 @@ try {
     assert.match(run([cli, adapter, "--doctor", "--port", String(port)]), /Doctor OK: observed synthetic event/);
     assert.match(run([cli, adapter, "--rollback"]), /Restored hooks/);
     console.log(`PASS: packed ${adapter} CLI starts Studio, installs, observes doctor and rolls back`);
+    const base = 'http://127.0.0.1:' + port;
+    const before = await (await fetch(base + '/sessions')).json();
+    assert(before.some(session => session.live));
+    const session = before.find(session => session.live);
+    const dbPath = join(home, '.agent-think-map', 'runs.db');
+    let db = new DatabaseSync(dbPath);
+    const priorEvents = db.prepare('SELECT sequence,payload_json FROM events WHERE run_id=? ORDER BY sequence').all(session.id);
+    assert(priorEvents.length > 0); assert.equal(db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal');
+    assert.equal(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type='index' AND sql IS NOT NULL").get().n, 4);
+    db.close();
+    // Abruptly terminate only this isolated CLI tree, then launch from its installed package.
+    if (process.platform === 'win32') execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], {windowsHide:true,stdio:'ignore'});
+    else process.kill(-child.pid, 'SIGKILL');
+    await new Promise(resolve => { if(child.exitCode !== null || child.signalCode) resolve(); else child.once('exit',resolve); });
+    children.delete(child);
+    const restarted = spawn(process.execPath,[cli,adapter,'--no-open','--port',String(port)],{cwd:room,env,windowsHide:true,detached:process.platform!=='win32',stdio:'pipe'});
+    children.add(restarted);let restartOutput='';restarted.stdout.on('data',data=>restartOutput+=data);restarted.stderr.on('data',data=>restartOutput+=data);
+    const restartDeadline=Date.now()+20000;
+    while(!restartOutput.includes('Studio →') && Date.now()<restartDeadline && restarted.exitCode===null) await new Promise(resolve=>setTimeout(resolve,100));
+    assert(restartOutput.includes('Studio →'),restartOutput);
+    const recovered=await(await fetch(base+'/sessions')).json();assert.equal(recovered.find(row=>row.id===session.id).status,'interrupted');
+    db=new DatabaseSync(dbPath);assert.deepEqual(db.prepare('SELECT sequence,payload_json FROM events WHERE run_id=? ORDER BY sequence').all(session.id),priorEvents);db.close();
+    const configText=JSON.stringify(await(await fetch(base+'/hooks.json')).json());
+    const token=/token=([a-f0-9]+)/.exec(configText)[1];
+    const cursor=priorEvents.at(-1).sequence;
+    assert.equal((await fetch(base+'/hook?token='+token,{method:'POST',body:JSON.stringify({session_id:session.id,hook_event_name:'UserPromptSubmit',event_id:'package-resume-'+adapter,prompt:'after restart'})})).status,200);
+    const abort=new AbortController();
+    const stream=await fetch(base+'/sse?session='+encodeURIComponent(session.id),{headers:{'Last-Event-ID':String(cursor)},signal:abort.signal});
+    const reader=stream.body.getReader();const text=new TextDecoder().decode((await reader.read()).value);
+    assert(text.startsWith('id: '+(cursor+1)+'\n'));assert(text.includes('data: '));abort.abort();await reader.cancel().catch(()=>{});
+    await fetch(base+'/sessions/'+encodeURIComponent(session.id),{method:'DELETE'});
+    db=new DatabaseSync(dbPath);assert.equal(db.prepare('SELECT count(*) AS n FROM events WHERE run_id=?').get(session.id).n,0);db.close();
+    console.log('PASS: packed '+adapter+' crash/restart, interrupted recovery, ordered persistence, SSE resume, WAL/indexes/cascade');
+
   }
   console.log("PASS: clean-room npm pack/install/import verification complete");
 } catch (error) {

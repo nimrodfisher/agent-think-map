@@ -11,7 +11,7 @@ for (const adapter of ["claude", "codex"] as const) {
   it(`${adapter} public CLI installs, diagnoses and rolls back in isolated HOME/CWD`, async () => {
     const home = mkdtempSync(join(tmpdir(), "atm-cli-home-"));
     const cwd = mkdtempSync(join(tmpdir(), "atm-cli-project-"));
-    const server = adapter === "claude" ? createClaudeCodeStudio({ root: resolve(".") }) : createCodexStudio({ root: resolve(".") });
+    const server = adapter === "claude" ? createClaudeCodeStudio({ dbPath: ":memory:", root: resolve(".") }) : createCodexStudio({ dbPath: ":memory:", root: resolve(".") });
     await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
     const port = (server.address() as { port: number }).port;
     const run = (...flags: string[]) => new Promise<string>((resolveRun, reject) => {

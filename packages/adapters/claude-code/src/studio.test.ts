@@ -3,8 +3,8 @@ import { get, type Server } from "node:http";
 import { createClaudeCodeStudio, studioPage } from "./studio.js";
 import { ClaudeCodeTraceHub } from "./hub.js";
 
-async function listen(hub = new ClaudeCodeTraceHub({ now: () => 1 })) {
-  const server = createClaudeCodeStudio({
+async function listen(hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 1 })) {
+  const server = createClaudeCodeStudio({ dbPath: ":memory:",
     hub,
     root: process.cwd(),
     hookToken: "test-token",
@@ -49,8 +49,8 @@ describe("createClaudeCodeStudio", () => {
   });
 
   it("replays protocol events on the session SSE stream", async () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 2 });
-    hub.ingest({
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 2 });
+    await hub.ingest({
       session_id: "cli-1",
       hook_event_name: "UserPromptSubmit",
       prompt: "Read README",
@@ -72,8 +72,8 @@ describe("createClaudeCodeStudio", () => {
   });
 
   it("removes a session from the list", async () => {
-    const hub = new ClaudeCodeTraceHub({ now: () => 3 });
-    hub.ingest({
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:", now: () => 3 });
+    await hub.ingest({
       session_id: "cli-1",
       hook_event_name: "UserPromptSubmit",
       prompt: "Read README",
@@ -86,7 +86,7 @@ describe("createClaudeCodeStudio", () => {
   });
 
   it("rejects missing and wrong tokens before parsing or ingestion", async () => {
-    const hub = new ClaudeCodeTraceHub();
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:" });
     const ingest = vi.spyOn(hub, "ingest");
     const started = await listen(hub);
     server = started.server;
@@ -98,7 +98,7 @@ describe("createClaudeCodeStudio", () => {
   });
 
   it("rejects foreign origins before reads, subscriptions, deletions, and preflights", async () => {
-    const hub = new ClaudeCodeTraceHub();
+    const hub = new ClaudeCodeTraceHub({ path: ":memory:" });
     const ingest = vi.spyOn(hub, "ingest");
     const list = vi.spyOn(hub, "list");
     const subscribe = vi.spyOn(hub, "subscribe");
@@ -150,7 +150,7 @@ describe("createClaudeCodeStudio", () => {
   it("generates distinct random tokens accepted by their own servers", async () => {
     const tokens = [];
     for (let i = 0; i < 2; i++) {
-      server = createClaudeCodeStudio({ root: process.cwd() });
+      server = createClaudeCodeStudio({ dbPath: ":memory:", root: process.cwd() });
       await new Promise<void>((resolve) => server!.listen(0, "127.0.0.1", resolve));
       const address = server.address();
       if (!address || typeof address === "string") throw new Error("no port");
@@ -169,7 +169,7 @@ describe("createClaudeCodeStudio", () => {
 });
 
 describe("studioPage", () => {
-  it("hosts the split viewer so inspector, timeline, and zoom stay in the shell", () => {
+  it("hosts the split viewer so inspector, timeline, and zoom stay in the shell", async () => {
     const html = studioPage();
     expect(html).toContain('layout="split"');
     expect(html).toContain('replay="false"');

@@ -115,3 +115,49 @@ export function parseAgentTraceEvent(input: unknown): AgentTraceEvent {
   }
   return result.data;
 }
+
+export const providerSchema = z.enum(["claude-code", "codex", "claude-sdk", "openai", "custom"]);
+export type Provider = z.infer<typeof providerSchema>;
+export type TraceEnvelopeV1 = {
+  schemaVersion: 1;
+  eventId: string;
+  sequence: number;
+  provider: Provider;
+  sessionId: string;
+  timestamp: number;
+  payload: AgentTraceEvent;
+  [key: string]: unknown;
+};
+export interface TraceEnvelopeContext {
+  provider: Provider;
+  sessionId: string;
+  eventId?: string;
+  /** A producer delivery ID, never a hash of text or a node ID alone. */
+  stableId?: string;
+  sequence?: number;
+}
+const envelopeSchema = z.object({
+  schemaVersion: z.literal(1), eventId: z.string().min(1),
+  sequence: z.number().int().nonnegative().safe(), provider: providerSchema,
+  sessionId: z.string().min(1), timestamp: z.number().finite(), payload: z.unknown(),
+}).passthrough();
+
+export function parseTraceEnvelope(input: unknown, context: TraceEnvelopeContext): TraceEnvelopeV1 {
+  if (input && typeof input === "object" && "schemaVersion" in input) {
+    const envelope = envelopeSchema.parse(input);
+    parseAgentTraceEvent(envelope.payload);
+    // Validate without projecting: nested extensions survive a JSON round trip.
+    return envelope as TraceEnvelopeV1;
+  }
+  const payload = parseAgentTraceEvent(input);
+  const supplied = context.eventId ?? context.stableId;
+  return envelopeSchema.parse({
+    schemaVersion: 1,
+    eventId: context.eventId ?? (context.stableId
+      ? JSON.stringify([context.provider, context.sessionId, context.stableId])
+      : globalThis.crypto.randomUUID()),
+    eventIdProvenance: supplied ? (context.eventId ? "producer" : "stable-provider-id") : "generated-unique",
+    sequence: context.sequence ?? 0, provider: context.provider,
+    sessionId: context.sessionId, timestamp: payload.ts, payload: input,
+  }) as TraceEnvelopeV1;
+}

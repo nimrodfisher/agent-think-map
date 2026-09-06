@@ -1,3 +1,4 @@
+import { parseTraceEnvelope } from "./index.js";
 import { describe, expect, it } from "vitest";
 import { agentTraceEventSchema, parseAgentTraceEvent } from "./index.js";
 
@@ -104,5 +105,27 @@ describe("parseAgentTraceEvent", () => {
     expect(() => parseAgentTraceEvent({ hello: "world" })).toThrowError(
       /Invalid AgentTraceEvent/,
     );
+  });
+});
+
+
+describe('versioned envelopes', () => {
+  it('wraps legacy events without collapsing identical repeats', () => {
+    const raw = { type: 'node.delta', id: 'n', text: 'same', ts: 1, future: { nested: true } };
+    const context = { provider: 'custom' as const, sessionId: 's' };
+    const a = parseTraceEnvelope(raw, context), b = parseTraceEnvelope(raw, context);
+    expect(a.eventId).not.toBe(b.eventId);
+    expect(a.eventIdProvenance).toBe('generated-unique');
+    expect(a.payload).toEqual(raw);
+    expect(parseTraceEnvelope(raw, {...context, stableId:'delivery'}).eventId).toBe(parseTraceEnvelope(raw, {...context, stableId:'delivery'}).eventId);
+  });
+  it('validates V1 and preserves top-level and nested extensions through JSON', () => {
+    const raw = { schemaVersion:1,eventId:'e',sequence:7,provider:'codex',sessionId:'s',timestamp:1,
+      extra:{next:true},payload:{type:'run.meta',runId:'s',ts:1,usage:{inputTokens:2,future:3},future:'yes'} };
+    const context = { provider:'custom' as const,sessionId:'ignored' };
+    expect(JSON.parse(JSON.stringify(parseTraceEnvelope(raw,context)))).toEqual(raw);
+    expect(()=>parseTraceEnvelope({...raw,schemaVersion:2},context)).toThrow();
+    expect(()=>parseTraceEnvelope({...raw,sequence:-1},context)).toThrow();
+    expect(()=>parseTraceEnvelope({...raw,payload:{type:'invalid'}},context)).toThrow();
   });
 });

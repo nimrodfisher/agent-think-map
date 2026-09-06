@@ -147,10 +147,7 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
     console.log("Run `claude` in that project. Restart Claude Code if it is already open.\n");
   }
 
-  const hub = new ClaudeCodeTraceHub();
-  if (args.smoke) {
-    for (const hook of SMOKE) hub.ingest(hook);
-  }
+  const hub = new ClaudeCodeTraceHub({ recover: false });
 
   const server = createClaudeCodeStudio({ hub, root, origin });
   try {
@@ -159,6 +156,7 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
       server.listen(args.port, host, resolve);
     });
   } catch (error) {
+    await hub.close();
     const busy =
       error &&
       typeof error === "object" &&
@@ -174,6 +172,15 @@ export async function startClaudeCodeStudio(argv = studioArgv(process.argv)): Pr
     }
     throw error;
   }
+
+  await hub.recover();
+  if (args.smoke) {
+    for (const hook of SMOKE) await hub.ingest(hook);
+  }
+
+  const shutdown = () => { server.close(); server.closeAllConnections(); void hub.close().then(() => process.exit(0)); };
+  process.once("SIGINT", shutdown);
+  process.once("SIGTERM", shutdown);
 
   if (args.install) await installHooks();
 

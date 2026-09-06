@@ -60,6 +60,8 @@ if (arg === "claude" || arg === "claude-code") {
     stdio: "inherit",
     env: { ...process.env, ATM_CWD: process.cwd() },
   });
+  process.once("SIGTERM", () => child.kill("SIGTERM"));
+  process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (arg === "codex") {
   const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
@@ -69,6 +71,8 @@ if (arg === "claude" || arg === "claude-code") {
     stdio: "inherit",
     env: { ...process.env, ATM_CWD: process.cwd() },
   });
+  process.once("SIGTERM", () => child.kill("SIGTERM"));
+  process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (arg === "hook-forward") {
   const viteNode = fileURLToPath(import.meta.resolve("vite-node/vite-node.mjs"));
@@ -78,6 +82,8 @@ if (arg === "claude" || arg === "claude-code") {
     stdio: ["inherit", "inherit", "inherit"],
     env: { ...process.env },
   });
+  process.once("SIGTERM", () => child.kill("SIGTERM"));
+  process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else if (!existsSync(cdnJs)) {
   console.log(HELP);
@@ -87,6 +93,8 @@ if (arg === "claude" || arg === "claude-code") {
     stdio: "inherit",
     shell: true,
   });
+  process.once("SIGTERM", () => child.kill("SIGTERM"));
+  process.once("SIGINT", () => child.kill("SIGINT"));
   child.on("exit", (code) => process.exit(code ?? 0));
 } else {
   const events = JSON.parse(readFileSync(fixturePath, "utf8"));

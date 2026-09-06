@@ -18,7 +18,7 @@ function temp() { const dir = mkdtempSync(join(tmpdir(), "atm-doctor-test-")); d
 afterEach(async () => { for (const server of servers.splice(0)) { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); } for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 for (const adapter of ["claude", "codex"] as const) {
   it(`${adapter} doctor observes a synthetic event through the installed path in a real Studio`, async () => {
-    const origin = await listen(adapter === "claude" ? createClaudeCodeStudio({ root: resolve(".") }) : createCodexStudio({ root: resolve(".") }));
+    const origin = await listen(adapter === "claude" ? createClaudeCodeStudio({ dbPath: ":memory:", root: resolve(".") }) : createCodexStudio({ dbPath: ":memory:", root: resolve(".") }));
     const settings = await (await fetch(`${origin}/hooks.json`)).json();
     const hook = settings.hooks.UserPromptSubmit[0].hooks[0];
     const url = adapter === "claude" ? hook.url : hook.command.match(/--url (\S+)/)[1];

@@ -2,55 +2,55 @@ import { describe, expect, it } from "vitest";
 import { CodexTraceHub, codexHookSettings, hookForwardCommand, mergeCodexHookSettings } from "./hub.js";
 
 describe("CodexTraceHub", () => {
-  it("isolates sessions and lists the Codex model", () => {
-    const hub = new CodexTraceHub({ now: () => 11 });
-    hub.ingest({
+  it("isolates sessions and lists the Codex model", async () => {
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 11 });
+    await hub.ingest({
       session_id: "a",
       hook_event_name: "UserPromptSubmit",
       prompt: "Fix overflow",
       model: "gpt-5.4",
     });
-    hub.ingest({
+    await hub.ingest({
       session_id: "b",
       hook_event_name: "UserPromptSubmit",
       prompt: "Open issue",
     });
-    expect(hub.list()).toEqual([
+    expect((await hub.list())).toEqual([
       expect.objectContaining({ id: "a", prompt: "Fix overflow", model: "gpt-5.4", live: true }),
       expect.objectContaining({ id: "b", prompt: "Open issue", live: true }),
     ]);
   });
 
-  it("updates cumulative session usage once", () => {
-    const hub = new CodexTraceHub({ now: () => 12 });
-    hub.ingest({
+  it("updates cumulative session usage once", async () => {
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 12 });
+    await hub.ingest({
       session_id: "usage-session",
       hook_event_name: "UserPromptSubmit",
       prompt: "Count this",
     });
     const usage = { inputTokens: 1200, outputTokens: 80, costUsd: 0.0123 };
-    expect(hub.updateUsage("usage-session", usage)).toBe(true);
-    expect(hub.updateUsage("usage-session", usage)).toBe(false);
-    expect(hub.list()[0]).toMatchObject({ usage });
+    expect(await hub.updateUsage("usage-session", usage)).toBe(true);
+    expect(await hub.updateUsage("usage-session", usage)).toBe(false);
+    expect((await hub.list())[0]).toMatchObject({ usage });
   });
 
-  it("updates model and reasoning effort once", () => {
-    const hub = new CodexTraceHub({ now: () => 13 });
-    hub.ingest({
+  it("updates model and reasoning effort once", async () => {
+    const hub = new CodexTraceHub({ path: ":memory:", now: () => 13 });
+    await hub.ingest({
       session_id: "metadata-session",
       hook_event_name: "UserPromptSubmit",
       prompt: "Filter this",
     });
-    expect(hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(true);
-    expect(hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(false);
-    expect(hub.list()[0]).toMatchObject({ model: "gpt-5.6-luna", effort: "high" });
+    expect(await hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(true);
+    expect(await hub.updateMetadata("metadata-session", { model: "gpt-5.6-luna", effort: "high" })).toBe(false);
+    expect((await hub.list())[0]).toMatchObject({ model: "gpt-5.6-luna", effort: "high" });
   });
 });
 
 describe("codexHookSettings", () => {
   const cliJs = "/tmp/agent-think-map/bin/cli.mjs";
 
-  it("uses a Windows PATH executable for Codex command hooks", () => {
+  it("uses a Windows PATH executable for Codex command hooks", async () => {
     const command = hookForwardCommand("http://127.0.0.1:3335/hook", cliJs);
     if (process.platform === "win32") {
       expect(command.startsWith("node ")).toBe(true);
@@ -58,7 +58,7 @@ describe("codexHookSettings", () => {
     }
   });
 
-  it("emits command hooks, not HTTP hooks", () => {
+  it("emits command hooks, not HTTP hooks", async () => {
     const settings = codexHookSettings(
       hookForwardCommand("http://127.0.0.1:3335/hook", cliJs, "node"),
     );
@@ -76,7 +76,7 @@ describe("codexHookSettings", () => {
     expect(settings.hooks.SessionEnd[0].hooks[0].timeout).toBe(3);
   });
 
-  it("replaces an older npx hook-forward without dropping unrelated groups", () => {
+  it("replaces an older npx hook-forward without dropping unrelated groups", async () => {
     const command = hookForwardCommand("http://127.0.0.1:3335/hook", cliJs, "node");
     const merged = mergeCodexHookSettings(
       {

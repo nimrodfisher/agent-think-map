@@ -384,3 +384,7 @@ package, installs it outside the monorepo, and checks Node imports, declarations
 Vite execution and styles, and both CLI install/doctor/rollback flows. The CLI
 still uses its existing vite-node runner. Claude CLI, Codex CLI, and Vite consumers
 already worked on 0.1.2; this maintenance change fixes plain Node library imports.
+
+### Durable Studio history
+
+Studio requires Node 22.13 or newer and stores versioned events in `~/.agent-think-map/runs.db` using built-in SQLite. Claude and Codex share the storage implementation; unfinished sessions become interrupted after restart. SSE supports `Last-Event-ID` and `?after=` cursors. Storage APIs are available from `agent-think-map/storage`; hub mutations and listings are asynchronous. See [Brief 1 verification](docs/brief-1-verification.md) for limits, Node support, and verification evidence.

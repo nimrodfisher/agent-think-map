@@ -87,6 +87,29 @@ export class CodexHookAdapter {
 
   constructor(private readonly options: CodexHookAdapterOptions = {}) {}
 
+  /** Rehydrate adapter cursors without retaining durable history. */
+  restore(events: AgentTraceEvent[]): void {
+    for (const event of events) {
+      if (event.type === 'run.started') {
+        this.opened = true; this.runId = event.runId;
+        this.spineId = `user-${event.runId}`; this.lastId = this.spineId;
+      }
+      if (event.type === 'node.started' && (event.kind === 'user' || event.kind === 'answer')) {
+        this.lastId = event.id; this.spineId = event.id;
+      }
+      if ('id' in event) {
+        const suffix = /-(\d+)$/.exec(event.id);
+        if (suffix) this.seq = Math.max(this.seq, Number(suffix[1]));
+      }
+      if (event.type === 'run.completed') this.usage = event.usage ?? this.usage;
+      if (event.type === 'run.meta') {
+        this.model = event.model ?? this.model;
+        this.effort = event.effort ?? this.effort;
+        this.usage = event.usage ?? this.usage;
+      }
+    }
+  }
+
   ingest(hook: unknown): AgentTraceEvent[] {
     const msg = asRecord(hook);
     if (!msg) return [];
