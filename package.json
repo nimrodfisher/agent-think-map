@@ -27,7 +27,7 @@
   "author": "Nimrod Fisher",
   "type": "module",
   "bin": {
-    "agent-think-map": "./bin/cli.mjs"
+    "agent-think-map": "bin/cli.mjs"
   },
   "exports": {
     ".": {
