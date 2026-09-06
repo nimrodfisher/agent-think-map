@@ -2,7 +2,7 @@ import { initialTraceState, reduceTrace, type NodeStatus, type TraceNode } from 
 import type { AgentTraceEvent, CanonicalOperation, NodeKind, TraceUsage } from "../../protocol/src/index.js";
 import { fingerprint, normalizeInputShape, normalizeOperation } from "./fingerprint.js";
 export type { CanonicalOperation } from "../../protocol/src/index.js";
-export const ANALYZER_VERSION = 1;
+export const ANALYZER_VERSION = 2;
 export interface AnalyzedStep {
   nodeId: string; ordinal: number; parentOrdinal?: number; turnOrdinal: number;
   kind: NodeKind; operation: CanonicalOperation; inputShape: unknown;

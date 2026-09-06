@@ -6,5 +6,7 @@ export interface RunDiff { diffId:string; badRunId:string; goodRunId:string; ana
 export function compareRuns(badRunId:string,goodRunId:string,badEvents:readonly AgentTraceEvent[],goodEvents:readonly AgentTraceEvent[],analyzerVersion=ANALYZER_VERSION):RunDiff {
   const good=analyzeRun(goodEvents,analyzerVersion),bad=analyzeRun(badEvents,analyzerVersion);
   const rows=alignSteps(good.steps,bad.steps),first=rows.findIndex(row=>row.classification!=="matched");
-  return {diffId:createHash("sha256").update(JSON.stringify([badRunId,goodRunId,analyzerVersion,badEvents,goodEvents])).digest("hex"),badRunId,goodRunId,analyzerVersion,fingerprintVersion:1,provisional:true,createdAt:0,good,bad,rows,firstDivergence:first<0?undefined:first,warnings:["Fingerprint V1 is provisional: real developer-pair human validation is pending.",...good.warnings,...bad.warnings]};
+  const paired=rows.filter(row=>row.goodOrdinal!==undefined && row.badOrdinal!==undefined);
+  const inferred=paired.filter(row=>row.match==="inferred").length;
+  return {diffId:createHash("sha256").update(JSON.stringify([badRunId,goodRunId,analyzerVersion,badEvents,goodEvents])).digest("hex"),badRunId,goodRunId,analyzerVersion,fingerprintVersion:1,provisional:true,createdAt:0,good,bad,rows,firstDivergence:first<0?undefined:first,warnings:["Fingerprint V1 is provisional: real developer-pair human validation is pending.",`${inferred} of ${paired.length} aligned step pairs are inferred.`,"Divergence is an investigative lead, not proof of a cause.",...good.warnings,...bad.warnings]};
 }

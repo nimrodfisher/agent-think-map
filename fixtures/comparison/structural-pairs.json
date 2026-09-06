@@ -26,10 +26,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched"
       ],
-      "firstDivergence": null
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -127,10 +127,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -228,10 +228,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -329,10 +329,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -432,10 +432,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -533,10 +533,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -634,10 +634,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -735,10 +735,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -842,11 +842,11 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched",
         "inserted"
       ],
-      "firstDivergence": 2
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -973,11 +973,11 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched",
         "missing"
       ],
-      "firstDivergence": 2
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1111,10 +1111,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1213,10 +1213,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1318,10 +1318,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched"
       ],
-      "firstDivergence": null
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1419,10 +1419,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1520,10 +1520,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1621,10 +1621,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1724,10 +1724,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1825,10 +1825,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -1926,10 +1926,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -2027,10 +2027,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -2134,11 +2134,11 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched",
         "inserted"
       ],
-      "firstDivergence": 2
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -2265,11 +2265,11 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "matched",
         "missing"
       ],
-      "firstDivergence": 2
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -2403,10 +2403,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {
@@ -2505,10 +2505,10 @@
     ],
     "expected": {
       "classes": [
-        "matched",
+        "changed",
         "changed"
       ],
-      "firstDivergence": 1
+      "firstDivergence": 0
     },
     "goodTrace": [
       {

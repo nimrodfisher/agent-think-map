@@ -1,6 +1,28 @@
 import type { AnalyzedStep } from "./analysis.js";
 export type ChangeClass = "matched" | "inserted" | "missing" | "changed" | "reordered";
-export interface AlignmentRow { goodOrdinal?: number; badOrdinal?: number; classification: ChangeClass; confidence: "high" | "medium" | "low"; reason: string }
+export type MatchBasis = "no-corresponding-step" | "step-still-running" | "legacy-identity-unavailable" | "structural-identity-only" | "same-operation-input-shape-differs" | "repeated-fingerprint-order-tie-break" | "exact-fingerprint-status-differs" | "exact-fingerprint";
+export interface AlignmentRow { goodOrdinal?: number; badOrdinal?: number; classification: ChangeClass; match: "exact" | "inferred"; matchBasis: MatchBasis; confidence: "high" | "medium" | "low"; reason: string }
+const reasons: Record<MatchBasis, string> = {
+  "no-corresponding-step": "No corresponding step",
+  "step-still-running": "At least one step is still running",
+  "legacy-identity-unavailable": "Captured operation identity unavailable on a legacy step",
+  "structural-identity-only": "Correspondence uses structural identity without captured operation identity",
+  "same-operation-input-shape-differs": "Same operation; normalized input structure differs",
+  "repeated-fingerprint-order-tie-break": "Repeated fingerprint; chronological order and parent context break ties",
+  "exact-fingerprint-status-differs": "Unique captured fingerprint; status or output class differs",
+  "exact-fingerprint": "Unique captured fingerprint and outcome class",
+};
+function evidence(x: AnalyzedStep, y: AnalyzedStep, repeated: boolean): Pick<AlignmentRow, "match" | "matchBasis" | "confidence" | "reason"> {
+  // Ordered from weakest evidence: earlier conditions win when several apply.
+  const matchBasis: MatchBasis = x.status === "running" || y.status === "running" ? "step-still-running"
+    : x.identitySource === "legacy-unknown" || y.identitySource === "legacy-unknown" ? "legacy-identity-unavailable"
+    : x.identitySource !== "captured" || y.identitySource !== "captured" ? "structural-identity-only"
+    : x.fingerprint !== y.fingerprint ? "same-operation-input-shape-differs"
+    : repeated ? "repeated-fingerprint-order-tie-break"
+    : x.status !== y.status || x.outputClass !== y.outputClass ? "exact-fingerprint-status-differs" : "exact-fingerprint";
+  const match = matchBasis === "exact-fingerprint" || matchBasis === "exact-fingerprint-status-differs" ? "exact" : "inferred";
+  return {match, matchBasis, confidence: match === "exact" ? "high" : matchBasis === "step-still-running" || matchBasis === "legacy-identity-unavailable" ? "low" : "medium", reason: reasons[matchBasis]};
+}
 const sameOperation = (a:AnalyzedStep,b:AnalyzedStep) => a.kind===b.kind && a.operation.name===b.operation.name && a.operation.server===b.operation.server;
 /** Weighted sequence alignment bounded per turn. Sides are always good -> bad. */
 export function alignSteps(good: readonly AnalyzedStep[], bad: readonly AnalyzedStep[]): AlignmentRow[] {
@@ -25,17 +47,15 @@ export function alignSteps(good: readonly AnalyzedStep[], bad: readonly Analyzed
     const rows:AlignmentRow[]=[];let i=a.length,j=b.length;
     while(i||j) {
       const choice=choices[i*width+j];
-      if(choice===1){const x=a[--i],y=b[--j],exact=x.fingerprint===y.fingerprint;
-        const outcome=x.status!==y.status || x.outputClass!==y.outputClass;
-        const unknown=x.status==="running" || y.status==="running" || x.identitySource==="legacy-unknown" || y.identitySource==="legacy-unknown";
+      if(choice===1){const x=a[--i],y=b[--j];
         const repeated=a.filter(s=>s.fingerprint===x.fingerprint).length>1 || b.filter(s=>s.fingerprint===y.fingerprint).length>1;
-        rows.push({goodOrdinal:x.ordinal,badOrdinal:y.ordinal,classification:exact&&!outcome?"matched":"changed",confidence:unknown?"low":repeated?"medium":"high",
-          reason:unknown?"Operation identity unavailable or step still running":!exact?"Same operation; normalized input structure differs":outcome?"Same fingerprint; status or output class differs":repeated?"Exact fingerprint; chronological order and parent context break repeated-tool ties":"Exact fingerprint and outcome class"});
-      } else if(choice===2) rows.push({goodOrdinal:a[--i].ordinal,classification:"missing",confidence:"medium",reason:"Good step absent from failed sequence"});
-      else rows.push({badOrdinal:b[--j].ordinal,classification:"inserted",confidence:"medium",reason:"Additional step in failed sequence"});
+        const pairEvidence=evidence(x,y,repeated);
+        rows.push({goodOrdinal:x.ordinal,badOrdinal:y.ordinal,classification:pairEvidence.matchBasis==="exact-fingerprint"?"matched":"changed",...pairEvidence});
+      } else if(choice===2) rows.push({goodOrdinal:a[--i].ordinal,classification:"missing",match:"inferred",matchBasis:"no-corresponding-step",confidence:"medium",reason:"Good step absent from failed sequence"});
+      else rows.push({badOrdinal:b[--j].ordinal,classification:"inserted",match:"inferred",matchBasis:"no-corresponding-step",confidence:"medium",reason:"Additional step in failed sequence"});
     }
     rows.reverse();
-    // Only unique, exact, same-parent-context unmatched pairs qualify as moved.
+    // Preserve move eligibility; evidence below determines exact vs inferred correspondence.
     for(const missing of rows.filter(r=>r.classification==="missing")) {
       const x=a.find(s=>s.ordinal===missing.goodOrdinal)!;
       if(x.identitySource==="legacy-unknown" || a.filter(s=>s.fingerprint===x.fingerprint).length!==1 || b.filter(s=>s.fingerprint===x.fingerprint).length!==1)continue;
@@ -43,7 +63,8 @@ export function alignSteps(good: readonly AnalyzedStep[], bad: readonly Analyzed
       if(!inserted)continue;
       const y=b.find(s=>s.ordinal===inserted.badOrdinal)!;
       if(parent(x,good)!==parent(y,bad) || x.status!==y.status || x.outputClass!==y.outputClass)continue;
-      Object.assign(missing,{badOrdinal:y.ordinal,classification:"reordered",confidence:"high",reason:"Unique exact fingerprint moved within the same turn and parent context"});
+      const pairEvidence=evidence(x,y,false);
+      Object.assign(missing,{badOrdinal:y.ordinal,classification:"reordered",...pairEvidence,reason:`Moved within the same turn and parent context. ${pairEvidence.reason}`});
       rows.splice(rows.indexOf(inserted),1);
     }
     result.push(...rows);
