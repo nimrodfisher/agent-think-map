@@ -56,9 +56,12 @@ for (const width of [320, 390, 1280]) {
     page.on("pageerror", error => errors.push(error.message));
     const requests: string[] = [];
     page.on("request", request => requests.push(request.url()));
-    const assets: { url: string; status: number }[] = [];
+    const assets: { url: string; status: number; contentType: string }[] = [];
     page.on("response", response => {
-      if (response.url().includes("/assets/")) assets.push({ url: response.url(), status: response.status() });
+      if (response.url().includes("/assets/")) assets.push({
+        url: response.url(), status: response.status(),
+        contentType: response.headers()["content-type"] ?? "",
+      });
     });
     await page.goto("./");
     await expect(page.getByRole("combobox", { name: "Sample" })).toHaveValue("failure");
@@ -120,6 +123,8 @@ for (const width of [320, 390, 1280]) {
     expect(assets.some(asset => asset.url.endsWith(".js"))).toBe(true);
     expect(assets.some(asset => asset.url.endsWith(".css"))).toBe(true);
     expect(assets.every(asset => asset.url.startsWith("http://127.0.0.1:4173/agent-think-map/assets/") && asset.status === 200)).toBe(true);
+    expect(assets.every(asset => asset.url.endsWith(".js")
+      ? asset.contentType.includes("javascript") : asset.contentType.includes("css"))).toBe(true);
     expect(requests.filter(url => !url.startsWith("http://127.0.0.1:4173/"))
       .every(url => /^(https:\/\/fonts\.(googleapis|gstatic)\.com\/|https:\/\/cdn\.jsdelivr\.net\/npm\/@excalidraw\/)/.test(url))).toBe(true);
     expect(errors).toEqual([]);
