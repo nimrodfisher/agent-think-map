@@ -94,6 +94,12 @@ for (const width of [320, 390, 1280]) {
     await page.keyboard.press("Enter");
     await expect(inspector.getByRole("heading")).toHaveText("Answer (unverified)");
     await expect(inspector).not.toContainText("EACCES");
+    const output = inspector.locator(".atc-spec > div").filter({ hasText: "Output" }).locator("pre");
+    await expect(output).toContainText("The application's configuration remains unverified.");
+    const inspectorWidth = await inspector.evaluate(element => ({ scroll: element.scrollWidth, client: element.clientWidth }));
+    const outputWidth = await output.evaluate(element => ({ scroll: element.scrollWidth, client: element.clientWidth }));
+    expect.soft(inspectorWidth.scroll).toBeLessThanOrEqual(inspectorWidth.client);
+    expect.soft(outputWidth.scroll).toBeLessThanOrEqual(outputWidth.client);
     await page.locator('.react-flow__node[data-id="synthetic-config-read"]').click();
     await expect(inspector).toContainText("EACCES");
     await page.getByRole("button", { name: "Inspect the failed step" }).click();
