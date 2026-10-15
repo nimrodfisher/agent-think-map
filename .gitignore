@@ -26,3 +26,5 @@ docs/linkedin-followup.txt
 .codex/
 
 .npm-cache/
+test-results/
+playwright-report/

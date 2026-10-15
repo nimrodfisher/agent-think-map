@@ -3,93 +3,51 @@
   background: #d9ccb4;
   font-family: Figtree, "Segoe UI", sans-serif;
 }
-
-html,
-body,
-#root {
-  margin: 0;
-  min-height: 100%;
-  height: 100%;
+body { margin: 0; }
+.demo-shell { max-width: 1440px; margin: auto; padding: 24px; box-sizing: border-box; }
+.demo-shell *, .demo-shell *::before, .demo-shell *::after { box-sizing: border-box; }
+.demo-shell h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -.03em; }
+.demo-shell p { line-height: 1.5; }
+.demo-intro p { max-width: 70ch; margin: 8px 0; }
+.demo-lead { font-size: clamp(1.15rem, 2.5vw, 1.5rem); font-weight: 600; }
+.demo-shell a { color: #175644; text-underline-offset: 3px; }
+.demo-actions { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-top: 16px; }
+.demo-actions label { display: grid; gap: 5px; min-width: 0; font-size: .9rem; }
+.demo-actions button, .demo-actions select {
+  min-height: 44px; max-width: 100%; padding: 8px 12px; font: inherit;
+  border: 1px solid #5c564c; border-radius: 3px; background: #f6f0e4; color: #1c1915;
 }
+.demo-actions button { cursor: pointer; background: #1c1915; color: #f6f0e4; }
+.demo-shell :focus-visible { outline: 3px solid #1f6f5b; outline-offset: 3px; }
+.demo-caption { font-size: .9rem; margin: 12px 0; max-width: 90ch; }
+.demo-stage { height: clamp(520px, 68vh, 760px); border: 1px solid #a99b86; min-width: 0; }
+.demo-stage .atc-inspector { scroll-margin: 12px; }
+.demo-stage .atc-inspector dd { overflow-wrap: anywhere; }
+.demo-setup { margin-top: 32px; padding-top: 12px; border-top: 1px solid #a99b86; }
+.demo-setup > p { max-width: 90ch; }
+.demo-setup h2 { font-size: 1.5rem; }
+.demo-setup h3 { margin-bottom: 8px; }
+.demo-setup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.demo-setup pre { padding: 14px; background: #f6f0e4; border: 1px solid #a99b86; white-space: pre-wrap; overflow-wrap: anywhere; }
+.demo-setup code { font-size: .9rem; }
+.demo-privacy { font-weight: 500; }
+.demo-footer { margin-top: 24px; border-top: 1px solid #a99b86; font-size: .9rem; }
 
-body {
-  background:
-    radial-gradient(900px 420px at 80% -10%, rgba(31, 111, 91, 0.14), transparent 50%),
-    #d9ccb4;
-}
-
-.demo-shell {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  height: 100%;
-}
-
-.demo-mast {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-  padding: 1.1rem 1.4rem 1.15rem;
-  overflow: visible;
-}
-
-.demo-mast > div {
-  overflow: visible;
-  min-width: 0;
-}
-
-.demo-mast p {
-  margin: 0.32rem 0 0;
-  color: #5c564c;
-  max-width: 36rem;
-  line-height: 1.55;
-  overflow: visible;
-}
-
-.demo-mast h1 {
-  /* Syne's g/p descenders are drawn with a flat cut; Figtree keeps the wordmark intact. */
-  font-family: Figtree, "Segoe UI", sans-serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: -0.03em;
-  line-height: 1.35;
-  padding: 0.08em 0 0.28em;
-  overflow: visible;
-}
-
-.demo-replay {
-  appearance: none;
-  border: 1px solid #1c1915;
-  background: #1c1915;
-  color: #e4d9c5;
-  font: inherit;
-  padding: 0.55rem 0.9rem;
-  cursor: pointer;
-}
-
-.demo-replay:hover,
-.demo-replay:focus-visible {
-  background: #b85a2a;
-  border-color: #b85a2a;
-}
-
-.demo-chat {
-  padding: 1rem 1.05rem;
-}
-
-.demo-chat .bubble {
-  background: #f6f0e4;
-  border: 1px dashed #c9bba3;
-  padding: 0.9rem 0.95rem 1.05rem;
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
-
-.demo-stage {
-  min-height: 0;
-  margin: 0 1rem 1rem;
-  border: 1px solid #c9bba3;
-  min-height: calc(100vh - 7.5rem);
-  height: calc(100vh - 7.5rem);
+@media (max-width: 700px) {
+  .demo-shell { padding: 16px 12px; }
+  .demo-actions label { flex-basis: 100%; }
+  .demo-actions select { width: 100%; }
+  .demo-setup-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .demo-stage, .demo-stage .atc-root { height: auto; }
+  .demo-stage .atc-root { grid-template-rows: auto auto; }
+  .demo-stage .atc-root[data-layout="split"] .atc-stage[data-inspector] {
+    height: auto; grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 340px auto; overflow: visible;
+  }
+  .demo-stage .atc-split-handle { display: none; }
+  .demo-stage .atc-run-totals { position: static; box-shadow: none; }
+  .demo-stage .atc-root[data-layout="split"] .atc-inspector {
+    height: auto; min-height: 280px; max-height: none; border-left: 0; border-top: 1px solid #a99b86;
+  }
+  .demo-stage .atc-kind-filter { gap: 4px; flex-wrap: wrap; max-width: calc(100% - 20px); }
 }

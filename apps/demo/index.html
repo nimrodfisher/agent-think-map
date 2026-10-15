@@ -6,18 +6,19 @@
     <title>agent-think-map - Visual debugger for AI agents</title>
     <meta
       name="description"
-      content="Agent Think Map is the visual debugger for AI agents. Inspect tools, skills, MCP calls, subagents, latency, and cost inside your product or beside your coding agent."
+      content="Find the step worth investigating with a synthetic failed-Read canvas sample. Inspect captured evidence in your browser, then try agent-think-map Studio locally."
     />
     <link rel="canonical" href="https://nimrodfisher.github.io/agent-think-map/" />
     <meta property="og:title" content="agent-think-map - Visual debugger for AI agents" />
     <meta
       property="og:description"
-      content="See the execution path behind every answer: tools, skills, MCP calls, subagents, latency, and cost. No API key."
+      content="Find the step worth investigating with a synthetic failed-Read canvas sample. Inspect captured evidence in your browser, then try agent-think-map Studio locally."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://nimrodfisher.github.io/agent-think-map/" />
     <meta property="og:image" content="https://nimrodfisher.github.io/agent-think-map/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/src/demo.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -59,7 +60,7 @@
                 "name": "Do I need an API key to try it?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "No. The live demo replays a recorded GitHub-issue turn in the browser with no account and no API key."
+                  "text": "No. The hosted canvas replays a clearly labeled synthetic failed file read, with an alternate GitHub-issue sample. No account or API key is needed. Studio history, Problems and Compare run locally."
                 }
               }
             ]
@@ -68,8 +69,47 @@
       }
     </script>
   </head>
-  <body>
-    <div id="root"></div>
+  <body class="demo-shell">
+    <main>
+      <section class="demo-showcase" aria-labelledby="product-title">
+        <header class="demo-intro">
+          <h1 id="product-title">agent-think-map</h1>
+          <p class="demo-lead">Find the step worth investigating, without rereading the whole run.</p>
+          <p>This synthetic sample shows a failed file read. Inspect its captured input and error. It is evidence to investigate, not a proven root cause.</p>
+          <p class="demo-links"><a href="#local-setup">Try Studio locally</a> · <a href="https://github.com/nimrodfisher/agent-think-map">GitHub repository</a></p>
+        </header>
+        <div id="root"></div>
+        <noscript><p>Enable JavaScript for the interactive canvas. The summary and local setup below remain available.</p></noscript>
+      </section>
+      <section id="local-setup" class="demo-setup" aria-labelledby="setup-title">
+        <h2 id="setup-title">Continue in local Studio</h2>
+        <p>agent-think-map is a visual debugger for captured agent events. This hosted page is a canvas sample, not hosted Studio history, Problems or Compare; those run locally. No upload, account, backend or telemetry. No automatic diagnosis or chain-of-thought guarantee.</p>
+        <p><strong>Requires Node &gt;=22.13.0.</strong> Choose your coding agent:</p>
+        <div class="demo-setup-grid">
+          <section aria-labelledby="claude-title">
+            <h3 id="claude-title">Claude Code</h3>
+            <pre><code>npx agent-think-map@latest claude --install</code></pre>
+            <p>Run from the project, keep Studio running, and restart Claude if it is open.</p>
+          </section>
+          <section aria-labelledby="codex-title">
+            <h3 id="codex-title">Codex</h3>
+            <pre><code>npx agent-think-map@latest codex --install</code></pre>
+            <p>Keep Studio running, restart Codex, and honor its existing consent prompt.</p>
+          </section>
+        </div>
+        <p>These install commands add capture hooks. Read the <a href="https://github.com/nimrodfisher/agent-think-map#connect-your-coding-agent">setup details and consent conditions</a> before connecting your agent.</p>
+        <h3>Hook-free history import · Claude only</h3>
+        <pre><code>npx agent-think-map@latest claude --import-history --dry-run
+npx agent-think-map@latest claude --import-history</code></pre>
+        <p>Import exits without opening Studio. Then start Studio without changing hooks:</p>
+        <pre><code>npx agent-think-map@latest claude</code></pre>
+        <p>See <a href="https://github.com/nimrodfisher/agent-think-map#local-history-clear-boundaries">history import details and limits</a>.</p>
+        <p class="demo-privacy">Local trace data may contain prompts/tool content. Review and sanitize before sharing. Localhost run and comparison URLs work only on your machine.</p>
+      </section>
+    </main>
+    <footer class="demo-footer">
+      <p>If this helps you explain an agent failure, share a sanitized recording and link to the <a href="https://github.com/nimrodfisher/agent-think-map">repo</a>. Star it if you want to follow the project.</p>
+    </footer>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

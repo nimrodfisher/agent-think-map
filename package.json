@@ -89,6 +89,7 @@
     "prepublishOnly": "npm test && npm run test:package",
     "build:lib": "tsup",
     "test:package": "node scripts/test-package.mjs",
+    "test:demo:e2e": "node scripts/test-demo-e2e.mjs",
     "prepack": "npm run build"
   },
   "peerDependencies": {
@@ -112,6 +113,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^24.2.1",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",

@@ -21,12 +21,18 @@
 </p>
 
 <p align="center">
-  <img src="docs/hero.png?v=2" alt="Agent execution canvas with connected steps and an inspector for tools, skills, and MCP calls" width="100%" />
+  <img src="docs/hero.png?v=3" alt="Clearly labeled synthetic canvas sample: a failed configuration Read and its captured input and EACCES error" width="100%" />
 </p>
 
 An agent calls a tool, delegates to another agent, hits a permissions error, and keeps going. The final answer is only part of the story. **Agent Think Map makes that execution path explorable.**
 
 Run Studio beside Claude Code or Codex, or embed the canvas in your own application. Keep your existing agent workflow. Inspect the events it emits.
+
+## First useful investigation
+
+Open the [hosted synthetic canvas sample](https://nimrodfisher.github.io/agent-think-map/) and choose **Inspect the failed step**. A configuration Read receives `EACCES` for `./config/app.json`, then the agent answers. Inspect the captured input and error: it is evidence to investigate, not a proven root cause, and a completed run does not verify the answer. The original GitHub issue sample is also selectable.
+
+The hosted page is a canvas sample; Studio history, Problems and Compare run locally. With **Node >=22.13.0**, follow the separate [Claude Code or Codex setup instructions](#connect-your-coding-agent), or use [hook-free Claude-only history import](#local-history-clear-boundaries), then start Studio with `npx agent-think-map@latest claude`. Import itself exits without opening Studio. Local trace data may contain prompts/tool content: review and sanitize before sharing. Localhost run and comparison URLs work only on your machine.
 
 ## From “what happened?” to the original evidence
 
@@ -249,7 +255,7 @@ The next useful feature might come from the trace that confused you today. You c
 
 [Open an issue](https://github.com/nimrodfisher/agent-think-map/issues/new) · [Read the contribution guide](CONTRIBUTING.md) · [Explore the UX roadmap](docs/run-history-ux-plan.md)
 
-If the map helps you explain an agent failure, share a short recording and link back to the repo. **Star the project** if you want to help more agent builders find it.
+If this helps you explain an agent failure, share a sanitized recording and link to the repo. Star it if you want to follow the project.
 
 ### Develop locally
 
