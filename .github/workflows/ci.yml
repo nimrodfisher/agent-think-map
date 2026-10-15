@@ -29,3 +29,13 @@ jobs:
       - run: npm run build -w @agent-think-map/demo
         env:
           GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:demo:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-browser-smoke
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
