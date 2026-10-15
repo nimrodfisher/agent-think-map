@@ -1,8 +1,8 @@
 <h1 align="center">Agent Think Map</h1>
 
 <p align="center">
-  <strong>Your agent took 40 steps. Find the one that matters.</strong><br />
-  A visual debugger for AI agents. Follow tools, skills, MCP calls, and subagents.<br />
+  <strong>A visual debugger for AI agents.</strong><br />
+  Your agent took 40 steps. Find the one that matters. Follow tools, skills, MCP calls, and subagents.<br />
   Find the run. Inspect the evidence. Get back to building.
 </p>
 
@@ -24,7 +24,7 @@
   <img src="docs/hero.png?v=3" alt="Clearly labeled synthetic canvas sample: a failed configuration Read and its captured input and EACCES error" width="100%" />
 </p>
 
-An agent calls a tool, delegates to another agent, hits a permissions error, and keeps going. The final answer is only part of the story. **Agent Think Map makes that execution path explorable.**
+A visual debugger for AI agents. An agent calls a tool, delegates to another agent, hits a permissions error, and keeps going. The final answer is only part of the story. **Agent Think Map makes that execution path explorable.**
 
 Run Studio beside Claude Code or Codex, or embed the canvas in your own application. Keep your existing agent workflow. Inspect the events it emits.
 

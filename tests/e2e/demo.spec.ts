@@ -17,6 +17,7 @@ async function noOverflow(page: Page) {
 
 async function setupAndLinks(page: Page) {
   await expect(page.getByRole("heading", { name: "Continue in local Studio" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Embed the canvas" })).toHaveAttribute("href", `${repo}#put-the-canvas-in-your-own-app`);
   await expect(page.getByText("Requires Node >=22.13.0.", { exact: true })).toBeVisible();
   const code = (await page.locator(".demo-setup code").allTextContents()).join("\n").split("\n");
   expect(code).toEqual(commands);
@@ -139,7 +140,7 @@ test("useful HTML and consistent metadata without JavaScript", async ({ browser 
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("http://127.0.0.1:4173/agent-think-map/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("agent-think-map");
-  await expect(page.getByText("Find the step worth investigating, without rereading the whole run.")).toBeVisible();
+  await expect(page.getByText("A visual debugger for AI agents. Find the step worth investigating, without rereading the whole run.")).toBeVisible();
   await expect(page.getByText(/This synthetic sample shows a failed file read/)).toBeVisible();
   await setupAndLinks(page);
   await noOverflow(page);
@@ -149,6 +150,7 @@ test("useful HTML and consistent metadata without JavaScript", async ({ browser 
   await expect(page.locator('meta[name="description"]')).toHaveCount(1);
   const description = await page.locator('meta[name="description"]').getAttribute("content");
   expect(description).toContain("synthetic failed-Read canvas sample");
+  expect(description).toMatch(/^A visual debugger for AI agents\./);
   await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", description!);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonical);
@@ -159,6 +161,7 @@ test("useful HTML and consistent metadata without JavaScript", async ({ browser 
   expect(socialImage.headers()["content-type"]).toContain("image/png");
   const structured = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!);
   expect(structured["@graph"][0].url).toBe(canonical);
+  expect(structured["@graph"][0].description).toMatch(/^A visual debugger for AI agents/);
   expect(JSON.stringify(structured)).toContain("synthetic failed file read");
   await expect(page.locator('link[rel="stylesheet"][href^="/agent-think-map/assets/"]')).toHaveCount(1);
   // CSS really applied even though no module script ran.

@@ -6,13 +6,13 @@
     <title>agent-think-map - Visual debugger for AI agents</title>
     <meta
       name="description"
-      content="Find the step worth investigating with a synthetic failed-Read canvas sample. Inspect captured evidence in your browser, then try agent-think-map Studio locally."
+      content="A visual debugger for AI agents. Find the step worth investigating with a synthetic failed-Read canvas sample, then try local Studio capture with Claude Code or Codex."
     />
     <link rel="canonical" href="https://nimrodfisher.github.io/agent-think-map/" />
     <meta property="og:title" content="agent-think-map - Visual debugger for AI agents" />
     <meta
       property="og:description"
-      content="Find the step worth investigating with a synthetic failed-Read canvas sample. Inspect captured evidence in your browser, then try agent-think-map Studio locally."
+      content="A visual debugger for AI agents. Find the step worth investigating with a synthetic failed-Read canvas sample, then try local Studio capture with Claude Code or Codex."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://nimrodfisher.github.io/agent-think-map/" />
@@ -32,7 +32,7 @@
           {
             "@type": ["SoftwareApplication", "WebApplication"],
             "name": "agent-think-map",
-            "description": "Visual debugger and embeddable execution UI for agent tools, skills, MCP calls, subagents, latency, and cost.",
+            "description": "A visual debugger for AI agents with an embeddable canvas for custom agent apps.",
             "operatingSystem": "Web",
             "applicationCategory": "DeveloperApplication",
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -52,7 +52,7 @@
                 "name": "What is agent-think-map?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "A visual debugger and embeddable execution UI that shows the route behind an agent answer, including tools, skills, MCP calls, subagents, latency, and cost."
+                  "text": "A visual debugger for AI agents. Explore captured execution in local Studio or embed the canvas in your own agent app."
                 }
               },
               {
@@ -74,7 +74,7 @@
       <section class="demo-showcase" aria-labelledby="product-title">
         <header class="demo-intro">
           <h1 id="product-title">agent-think-map</h1>
-          <p class="demo-lead">Find the step worth investigating, without rereading the whole run.</p>
+          <p class="demo-lead">A visual debugger for AI agents. Find the step worth investigating, without rereading the whole run.</p>
           <p>This synthetic sample shows a failed file read. Inspect its captured input and error. It is evidence to investigate, not a proven root cause.</p>
           <p class="demo-links"><a href="#local-setup">Try Studio locally</a> · <a href="https://github.com/nimrodfisher/agent-think-map">GitHub repository</a></p>
         </header>
@@ -83,7 +83,8 @@
       </section>
       <section id="local-setup" class="demo-setup" aria-labelledby="setup-title">
         <h2 id="setup-title">Continue in local Studio</h2>
-        <p>agent-think-map is a visual debugger for captured agent events. This hosted page is a canvas sample, not hosted Studio history, Problems or Compare; those run locally. No upload, account, backend or telemetry. No automatic diagnosis or chain-of-thought guarantee.</p>
+        <p>A visual debugger for AI agents. This hosted page is a canvas sample, not hosted Studio history, Problems or Compare; those run locally. Claude Code and Codex are the current local Studio capture paths. No upload, account, backend or telemetry. No automatic diagnosis or chain-of-thought guarantee.</p>
+        <p>Building your own agent app? <a href="https://github.com/nimrodfisher/agent-think-map#put-the-canvas-in-your-own-app">Embed the canvas</a>.</p>
         <p><strong>Requires Node &gt;=22.13.0.</strong> Choose your coding agent:</p>
         <div class="demo-setup-grid">
           <section aria-labelledby="claude-title">
