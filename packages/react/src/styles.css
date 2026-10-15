@@ -371,6 +371,7 @@
 
 .atc-spec {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
 }
 
@@ -436,6 +437,8 @@
   background: color-mix(in srgb, var(--atc-ink) 6%, var(--atc-card));
   padding: 0.55rem 0.6rem;
   border-radius: 2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   overflow: auto;
 }
 
